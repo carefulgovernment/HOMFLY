@@ -26,9 +26,12 @@ conventions pinned; integer mod-p fast path.
   Framing-free T̄, and the same even continued fraction as family P, give the
   standard H directly. Pinned by [6] (H = P on all 362 two-bridge knots) and
   by sl_N reductions.
-* [4,2], [2,2,1,1] (family G) and [3,2,1] (families C and F): U_Q blocks are A-independent and given in a
-  Gelfand–Tsetlin / fused path basis with vertical framing, so they need an
-  adapter plus a framing correction.
+* ✅ 3-strand [6], [1⁶] (generator export), [4,2], [2,2,1,1] (G), [3,2,1] (F):
+  `racah-3strand-U`; two-bridge [4,2], [2,2,1,1] from the G S̄.
+* ⏳ Two-bridge [3,2,1] from family C (corner algebra; 270 MB S̄; T̄ signs in the
+  multiplicity blocks are undetermined, but only T̄² enters the even-cf chain).
+* ⏳ [3,2,1] throughput: batch several knots per q value. U_Q evaluation is
+  shared across knots, and the traces are cheap compared with it.
 * [5,1], [4,1,1], [3,3] and their transposes (family H): S̄ and the mixed S only,
   so they feed the two-bridge / arborescent route (C = T̄ S̄ T̄ relation) but not
   3-strand braids.

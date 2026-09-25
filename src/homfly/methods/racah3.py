@@ -76,3 +76,39 @@ class Racah3Strand(Method):
     def evaluate(self, knot, R, F, A, q):
         A, q = natural_point(A, q)
         return natural_value(P(R), three_strand_word(knot), F, A, q, self.root)
+
+
+class Racah3StrandU(Method):
+    """3-strand knots from A-independent U_Q blocks (families G/F: [4,2],
+    [2,2,1,1], [3,2,1]).  Natural convention with framing theta_R^{-w}
+    (pinned against Rosso--Jones T[3,4], T[3,5] in tests/test_racah_data.py).
+    Traces are cached per q, so the A-direction of the interpolation grid is
+    almost free."""
+
+    name = "racah-3strand-U"
+    prime_bound = 2 ** 21
+
+    def __init__(self, root=None):
+        from ..racah import uform
+        self.uform = uform
+        self.root = root or uform.LARGE_DIR
+
+    def supports(self, knot, R):
+        return (isinstance(knot, Braid) and knot.strands <= 3 and knot.is_knot()
+                and P(R) in self.uform.available(self.root))
+
+    def evaluate(self, knot, R, F, A, q):
+        from ..reps.qdim import theta
+        if getattr(F, "p", None) is None or F.p >= self.uform.PRIME_BOUND:
+            raise ValueError("racah-3strand-U needs GF(p) with p < 2^21")
+        A, q = natural_point(A, q)
+        R = P(R)
+        U = self.uform.load(R, self.root)
+        word = three_strand_word(knot)
+        t = U.traces(word, F.p, int(q))
+        tot = F.zero
+        for tq, Q in zip(t, U.Q):
+            if tq:
+                tot = tot + qdim(Q, A, q) * tq
+        writhe = sum(1 if a > 0 else -1 for a in word)
+        return tot / qdim(R, A, q) * theta(R, A, q) ** (-writhe)

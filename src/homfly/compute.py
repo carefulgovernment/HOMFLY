@@ -31,9 +31,9 @@ def resolve_knot(k):
 
 
 def default_methods(racah_store=None):
-    from .methods.racah3 import Racah3Strand
+    from .methods.racah3 import Racah3Strand, Racah3StrandU
     from .methods.two_bridge import TwoBridgeMethod
-    ms = [RossoJones(), HeckeFundamental(), Racah3Strand(), TwoBridgeMethod()]
+    ms = [RossoJones(), HeckeFundamental(), Racah3Strand(), TwoBridgeMethod(), Racah3StrandU()]
     if racah_store is not None:
         from .methods.rt_braid import RTBraid
         from .methods.arborescent import Arborescent
@@ -84,6 +84,8 @@ def homfly(knot, R=(1,), method=None, racah_store=None, seed=0, report=None, **k
     m, K = choose_method(knot, R, methods)
     rep = report if report is not None else ReconstructionReport()
     rep.method = m.name
+    if hasattr(m, "prime_bound"):
+        kw.setdefault("prime_bound", m.prime_bound)
     return reconstruct_laurent(m.black_box(K, R), steps=m.steps, seed=seed, report=rep, **kw)
 
 

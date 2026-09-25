@@ -142,6 +142,43 @@ def available_sbar(root=DEFAULT_DIR):
             if f.startswith("sbar_") and f.endswith(".json.gz")]
 
 
+def _inv_mod(M, p):
+    n = len(M)
+    X = [list(r) + [int(i == j) for j in range(n)] for i, r in enumerate(M)]
+    for c in range(n):
+        piv = next((r for r in range(c, n) if X[r][c] % p), None)
+        if piv is None:
+            raise BadPoint("singular S̄")
+        X[c], X[piv] = X[piv], X[c]
+        iv = pow(X[c][c], -1, p)
+        X[c] = [x * iv % p for x in X[c]]
+        for r in range(n):
+            if r != c and X[r][c]:
+                f = X[r][c]
+                X[r] = [(x - f * y) % p for x, y in zip(X[r], X[c])]
+    return [r[n:] for r in X]
+
+
+def value_sbar_alternating(R, cf, F, A, q, root=DEFAULT_DIR):
+    """Family G (rational 'vacuum-dual' gauge, S̄² != 1):
+    <0| S̄⁻¹ T̄^{a1} S̄ T̄^{a2} S̄⁻¹ ... |0> / <0|S̄⁻¹|0>, framing-free T̄,
+    evaluated at the NATURAL point (pinned against the U_Q 3-strand data)."""
+    p = F.p
+    d = load_sbar(tuple(R), root)
+    S, T2 = d.evaluate_modp(p, int(A), int(q))
+    Si = _inv_mod(S, p)
+    n, v0 = len(S), d.vac
+    mats = (Si, S)
+    v = list(Si[v0])
+    for idx, a in enumerate(cf):
+        e = a // 2
+        t = [pow(x, e, p) if e >= 0 else pow(pow(x, -1, p), -e, p) for x in T2]
+        v = [v[j] * t[j] % p for j in range(n)]
+        M = mats[(idx + 1) % 2]
+        v = [sum(v[k] * M[k][j] for k in range(n)) % p for j in range(n)]
+    return F(v[v0]) / F(Si[v0][v0])
+
+
 def value_sbar(R, cf, F, A, q, root=DEFAULT_DIR):
     """[S̄ T̄^{a1} S̄ T̄^{a2} ... T̄^{an} S̄]_{00} / S̄_{00}   (S̄_{00} = 1/dim_q R),
     framing-free T̄ (t0 = 1).  With the same even cf as family P this is directly
@@ -229,4 +266,7 @@ class TwoBridgeMethod(Method):
         if R in available(self.root):
             Ap, qp = _point(A, q)
             return value(R, knot.even_cf(), F, Ap, qp, self.root)
+        if load_sbar(R, self.root).family == "G":
+            Ap, qp = _point(A, q)
+            return value_sbar_alternating(R, knot.even_cf(), F, Ap, qp, self.root)
         return value_sbar(R, knot.even_cf(), F, A, q, self.root)

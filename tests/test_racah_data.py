@@ -93,3 +93,43 @@ def test_family_h_six_boxes():
         assert tb.value((6,), cf, F, A0 ** -1, q0 ** -1) == tb.value_sbar((6,), cf, F, A0, q0)
         for R, RT in [((3, 3), (2, 2, 2)), ((5, 1), (2, 1, 1, 1, 1))]:
             assert m.evaluate(K, RT, F, A0, q0) == m.evaluate(K, R, F, A0, -(q0 ** -1)), (name, R)
+
+
+def _uform_reps():
+    from homfly.racah import uform
+    return uform.available()
+
+
+@pytest.mark.skipif(not _uform_reps(), reason="U-form data (data/racah/large) not imported")
+def test_uform_three_strand():
+    """Families G/F ([4,2], [2,2,1,1], [3,2,1]): Rosso--Jones and transposition."""
+    from homfly.algebra.fields import primes_below
+    from homfly.methods.racah3 import Racah3StrandU
+    Fs = GF(primes_below(2 ** 21, 1)[0])
+    A, q = Fs(123457), Fs(765431)
+    m = Racah3StrandU()
+    reps = _uform_reps()
+    for R in reps:
+        for name, (a, b) in (("8_19", (3, 4)), ("3_1", (2, 3))):
+            assert (m.evaluate(knot(name).braid, R, Fs, A, q)
+                    == RossoJones().evaluate(TorusKnot(a, b), R, Fs, A, q)), (R, name)
+    if (4, 2) in reps and (2, 2, 1, 1) in reps:
+        b = knot("5_2").braid
+        assert m.evaluate(b, (2, 2, 1, 1), Fs, A, q) == m.evaluate(b, (4, 2), Fs, A, -(q ** -1))
+
+
+@pytest.mark.skipif(not _uform_reps(), reason="U-form data (data/racah/large) not imported")
+def test_family_g_two_bridge_vs_three_strand():
+    from homfly.algebra.fields import primes_below
+    from homfly.methods.racah3 import Racah3StrandU
+    Fs = GF(primes_below(2 ** 21, 1)[0])
+    A, q = Fs(123457), Fs(765431)
+    for R in [(4, 2), (2, 2, 1, 1)]:
+        if R not in _uform_reps() or R not in tb.available_sbar():
+            continue
+        for name in ["3_1", "5_2", "6_2", "6_3"]:
+            rec = knot(name)
+            p, qq = rec.two_bridge
+            K = TwoBridge(p, qq, mirror=tb.chirality(p, qq, rec.homfly_reference()))
+            assert (tb.TwoBridgeMethod().evaluate(K, R, Fs, A, q)
+                    == Racah3StrandU().evaluate(rec.braid, R, Fs, A, q)), (name, R)

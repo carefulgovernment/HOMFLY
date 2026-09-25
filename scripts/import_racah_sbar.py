@@ -80,15 +80,62 @@ def import_h(root, key, out):
     return path, len(res["labels"])
 
 
+G_REPS = {"42": "R42", "2211": "R2211"}
+
+
+def import_g(root, key, out):
+    """Family G (gtpath): S̄ in the rational vacuum-dual gauge (sympy strings),
+    T̄_X = q^{c(Z)+c(Z')-2c(R)} A^{|Z|-|R|}.  Stored framing-free:
+    T̄²_X / T̄²_0 = A^{2|Z|} q^{2(c(Z)+c(Z'))}."""
+    import sympy as sp
+    A, q = sp.symbols("A q")
+    K = sp.ZZ.frac_field(A, q)
+
+    def terms(pl):
+        return [[int(i), int(j), int(c)] for (i, j), c in pl.terms()]
+
+    d = os.path.join(root, "level6", G_REPS[key], "gtpath")
+    S = json.load(open(os.path.join(d, "racah_%s_Sbar_rational.json" % key)))
+    T = json.load(open(os.path.join(d, "racah_%s_Tbar.json" % key)))
+    loc = {"A": A, "q": q}
+    t2 = {}
+    for t in T["Tbar"]:
+        X = (tuple(t["X"][0]), tuple(t["X"][1]))
+        _, ea, eq = monomial(t["Tbar_squared"])
+        t2[X] = (ea, eq)
+    labels = [((tuple(l[0][0]), tuple(l[0][1])), l[1], l[2]) for l in S["labels"]]
+    a0, q0 = t2[((), ())]
+    tbar2 = [[t2[X][0] - a0, t2[X][1] - q0] for X, _, _ in labels]
+    ent = []
+    for row in S["Sbar"]:
+        r = []
+        for x in row:
+            f = K.from_sympy(sp.sympify(x, locals=loc))
+            r.append([terms(f.numer), terms(f.denom)])
+        ent.append(r)
+    vac = labels.index((((), ()), 0, 0))
+    res = {"R": [int(c) for c in key], "family": "G", "gauge": S["meta"]["gauge"],
+           "labels": [str(l) for l in labels], "vacuum_index": vac, "t0_squared": [0, 0],
+           "Sbar": ent, "Tbar2": tbar2}
+    path = os.path.join(out, "sbar_%s.json.gz" % key)
+    with gzip.open(path, "wt") as f:
+        json.dump(res, f)
+    return path, len(labels)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--archive", required=True)
     ap.add_argument("--out", default="data/racah/portable")
-    ap.add_argument("--reps", nargs="*", default=list(H_REPS))
+    ap.add_argument("--reps", nargs="*", default=list(H_REPS) + list(G_REPS))
     a = ap.parse_args()
     for key in a.reps:
-        path, n = import_h(a.archive, key, a.out)
-        print("H", key, n, path)
+        if key in G_REPS:
+            path, n = import_g(a.archive, key, a.out)
+            print("G", key, n, path)
+        else:
+            path, n = import_h(a.archive, key, a.out)
+            print("H", key, n, path)
 
 
 if __name__ == "__main__":

@@ -106,18 +106,47 @@ def convert_exclusive(archive, R, out):
     return R, C.shape[0], time.time() - t
 
 
+def convert_generated(archive, R, out):
+    """Inclusive blocks from level6/R*/portable_generated/*_inclusive_symbolic.json
+    (racah_homfly v0.7 generator export for [r], [1^r] beyond the bundled data)."""
+    import sympy as sp
+    A, q = sp.symbols("A q")
+    entry = _entry_converter(sp, A, q)
+    key = rep_key(R)
+    path = os.path.join(archive, "level%d" % sum(R), "R" + key, "portable_generated",
+                        "R%s_inclusive_symbolic.json" % key)
+    t = time.time()
+    d = json.load(open(path))
+    assert tuple(d["representation"]) == tuple(R)
+    loc = {"A": A, "q": q}
+    channels = []
+    for b in d["blocks"]:
+        ch = {"Q": list(b["Q"]), "dim": int(b["dimension"]),
+              "labels": [str(x) for x in b["basis_labels"]]}
+        for k in ("R1", "R2", "R1_inv", "R2_inv"):
+            ch[k] = [[entry(sp.sympify(x, locals=loc)) for x in row] for row in b[k]]
+        channels.append(ch)
+    outp = os.path.join(out, "inclusive_%s.json.gz" % key)
+    with gzip.open(outp, "wt") as f:
+        json.dump({"R": list(R), "family": "P", "source": d["generator"],
+                   "framing": "topological factor included in R1, R2",
+                   "channels": channels}, f)
+    return R, len(channels), time.time() - t
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--archive", required=True)
     ap.add_argument("--reps", nargs="+", required=True, help="e.g. 1 2 11 21 311")
     ap.add_argument("--out", default="data/racah/portable")
     ap.add_argument("--jobs", type=int, default=1)
-    ap.add_argument("--kind", choices=["inclusive", "exclusive"], default="inclusive")
+    ap.add_argument("--kind", choices=["inclusive", "exclusive", "generated"], default="inclusive")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     reps = [tuple(int(c) for c in s) for s in a.reps]
     with ProcessPoolExecutor(a.jobs) as ex:
-        fn = convert if a.kind == "inclusive" else convert_exclusive
+        fn = {"inclusive": convert, "exclusive": convert_exclusive,
+              "generated": convert_generated}[a.kind]
         for R, n, sec in ex.map(fn, [a.archive] * len(reps), reps, [a.out] * len(reps)):
             print("%s R=%s  size %d  %.1fs" % (a.kind, list(R), n, sec), flush=True)
 

@@ -46,7 +46,9 @@ $ python scripts/validate_fundamental.py 12   # all 2977 knots vs KnotInfo
 | **RT in multiplicity spaces, m strands, from Racah matrices** | ✅ engine; validated with fundamental Racah matrices on 3 and 4 strands |
 | **Racah tables, family P** (release v1.0.0): 3-strand inclusive blocks, \|R\| ≤ 5 | ✅ imported, fast GF(p) path; agrees with cabling and Rosso–Jones |
 | **Two-bridge knots from exclusive data**: family P (C, T̄²) for \|R\| ≤ 5, [6], [1⁶]; family H (S̄, T̄²) for [5,1], [4,1,1], [3,3], [2,2,2], [3,1³], [2,1⁴] | ✅ all 362 two-bridge knots ≤ 12 crossings; P agrees with the 3-strand data; H agrees with P on [6] and passes the sl_N reductions |
-| Racah families G ([4,2], [2,2,1,1]) and C/F ([3,2,1]) | ⏳ M2b adapters |
+| **3-strand, 6-box**: [6], [1⁶] (family P generator export); [4,2], [2,2,1,1], [3,2,1] (families G/F, A-independent U_Q, float64-BLAS mod p < 2²¹) | ✅ agree with Rosso–Jones T[3,4], T[3,5]; transposition; G two-bridge |
+| **Two-bridge [4,2], [2,2,1,1]** (family G S̄, alternating chain) | ✅ agrees with the G 3-strand data on all 30 overlap knots |
+| Two-bridge [3,2,1] (family C, 270 MB S̄) | ⏳ |
 | Racah data model, JSON store, checks | ✅ |
 | Eigenvalue hypothesis | 2×2 ✅, 3×3–5×5 ⏳ M4 |
 | Highest-weight Racah matrices | ⏳ M5 |
@@ -59,10 +61,15 @@ $ python scripts/validate_fundamental.py 12   # all 2977 knots vs KnotInfo
 | Knots (≤ 12 crossings) | Representations | Method |
 |---|---|---|
 | all 2977 | [1] | Hecke (also two-bridge / 3-strand when applicable) |
-| 185 with braid index ≤ 3 | every R with \|R\| ≤ 5 | `racah-3strand` |
-| 362 two-bridge | every R with \|R\| ≤ 6 except [4,2], [2,2,1,1], [3,2,1] | `two-bridge` |
+| 185 with braid index ≤ 3 | every R with \|R\| ≤ 5; [6], [1⁶]; [4,2], [2,2,1,1], [3,2,1] | `racah-3strand`, `racah-3strand-U` |
+| 362 two-bridge | every R with \|R\| ≤ 6 except [3,2,1] | `two-bridge` |
 | torus knots T[m,n] | any R | `rosso-jones` |
 | any braid (small) | m·\|R\| ≲ 10 | `cabling` (reference) |
+
+The six 6-box representations [5,1], [4,1,1], [3,3], [2,2,2], [3,1³], [2,1⁴] have
+no 3-strand blocks in the release (only S̄ and the mixed S), so they are two-bridge-only.
+[4,2], [2,2,1,1], [3,2,1] 3-strand data live in `data/racah/large/` (not committed,
+~190 MB); run `scripts/fetch_racah_release.py` or `scripts/import_racah_uform.py`.
 
 `homfly("name", R)` chooses the presentation automatically: 3-strand braid first,
 then two-bridge (chirality fixed against KnotInfo), then the general braid.

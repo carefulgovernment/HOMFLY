@@ -65,6 +65,20 @@ So family P uses exactly our natural convention. 2-strand braids are
 Markov-stabilised. Checked against cabling ([2], [1,1]) and against Rosso–Jones
 for T[3,4] and T[3,5] in every imported R.
 
+## 4a'. 3-strand knots from A-independent U_Q (families G/F: `racah-3strand-U`)
+
+For [4,2], [2,2,1,1] (family G) and [3,2,1] (family F), the release gives, for
+each Q ⊢ 18, R₁ = diag(ε q^{κ_Y−2κ_R}) and U_Q, U_Q⁻¹ as rational functions
+of q only (R₂ = U_Q R₁ U_Q⁻¹). Then
+
+    H_nat = θ_R^{−w} Σ_Q dim_q(Q; A, q) t_Q(q) / dim_q(R),   t_Q = Tr_Q(word)
+
+So only dim_q(Q) carries A. The t_Q are cached per q value, which makes the
+A-direction of the interpolation grid almost free (16 ms per A value vs 6.6 s
+per new q for [3,2,1], whose blocks go up to 220×220). Products are exact in
+float64 BLAS for p < 2²¹. The framing θ_R^{−w} at the natural point was pinned
+against Rosso–Jones.
+
 ## 4b. Two-bridge knots from the family-P exclusive data (implemented: `two-bridge`)
 
 With the all-even negative continued fraction cf = (a₁,…,a_k) of the 4-plat
@@ -87,6 +101,13 @@ framing-free T̄:
 This agrees with family P for R = [6] on all 362 two-bridge knots, and passes
 H_[3,3](A=q²) = H_[2,2,2](A=q³) = 1 and H_[4,1,1](A=q³) = H_[3](A=q³) (and
 similar). The latter is a check across the two families.
+
+Family G ([4,2], [2,2,1,1]) uses a rational "vacuum-dual" gauge in which
+S̄² ≠ 1, so the chain alternates:
+
+    H_nat = ⟨0| S̄⁻¹ T̄^{a₁} S̄ T̄^{a₂} S̄⁻¹ ⋯ |0⟩ / ⟨0|S̄⁻¹|0⟩   (framing-free T̄, natural point)
+
+It agrees with the G 3-strand data on all 30 knots that have both presentations.
 
 ## 5. Arborescent / 2-bridge from exclusive Racah matrices (general form, M3)
 

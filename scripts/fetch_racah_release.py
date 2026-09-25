@@ -42,6 +42,7 @@ def main():
     ap.add_argument("--keep-archive", help="directory to download/unpack into")
     ap.add_argument("--out", default=os.path.join(HERE, "..", "data", "racah", "portable"))
     ap.add_argument("--jobs", type=int, default=2)
+    ap.add_argument("--skip-large", action="store_true", help="skip [4,2], [2,2,1,1], [3,2,1]")
     a = ap.parse_args()
     work = a.keep_archive or tempfile.mkdtemp(prefix="racah_")
     os.makedirs(work, exist_ok=True)
@@ -61,6 +62,14 @@ def main():
     # family H: S̄, T̄ for the other 6-box representations (no sympy needed)
     subprocess.check_call([sys.executable, os.path.join(HERE, "import_racah_sbar.py"),
                            "--archive", root, "--out", a.out])
+    # [6], [1^6] 3-strand blocks (generator export, family P)
+    subprocess.check_call([sys.executable, imp, "--kind", "generated", "--archive", root,
+                           "--out", a.out, "--reps", "6", "111111"])
+    # families G/F: A-independent U_Q for [4,2], [2,2,1,1], [3,2,1] -> data/racah/large
+    # (large; not committed).  [3,2,1] needs ~4 GB RAM and ~20 min.
+    if not a.skip_large:
+        subprocess.check_call([sys.executable, os.path.join(HERE, "import_racah_uform.py"),
+                               "--archive", root, "--reps", "42", "2211", "321"])
 
 
 if __name__ == "__main__":
