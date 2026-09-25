@@ -1,0 +1,54 @@
+# Uploading Racah matrices
+
+## What to send
+
+Put the raw files in `data/racah/raw/` in any format (Mathematica, Maple, plain
+text). `homfly.racah.adapters` gets a converter for that format (milestone M2).
+The converter needs to know:
+
+1. **Which matrices.** For inclusive matrices, U[R,R,R→Q] (3-strand) and, if
+   available, U[Y,R,R→Z] with Y ∈ R⊗R (4-strand). For exclusive matrices, S
+   (R⊗R⊗R̄ → R) and S̄ (R⊗R̄⊗R → R).
+2. **Basis labels and their order.** For rows (intermediate Y' ∈ Y⊗R, or
+   composite reps for S̄), for columns (X ∈ R⊗R), and multiplicity labels
+   when a representation appears more than once.
+3. **Eigenvalues.** The signs ε_X for X ∈ R⊗R (and for R⊗R̄), or the
+   convention they follow.
+4. **Convention.** A or A^{-1}, q or q^{-1}, and whether the matrices are
+   unitary (with √) or rational.
+
+## Canonical JSON (what the engines read)
+
+```json
+{
+  "kind": "inclusive",
+  "reps": [[1], [1], [1], [2, 1]],
+  "convention": "natural",
+  "rows": [[[2], 0], [[1, 1], 0]],
+  "cols": [[[2], 0], [[1, 1], 0]],
+  "entries": [
+    [ [{"coef": "q/(q^2+1)"}],
+      [{"coef": "1", "sqrt": "(q^4+q^2+1)/(q^4+2*q^2+1)"}] ],
+    [ [{"coef": "1", "sqrt": "(q^4+q^2+1)/(q^4+2*q^2+1)"}],
+      [{"coef": "-q/(q^2+1)"}] ]
+  ]
+}
+```
+
+Each entry is a list of terms `coef · sqrt(sqrt)`. Both are rational functions
+written as `numerator/denominator` Laurent polynomials in `A, q`, using the
+`parse_laurent` syntax. Omit `"sqrt"` for rational terms.
+
+`eigenvalues/<R>.json`:
+
+```json
+{"R": [2], "eigenvalues": [{"X": [4], "sign": 1}, {"X": [3, 1], "sign": -1}, {"X": [2, 2], "sign": 1}]}
+```
+
+## Acceptance checks run on import (`racah/checks.py`)
+
+* orthogonality (for the unitary gauge) at random points;
+* braid relations on the generated path spaces;
+* 3-strand results equal to cabling for |R| ≤ 3 on a sample of knots;
+* for exclusive matrices: the fundamental and [2] 2-bridge results equal to
+  Hecke and cabling.

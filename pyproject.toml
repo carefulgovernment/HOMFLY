@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "homfly"
+version = "0.1.0"
+description = "Colored HOMFLY-PT polynomials of knots: Hecke/cabling, Rosso-Jones, Racah-matrix RT, arborescent; modular evaluation + reconstruction"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+fast = ["python-flint>=0.6"]        # nmod_mat / fmpz_mpoly back-ends (ROADMAP M8)
+cas = ["sympy>=1.12"]                # optional symbolic cross-checks
+knotinfo = ["database_knotinfo"]     # regenerate the knot table
+dev = ["pytest>=7"]
+
+[project.scripts]
+homfly = "homfly.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"homfly.knots" = ["data/*.csv"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
