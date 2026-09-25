@@ -16,7 +16,28 @@ CLI, SQLite DB, and batch tabulation.
   degree bounds from Morton–Franks–Williams (A-span ≤ 2(m−1)|R|) to skip
   detection.
 
-## M2: user Racah tables → 3-strand and 4-strand colored HOMFLY
+## M2a: family-P tables ✅
+Importer (`scripts/import_racah_portable.py`, `scripts/fetch_racah_release.py`);
+3-strand method for |R| ≤ 5; two-bridge method for |R| ≤ 5, [6], [1⁶];
+conventions pinned; integer mod-p fast path.
+
+## M2b: remaining 6-box representations (families H, G, C/F of the release)
+* ✅ Family H two-bridge: `scripts/import_racah_sbar.py`, `two_bridge.value_sbar`.
+  Framing-free T̄, and the same even continued fraction as family P, give the
+  standard H directly. Pinned by [6] (H = P on all 362 two-bridge knots) and
+  by sl_N reductions.
+* [4,2], [2,2,1,1] (family G) and [3,2,1] (families C and F): U_Q blocks are A-independent and given in a
+  Gelfand–Tsetlin / fused path basis with vertical framing, so they need an
+  adapter plus a framing correction.
+* [5,1], [4,1,1], [3,3] and their transposes (family H): S̄ and the mixed S only,
+  so they feed the two-bridge / arborescent route (C = T̄ S̄ T̄ relation) but not
+  3-strand braids.
+* Acceptance: compare with Rosso–Jones (T[3,4], T[3,5]) and with the
+  transposition symmetry.
+
+## M2c (original M2 scope): 4-strand braids
+Needs U[Y,R,R→Z] for Y ∈ R⊗R. These are not in the release, so they come
+from M4/M5.
 * Adapter for the uploaded format → canonical JSON; conventions pinned by
   3-strand results vs cabling for [2], [1,1], [2,1].
 * Coverage: 185 knots with braid index 3 in every representation with

@@ -1,0 +1,232 @@
+"""Two-bridge knots from exclusive Racah data of the release v1.0.0.
+
+Family P (|R| <= 5, [6], [1^6]) -- C and D̄²; families H (other 6-box reps) --
+S̄ and T̄² via value_sbar.  Family P formula:
+
+For the all-even 4-plat continued fraction cf = (a_1, ..., a_k)
+(TwoBridge.even_cf):
+
+    M = prod_i ( C · D̄²^{a_i/2 - 1} ) · C,        H_R = dim_q(R) · M[vac, vac],
+
+where C = S T^{-1} V and D̄² = T̄² (diagonal) are rational in (A, q)
+(racah_homfly v0.7 conventions).  Covers all 362 two-bridge knots <= 12
+crossings in every R with exclusive data (|R| <= 5, [6], [1^6]).
+
+Chirality: KnotInfo's [p, q] does not always match the package's sign
+convention, so the orientation is fixed per knot by comparing the fundamental
+result with the KnotInfo HOMFLY (``chirality``), and then used for every R.
+"""
+from __future__ import annotations
+
+import gzip
+import json
+import os
+import random
+from functools import lru_cache
+
+from ..algebra.fields import GF, BadPoint
+from ..algebra.linalg import matmul
+from ..knots.families import TwoBridge
+from ..racah.portable import DEFAULT_DIR, _Poly, matmul_mod, rep_key
+from ..reps.partitions import P
+from ..reps.qdim import qdim
+from .base import Method
+
+# family-P point for our STANDARD (A, q); pinned by tests/test_two_bridge.py
+def _point(A, q):
+    return A ** -1, q ** -1
+
+
+class Exclusive:
+    def __init__(self, R, root=DEFAULT_DIR):
+        path = os.path.join(root, "exclusive_%s.json.gz" % rep_key(R))
+        with gzip.open(path, "rt") as f:
+            d = json.load(f)
+        self.R = tuple(R)
+        self.vac = d["vacuum_index"]
+        self.C = [[(_Poly(n), _Poly(dd)) for n, dd in row] for row in d["C"]]
+        self.D2 = [(_Poly(n), _Poly(dd)) for n, dd in d["Dbar2"]]
+        polys = [p for row in self.C for e in row for p in e] + [p for e in self.D2 for p in e]
+        self.maxA = max(max((i for i, _, _ in p.terms), default=0) for p in polys)
+        self.maxq = max(max((j for _, j, _ in p.terms), default=0) for p in polys)
+
+    def evaluate(self, F, A, q):
+        one, zero = F.one, F.zero
+        Ap, qp = [one], [one]
+        for _ in range(self.maxA):
+            Ap.append(Ap[-1] * A)
+        for _ in range(self.maxq):
+            qp.append(qp[-1] * q)
+
+        def ev(e):
+            d = e[1].eval(Ap, qp, zero)
+            if d == 0:
+                raise BadPoint("pole in exclusive data")
+            return e[0].eval(Ap, qp, zero) / d
+        return [[ev(e) for e in row] for row in self.C], [ev(e) for e in self.D2]
+
+
+    def evaluate_modp(self, p, A, q):
+        Ap, qp = [1], [1]
+        for _ in range(self.maxA):
+            Ap.append(Ap[-1] * A % p)
+        for _ in range(self.maxq):
+            qp.append(qp[-1] * q % p)
+
+        def ev(e):
+            d = sum(Ap[i] * qp[j] * c for i, j, c in e[1].terms) % p
+            if d == 0:
+                raise BadPoint("pole in exclusive data")
+            return sum(Ap[i] * qp[j] * c for i, j, c in e[0].terms) * pow(d, -1, p) % p
+        return [[ev(e) for e in row] for row in self.C], [ev(e) for e in self.D2]
+
+
+class SbarData:
+    """Families H/G of the release: rational S̄ (S̄² = 1) and diagonal T̄²
+    (including the framing t0²), stored by scripts/import_racah_sbar.py."""
+
+    def __init__(self, R, root=DEFAULT_DIR):
+        path = os.path.join(root, "sbar_%s.json.gz" % rep_key(R))
+        with gzip.open(path, "rt") as f:
+            d = json.load(f)
+        self.R = tuple(R)
+        self.family = d["family"]
+        self.vac = d["vacuum_index"]
+        self.t0sq = tuple(d["t0_squared"])
+        self.S = [[(_Poly(n), _Poly(dd)) for n, dd in row] for row in d["Sbar"]]
+        self.T2 = [tuple(x) for x in d["Tbar2"]]      # (A-exp, q-exp) monomials
+        polys = [p for row in self.S for e in row for p in e]
+        self.minA = min(min((i for i, _, _ in p.terms), default=0) for p in polys)
+        self.minq = min(min((j for _, j, _ in p.terms), default=0) for p in polys)
+        self.maxA = max(max((i for i, _, _ in p.terms), default=0) for p in polys)
+        self.maxq = max(max((j for _, j, _ in p.terms), default=0) for p in polys)
+
+    def evaluate_modp(self, p, A, q):
+        Ai, qi = pow(A, -1, p), pow(q, -1, p)
+        Ap = {0: 1}
+        for k in range(1, self.maxA + 1):
+            Ap[k] = Ap[k - 1] * A % p
+        for k in range(1, -self.minA + 1):
+            Ap[-k] = Ap[-k + 1] * Ai % p
+        qp = {0: 1}
+        for k in range(1, self.maxq + 1):
+            qp[k] = qp[k - 1] * q % p
+        for k in range(1, -self.minq + 1):
+            qp[-k] = qp[-k + 1] * qi % p
+
+        def ev(e):
+            d = sum(Ap[i] * qp[j] * c for i, j, c in e[1].terms) % p
+            if d == 0:
+                raise BadPoint("pole in S̄ data")
+            return sum(Ap[i] * qp[j] * c for i, j, c in e[0].terms) * pow(d, -1, p) % p
+        S = [[ev(e) for e in row] for row in self.S]
+        T2 = [pow(A, a, p) * pow(q, b, p) % p for a, b in self.T2]
+        return S, T2
+
+
+@lru_cache(maxsize=None)
+def load_exclusive(R, root=DEFAULT_DIR):
+    return Exclusive(tuple(R), root)
+
+
+@lru_cache(maxsize=None)
+def load_sbar(R, root=DEFAULT_DIR):
+    return SbarData(tuple(R), root)
+
+
+def available_sbar(root=DEFAULT_DIR):
+    if not os.path.isdir(root):
+        return []
+    return [tuple(int(c) for c in f[len("sbar_"):-len(".json.gz")])
+            for f in sorted(os.listdir(root))
+            if f.startswith("sbar_") and f.endswith(".json.gz")]
+
+
+def value_sbar(R, cf, F, A, q, root=DEFAULT_DIR):
+    """[S̄ T̄^{a1} S̄ T̄^{a2} ... T̄^{an} S̄]_{00} / S̄_{00}   (S̄_{00} = 1/dim_q R),
+    framing-free T̄ (t0 = 1).  With the same even cf as family P this is directly
+    the STANDARD H_R(A, q) (pinned against family P on R = [6] in the tests)."""
+    p = F.p
+    d = load_sbar(tuple(R), root)
+    S, T2 = d.evaluate_modp(p, int(A), int(q))
+    n = len(S)
+    v = [S[i][d.vac] for i in range(n)]              # S̄ |0>
+    for a in reversed(cf):
+        e = a // 2
+        t = [pow(x, e, p) if e >= 0 else pow(pow(x, -1, p), -e, p) for x in T2]
+        v = [t[i] * v[i] % p for i in range(n)]
+        v = [sum(S[i][j] * v[j] for j in range(n)) % p for i in range(n)]
+    val = v[d.vac] * pow(S[d.vac][d.vac], -1, p) % p
+    return F(val)
+
+
+def available(root=DEFAULT_DIR):
+    if not os.path.isdir(root):
+        return []
+    return [tuple(int(c) for c in f[len("exclusive_"):-len(".json.gz")])
+            for f in sorted(os.listdir(root))
+            if f.startswith("exclusive_") and f.endswith(".json.gz")]
+
+
+def value(R, cf, F, A, q, root=DEFAULT_DIR):
+    """Family-P value (their convention) at (A, q)."""
+    ex = load_exclusive(tuple(R), root)
+    if getattr(F, "p", None) is not None:
+        return _value_modp(ex, R, cf, F, A, q)
+    C, D2 = ex.evaluate(F, A, q)
+    n = len(C)
+    M = None
+    for a in cf:
+        e = a // 2 - 1
+        scaled = [[C[i][j] * D2[j] ** e for j in range(n)] for i in range(n)]
+        M = scaled if M is None else matmul(M, scaled)
+    M = C if M is None else matmul(M, C)
+    return qdim(R, A, q) * M[ex.vac][ex.vac]
+
+
+def _value_modp(ex, R, cf, F, A, q):
+    p = F.p
+    C, D2 = ex.evaluate_modp(p, int(A), int(q))
+    n = len(C)
+    M = None
+    for a in cf:
+        e = a // 2 - 1
+        d = [pow(x, e, p) if e >= 0 else pow(pow(x, -1, p), -e, p) for x in D2]
+        scaled = [[C[i][j] * d[j] % p for j in range(n)] for i in range(n)]
+        M = scaled if M is None else matmul_mod(M, scaled, p)
+    M = C if M is None else matmul_mod(M, C, p)
+    return qdim(R, A, q) * M[ex.vac][ex.vac]
+
+
+@lru_cache(maxsize=None)
+def chirality(p, q, reference=None):
+    """True if the knot [p, q] needs the mirrored cf to match ``reference``
+    (a Laurent polynomial, the fundamental HOMFLY in STANDARD convention)."""
+    tb = TwoBridge(p, q)
+    F = GF(2 ** 61 - 1)
+    rng = random.Random(p * 1000003 + q)
+    A, qq = F.random_element(rng), F.random_element(rng)
+    ref = reference.evaluate([A, qq], one=F.one)
+    Ap, qp = _point(A, qq)
+    for mirror in (False, True):
+        if value((1,), tb.even_cf(mirror), F, Ap, qp) == ref:
+            return mirror
+    raise ValueError("two-bridge [%d,%d]: neither chirality matches the reference" % (p, q))
+
+
+class TwoBridgeMethod(Method):
+    name = "two-bridge"
+
+    def __init__(self, root=DEFAULT_DIR):
+        self.root = root
+
+    def supports(self, knot, R):
+        return (isinstance(knot, TwoBridge) and knot.is_knot()
+                and (P(R) in available(self.root) or P(R) in available_sbar(self.root)))
+
+    def evaluate(self, knot, R, F, A, q):
+        R = P(R)
+        if R in available(self.root):
+            Ap, qp = _point(A, q)
+            return value(R, knot.even_cf(), F, Ap, qp, self.root)
+        return value_sbar(R, knot.even_cf(), F, A, q, self.root)

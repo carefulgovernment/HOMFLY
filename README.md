@@ -15,7 +15,8 @@ integer lift or rational reconstruction → verification at fresh points.
 ```python
 from homfly import homfly, TorusKnot
 homfly("3_1")                       # -A^4 + A^2 q^2 + A^2 q^-2
-homfly("4_1", R=(2,))               # via cabling (or Racah tables once loaded)
+homfly("4_1", R=(2,))               # 3-strand Racah blocks (family P)
+homfly("7_4", R=(3, 2))             # two-bridge, exclusive Racah data
 homfly(TorusKnot(3, 4), R=(2, 1))   # Rosso–Jones
 ```
 
@@ -23,7 +24,7 @@ homfly(TorusKnot(3, 4), R=(2, 1))   # Rosso–Jones
 $ PYTHONPATH=src python -m homfly.cli compute 4_1 --rep 2
 $ PYTHONPATH=src python -m homfly.cli compute --torus 3,5 --rep 3
 $ PYTHONPATH=src python -m homfly.cli info 10_124
-$ python -m pytest                  # 32 tests, ~8 s
+$ python -m pytest                  # all tests, ~1 min
 $ python scripts/validate_fundamental.py 12   # all 2977 knots vs KnotInfo
 ```
 
@@ -43,12 +44,28 @@ $ python scripts/validate_fundamental.py 12   # all 2977 knots vs KnotInfo
 | **Colored HOMFLY by cabling + idempotents** | ✅ validation reference (m·\|R\| ≲ 10) |
 | **Rosso–Jones** (torus knots, any R) | ✅ agrees with cabling |
 | **RT in multiplicity spaces, m strands, from Racah matrices** | ✅ engine; validated with fundamental Racah matrices on 3 and 4 strands |
-| Racah data model, JSON store, checks | ✅; adapter for your tables ⏳ M2 |
+| **Racah tables, family P** (release v1.0.0): 3-strand inclusive blocks, \|R\| ≤ 5 | ✅ imported, fast GF(p) path; agrees with cabling and Rosso–Jones |
+| **Two-bridge knots from exclusive data**: family P (C, T̄²) for \|R\| ≤ 5, [6], [1⁶]; family H (S̄, T̄²) for [5,1], [4,1,1], [3,3], [2,2,2], [3,1³], [2,1⁴] | ✅ all 362 two-bridge knots ≤ 12 crossings; P agrees with the 3-strand data; H agrees with P on [6] and passes the sl_N reductions |
+| Racah families G ([4,2], [2,2,1,1]) and C/F ([3,2,1]) | ⏳ M2b adapters |
+| Racah data model, JSON store, checks | ✅ |
 | Eigenvalue hypothesis | 2×2 ✅, 3×3–5×5 ⏳ M4 |
 | Highest-weight Racah matrices | ⏳ M5 |
 | Arborescent / 2-bridge (exclusive S, S̄) | ⏳ M3 |
 | Double-braid knots, rectangular R | ⏳ M6 |
 | SQLite results database, batch tabulation, CLI | ✅ |
+
+## Which knot × representation can be computed now
+
+| Knots (≤ 12 crossings) | Representations | Method |
+|---|---|---|
+| all 2977 | [1] | Hecke (also two-bridge / 3-strand when applicable) |
+| 185 with braid index ≤ 3 | every R with \|R\| ≤ 5 | `racah-3strand` |
+| 362 two-bridge | every R with \|R\| ≤ 6 except [4,2], [2,2,1,1], [3,2,1] | `two-bridge` |
+| torus knots T[m,n] | any R | `rosso-jones` |
+| any braid (small) | m·\|R\| ≲ 10 | `cabling` (reference) |
+
+`homfly("name", R)` chooses the presentation automatically: 3-strand braid first,
+then two-bridge (chirality fixed against KnotInfo), then the general braid.
 
 ## Documentation
 
@@ -66,16 +83,17 @@ src/homfly/
   reconstruction/  interpolation.py  crt.py  pipeline.py
   reps/            partitions.py  characters.py (MN, Adams, LR)  qdim.py  composite.py*
   hecke/           seminormal.py
-  racah/           model.py  provider.py  store.py  fundamental.py
+  racah/           portable.py (family-P data)  model.py  provider.py  store.py  fundamental.py
                    eigenvalue_hypothesis.py  highest_weight.py*  adapters.py*  checks.py
   knots/           braid.py  families.py  table.py  data/knotinfo_upto12.csv
   methods/         base.py  hecke_fundamental.py  cabling.py  rosso_jones.py
-                   rt_braid.py  arborescent.py*  double_braid.py*
+                   rt_braid.py  racah3.py  two_bridge.py  arborescent.py*  double_braid.py*
   checks/          structural.py (special polynomial, transposition, DE)
   io/              export.py  database.py
   compute.py       cli.py  conventions.py
 scripts/           tabulate.py  validate_fundamental.py  extract_knotinfo.py
-data/racah/        drop your Racah tables here
+                   fetch_racah_release.py  import_racah_portable.py
+data/racah/portable/  converted family-P tables (inclusive_<R>, exclusive_<R>)
 tests/
 (* = interface and specification only)
 ```

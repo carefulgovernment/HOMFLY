@@ -31,37 +31,57 @@ def resolve_knot(k):
 
 
 def default_methods(racah_store=None):
-    ms = [RossoJones(), HeckeFundamental()]
+    from .methods.racah3 import Racah3Strand
+    from .methods.two_bridge import TwoBridgeMethod
+    ms = [RossoJones(), HeckeFundamental(), Racah3Strand(), TwoBridgeMethod()]
     if racah_store is not None:
         from .methods.rt_braid import RTBraid
         from .methods.arborescent import Arborescent
         ms += [RTBraid(racah_store), Arborescent(racah_store)]
-    ms.append(Cabling())
+    ms.append(Cabling(max_strands=9))   # reference only: m*|R| > 9 is impractical
     return ms
 
 
+def presentations(name):
+    """All descriptions of a table knot usable by some method, best first:
+    3-strand braid, two-bridge (chirality fixed against KnotInfo), braid."""
+    from .methods.two_bridge import chirality
+    rec = load_table()[name]
+    out = []
+    if rec.braid is not None and rec.braid.strands <= 3:
+        out.append(rec.braid)
+    if rec.two_bridge is not None:
+        p, q = rec.two_bridge
+        out.append(TwoBridge(p, q, mirror=chirality(p, q, rec.homfly_reference())))
+    if rec.braid is not None and rec.braid.strands > 3:
+        out.append(rec.braid)
+    return out
+
+
 def choose_method(knot, R, methods=None):
+    """(method, knot description) for a knot description or a table name."""
+    cands = presentations(knot) if isinstance(knot, str) else [resolve_knot(knot)]
     for m in methods or default_methods():
-        if m.supports(knot, R):
-            return m
+        for K in cands:
+            if m.supports(K, R):
+                return m, K
     raise NotApplicable("no available method for %s in %s" % (knot, R))
 
 
 def homfly(knot, R=(1,), method=None, racah_store=None, seed=0, report=None, **kw):
     """Reduced colored HOMFLY H_R(K; A, q) as a Laurent polynomial."""
     R = P(R)
-    K = resolve_knot(knot)
-    if isinstance(K, TorusKnot) and K.m == 1 or (isinstance(K, Braid) and K.strands == 1):
+    if knot in ("0_1",) or (isinstance(knot, TorusKnot) and knot.m == 1):
         from .algebra.laurent import Laurent
         return Laurent.const(1)
-    if method is None:
-        m = choose_method(K, R, default_methods(racah_store))
-    elif isinstance(method, str):
-        m = {x.name: x for x in default_methods(racah_store)}[method]
-    else:
-        m = method
-    if isinstance(K, TorusKnot) and not m.supports(K, R):
-        K = K.braid()
+    methods = default_methods(racah_store)
+    if isinstance(method, str):
+        methods = [x for x in methods if x.name == method]
+    elif method is not None:
+        methods = [method]
+    if isinstance(knot, TorusKnot) and not any(x.supports(knot, R) for x in methods):
+        knot = knot.braid()
+    m, K = choose_method(knot, R, methods)
     rep = report if report is not None else ReconstructionReport()
     rep.method = m.name
     return reconstruct_laurent(m.black_box(K, R), steps=m.steps, seed=seed, report=rep, **kw)

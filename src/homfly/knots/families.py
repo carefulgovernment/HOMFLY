@@ -31,12 +31,48 @@ class TwoBridge:
     """
     p: int
     q: int
+    mirror: bool = False
 
     def continued_fraction(self, even=False):
         return continued_fraction(Fraction(self.p, self.q), even=even)
 
     def is_knot(self):
         return self.p % 2 == 1
+
+    def even_cf(self, mirror=None):
+        """All-even negative continued fraction of the 4-plat used by the
+        family-P exclusive data (racah_homfly ``schubert_to_even_cf``):
+        p/q_even = a1 - 1/(a2 - 1/(...)), q_even = q or p - q (the even one),
+        entries negated.  ``mirror=True`` gives the mirror knot."""
+        p, q = self.p, self.q
+        q_even = q if q % 2 == 0 else p - q
+        cf = tuple(-a for a in even_minus_cf(Fraction(p, q_even)))
+        m = self.mirror if mirror is None else mirror
+        return tuple(-a for a in cf) if m else cf
+
+
+def _nearest_even(x):
+    k = x.numerator // (2 * x.denominator)
+    cands = [2 * (k + j) for j in (-2, -1, 0, 1, 2)]
+    return min(cands, key=lambda a: (abs(x - a), abs(a)))
+
+
+def even_minus_cf(x: Fraction):
+    """x = a1 - 1/(a2 - 1/(... - 1/an)) with all a_i nonzero even."""
+    out = []
+    for _ in range(256):
+        if x.denominator == 1:
+            a = x.numerator
+            if a == 0 or a % 2:
+                raise ValueError("no all-even expansion for %s" % x)
+            out.append(a)
+            return tuple(out)
+        a = _nearest_even(x)
+        if a == 0:
+            raise ValueError("zero coefficient for %s" % x)
+        out.append(a)
+        x = 1 / (Fraction(a) - x)
+    raise RuntimeError("even continued fraction did not terminate")
 
 
 @dataclass(frozen=True)

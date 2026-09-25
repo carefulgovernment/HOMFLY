@@ -2,6 +2,7 @@
 
     python scripts/tabulate.py --rep 1 --max-crossings 10 --db results.sqlite
     python scripts/tabulate.py --rep 2 --max-crossings 8 --jobs 8
+    python scripts/tabulate.py --rep 3,2 --max-crossings 12 --method two-bridge
 
 Skips entries already present.  Each knot runs in a worker process; the method
 is chosen automatically (compute.choose_method) unless --method is given.
@@ -14,7 +15,8 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from homfly.compute import homfly  # noqa: E402
+from homfly.compute import choose_method, homfly  # noqa: E402
+from homfly.methods import NotApplicable  # noqa: E402
 from homfly.io.database import ResultDB  # noqa: E402
 from homfly.knots.table import knots  # noqa: E402
 from homfly.reconstruction.pipeline import ReconstructionReport  # noqa: E402
@@ -39,11 +41,23 @@ def main():
     a = ap.parse_args()
     rep = tuple(int(x) for x in a.rep.split(","))
     db = ResultDB(a.db)
-    todo = [k.name for k in knots(a.max_crossings)
-            if k.crossings >= a.min_crossings and k.braid is not None
-            and (a.max_strands is None or k.braid.strands <= a.max_strands)
-            and not db.has(k.name, rep)]
-    print("%d knots to compute in %s" % (len(todo), rep))
+    todo, skipped = [], 0
+    for k in knots(a.max_crossings):
+        if k.crossings < a.min_crossings or k.braid is None or db.has(k.name, rep):
+            continue
+        if a.max_strands is not None and k.braid.strands > a.max_strands:
+            continue
+        try:
+            m, _ = choose_method(k.name, rep)
+        except NotApplicable:
+            skipped += 1
+            continue
+        if a.method and m.name != a.method:
+            skipped += 1
+            continue
+        todo.append(k.name)
+    print("%d knots to compute in %s (%d without an applicable method skipped)"
+          % (len(todo), rep, skipped))
     with ProcessPoolExecutor(a.jobs) as ex:
         futs = [ex.submit(work, n, rep, a.method) for n in todo]
         for f in as_completed(futs):

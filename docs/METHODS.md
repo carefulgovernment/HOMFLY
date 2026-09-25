@@ -52,7 +52,43 @@ Labels are opaque, so multiplicities are supported.
 ≤12-crossing knots is 3 for 185 knots, 4 for 1022, 5 for 1419, 6 for 329,
 and 7 for 17.
 
-## 5. Arborescent / 2-bridge from exclusive Racah matrices (specified, M3)
+## 4a. 3-strand knots from the family-P tables (implemented: `racah-3strand`)
+
+The release v1.0.0 (`racah_matrices_upto6_v1.0.zip`, racah_homfly v0.7) gives,
+for every Q ∈ R⊗R⊗R, rational matrices R1, R2 (and their inverses) of σ₁ and σ₂
+on the multiplicity space of Q. The topological framing factor is already
+included:
+
+    H_R^{nat}(β) = Σ_Q dim_q(Q) Tr_Q(ρ(β)) / dim_q(R),     H_std(A, q) = H_nat(1/A, 1/q)
+
+So family P uses exactly our natural convention. 2-strand braids are
+Markov-stabilised. Checked against cabling ([2], [1,1]) and against Rosso–Jones
+for T[3,4] and T[3,5] in every imported R.
+
+## 4b. Two-bridge knots from the family-P exclusive data (implemented: `two-bridge`)
+
+With the all-even negative continued fraction cf = (a₁,…,a_k) of the 4-plat
+(`TwoBridge.even_cf`, the same convention as racah_homfly):
+
+    H_R^{nat} = dim_q(R) · [ C D̄²^{a₁/2−1} C D̄²^{a₂/2−1} ⋯ C ]_{vac,vac},   C = S T⁻¹ V, D̄² = T̄²
+
+Both C and D̄² are rational, so no square roots appear, even in the
+multiplicity-4 sectors at 5 boxes. KnotInfo's [p,q] does not fix the
+chirality consistently, so `two_bridge.chirality` fixes it per knot from the
+fundamental HOMFLY. Checked on all 362 two-bridge knots ≤ 12 crossings
+([1] vs KnotInfo), and against the independent 3-strand data on every knot
+that has both presentations.
+
+Family H (6-box reps without P data) uses S̄ (Y-gauge, S̄² = 1) and
+framing-free T̄:
+
+    H_R = [S̄ T̄^{a₁} S̄ T̄^{a₂} ⋯ T̄^{a_k} S̄]_{00} / S̄_{00}
+
+This agrees with family P for R = [6] on all 362 two-bridge knots, and passes
+H_[3,3](A=q²) = H_[2,2,2](A=q³) = 1 and H_[4,1,1](A=q³) = H_[3](A=q³) (and
+similar). The latter is a check across the two families.
+
+## 5. Arborescent / 2-bridge from exclusive Racah matrices (general form, M3)
 
 Twist regions become *fingers* S T^a S† (parallel) or S̄ T̄^a S̄† (antiparallel),
 glued along the Conway tree. 2-bridge knots are chains, so H is one matrix
