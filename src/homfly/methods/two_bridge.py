@@ -101,6 +101,61 @@ class SbarData:
         self.maxA = max(max((i for i, _, _ in p.terms), default=0) for p in polys)
         self.maxq = max(max((j for _, j, _ in p.terms), default=0) for p in polys)
 
+    def _flat(self):
+        """Flat numpy term arrays for vectorised evaluation (built lazily)."""
+        if getattr(self, "_np", None) is None:
+            import numpy as np
+            parts = {}
+            for which in (0, 1):
+                coef, ai, qj, ptr = [], [], [], [0]
+                for row in self.S:
+                    for e in row:
+                        terms = e[which].terms or [(0, 0, 0)]
+                        for i, j, c in terms:
+                            coef.append(c)
+                            ai.append(i - self.minA)
+                            qj.append(j - self.minq)
+                        ptr.append(len(coef))
+                parts[which] = (np.array(coef, dtype=object), np.array(ai), np.array(qj),
+                                np.array(ptr[:-1]))
+            self._np = parts
+        return self._np
+
+    def evaluate_np(self, p, A, q):
+        """(S, T2) as int64 numpy arrays mod p (p < 2^31)."""
+        import numpy as np
+        flat = self._flat()
+        Ai, qi = pow(A, -1, p), pow(q, -1, p)
+        nA, nq = self.maxA - self.minA + 1, self.maxq - self.minq + 1
+        Ap = np.empty(nA, dtype=np.int64)
+        Ap[0] = pow(Ai, -self.minA, p) if self.minA < 0 else pow(A, self.minA, p)
+        for k in range(1, nA):
+            Ap[k] = Ap[k - 1] * A % p
+        qp = np.empty(nq, dtype=np.int64)
+        qp[0] = pow(qi, -self.minq, p) if self.minq < 0 else pow(q, self.minq, p)
+        for k in range(1, nq):
+            qp[k] = qp[k - 1] * q % p
+        vals = []
+        for which in (0, 1):
+            coef, ai, qj, ptr = flat[which]
+            cm = self._coef_mod.get((which, p)) if hasattr(self, "_coef_mod") else None
+            if cm is None:
+                cm = np.array([int(c) % p for c in coef], dtype=np.int64)
+                if not hasattr(self, "_coef_mod"):
+                    self._coef_mod = {}
+                self._coef_mod[(which, p)] = cm
+            t = cm * Ap[ai] % p * qp[qj] % p
+            vals.append(np.add.reduceat(t, ptr) % p)
+        num, den = vals
+        if (den == 0).any():
+            raise BadPoint("pole in S̄ data")
+        n = len(self.S)
+        inv = np.array([pow(int(x), -1, p) for x in den], dtype=np.int64)
+        S = (num * inv % p).reshape(n, n)
+        T2 = [pow(A, a, p) if a >= 0 else pow(Ai, -a, p) for a, _ in self.T2]
+        T2 = [t * (pow(q, b, p) if b >= 0 else pow(qi, -b, p)) % p for t, (_, b) in zip(T2, self.T2)]
+        return S, np.array(T2, dtype=np.int64)
+
     def evaluate_modp(self, p, A, q):
         Ai, qi = pow(A, -1, p), pow(q, -1, p)
         Ap = {0: 1}
@@ -159,12 +214,55 @@ def _inv_mod(M, p):
     return [r[n:] for r in X]
 
 
+NP_BOUND = 2 ** 31
+
+
+def _inv_mod_np(M, p):
+    """Modular Gauss--Jordan inverse with numpy int64 (p < 2^31)."""
+    import numpy as np
+    n = M.shape[0]
+    X = np.concatenate([M % p, np.eye(n, dtype=np.int64)], axis=1)
+    for c in range(n):
+        nz = np.nonzero(X[c:, c])[0]
+        if len(nz) == 0:
+            raise BadPoint("singular S̄")
+        r = c + nz[0]
+        if r != c:
+            X[[c, r]] = X[[r, c]]
+        X[c] = X[c] * pow(int(X[c, c]), -1, p) % p
+        f = X[:, c].copy()
+        f[c] = 0
+        X = (X - f[:, None] * X[c][None, :]) % p
+    return X[:, n:]
+
+
+def _vecmat_np(v, M, p):
+    return (v[:, None] * M % p).sum(axis=0) % p
+
+
+def _chain_np(S, Si, T2, cf, v0, p, alternating):
+    import numpy as np
+    v = (Si if alternating else S)[v0].copy()
+    for idx, a in enumerate(cf):
+        e = a // 2
+        t = np.array([pow(int(x), e, p) if e >= 0 else pow(pow(int(x), -1, p), -e, p) for x in T2],
+                     dtype=np.int64)
+        v = v * t % p
+        M = (Si, S)[(idx + 1) % 2] if alternating else S
+        v = _vecmat_np(v, M, p)
+    den = (Si if alternating else S)[v0, v0]
+    return int(v[v0]) * pow(int(den), -1, p) % p
+
+
 def value_sbar_alternating(R, cf, F, A, q, root=DEFAULT_DIR):
     """Family G (rational 'vacuum-dual' gauge, S̄² != 1):
     <0| S̄⁻¹ T̄^{a1} S̄ T̄^{a2} S̄⁻¹ ... |0> / <0|S̄⁻¹|0>, framing-free T̄,
     evaluated at the NATURAL point (pinned against the U_Q 3-strand data)."""
     p = F.p
     d = load_sbar(tuple(R), root)
+    if p < NP_BOUND:
+        S, T2 = d.evaluate_np(p, int(A), int(q))
+        return F(_chain_np(S, _inv_mod_np(S, p), T2, cf, d.vac, p, True))
     S, T2 = d.evaluate_modp(p, int(A), int(q))
     Si = _inv_mod(S, p)
     n, v0 = len(S), d.vac
@@ -185,6 +283,10 @@ def value_sbar(R, cf, F, A, q, root=DEFAULT_DIR):
     the STANDARD H_R(A, q) (pinned against family P on R = [6] in the tests)."""
     p = F.p
     d = load_sbar(tuple(R), root)
+    if p < NP_BOUND:
+        S, T2 = d.evaluate_np(p, int(A), int(q))
+        # S̄² = 1 here: <0| S̄ D S̄ ... S̄ |0> / S̄_00 (row form of the same chain)
+        return F(_chain_np(S, None, T2, cf, d.vac, p, False))
     S, T2 = d.evaluate_modp(p, int(A), int(q))
     n = len(S)
     v = [S[i][d.vac] for i in range(n)]              # S̄ |0>
@@ -266,6 +368,7 @@ def value_std(R, cf, F, A, q, root=DEFAULT_DIR):
 
 class TwoBridgeMethod(Method):
     name = "two-bridge"
+    prime_bound = NP_BOUND        # numpy fast path for the S̄ families
 
     def __init__(self, root=DEFAULT_DIR):
         self.root = root
