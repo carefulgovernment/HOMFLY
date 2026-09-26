@@ -123,14 +123,71 @@ def import_g(root, key, out):
     return path, len(labels)
 
 
+def _kappa(la):
+    return sum(j - i for i, r in enumerate(la) for j in range(r))
+
+
+def _pmul(a, b):
+    out = {}
+    for (i1, j1, c1) in a:
+        for (i2, j2, c2) in b:
+            k = (i1 + i2, j1 + j2)
+            out[k] = out.get(k, 0) + c1 * c2
+    return [[i, j, c] for (i, j), c in out.items() if c]
+
+
+def import_g_coeffs(root, key, out):
+    """Family G S̄ given as racah_<R>_Sbar_coeffs.json(.xz) (v1.1: [3,2,1]):
+    entry = num / prod f^e, polynomials [[a, b, c]] = c A^a q^b.  T̄ follows
+    the G convention; stored framing-free: T̄²_X/T̄²_0 = A^{2|Z|} q^{2(k(Z)+k(Z'))}."""
+    import lzma
+    d = os.path.join(root, "level%d" % sum(int(c) for c in key), "R" + key, "gtpath")
+    path = os.path.join(d, "racah_%s_Sbar_coeffs.json" % key)
+    S = json.load(lzma.open(path + ".xz", "rt") if not os.path.exists(path) else open(path))
+    labels = [((tuple(l[0][0]), tuple(l[0][1])), l[1], l[2]) for l in S["labels"]]
+    cache = {}
+
+    def den_of(factors):
+        key_ = json.dumps(factors)
+        if key_ not in cache:
+            acc = [[0, 0, 1]]
+            for f, e in factors:
+                for _ in range(e):
+                    acc = _pmul(acc, f)
+            cache[key_] = acc
+        return cache[key_]
+
+    ent = []
+    for row in S["Sbar_coeffs"]:
+        r = []
+        for e in row:
+            if e is None:
+                r.append([[], [[0, 0, 1]]])
+            else:
+                r.append([e["num"], den_of(e["den"])])
+        ent.append(r)
+    tbar2 = [[2 * sum(Z), 2 * (_kappa(Z) + _kappa(Zp))] for (Z, Zp), _, _ in labels]
+    vac = labels.index((((), ()), 0, 0))
+    res = {"R": [int(c) for c in key], "family": "G", "gauge": S["meta"]["gauge"],
+           "labels": [str(l) for l in labels], "vacuum_index": vac, "t0_squared": [0, 0],
+           "Sbar": ent, "Tbar2": tbar2}
+    outp = os.path.join(out, "sbar_%s.json.gz" % key)
+    with gzip.open(outp, "wt") as f:
+        json.dump(res, f)
+    return outp, len(labels)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--archive", required=True)
     ap.add_argument("--out", default="data/racah/portable")
-    ap.add_argument("--reps", nargs="*", default=list(H_REPS) + list(G_REPS))
+    ap.add_argument("--reps", nargs="*", default=list(H_REPS) + list(G_REPS) + ["321"])
     a = ap.parse_args()
     for key in a.reps:
-        if key in G_REPS:
+        if key == "321":
+            path, n = import_g_coeffs(a.archive, key, a.out)
+            print("G", key, n, path)
+        elif key in G_REPS:
             path, n = import_g(a.archive, key, a.out)
             print("G", key, n, path)
         else:

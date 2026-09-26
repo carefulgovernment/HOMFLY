@@ -28,8 +28,11 @@ conventions pinned; integer mod-p fast path.
   by sl_N reductions.
 * ✅ 3-strand [6], [1⁶] (generator export), [4,2], [2,2,1,1] (G), [3,2,1] (F):
   `racah-3strand-U`; two-bridge [4,2], [2,2,1,1] from the G S̄.
-* ⏳ Two-bridge [3,2,1] from family C (corner algebra; 270 MB S̄; T̄ signs in the
-  multiplicity blocks are undetermined, but only T̄² enters the even-cf chain).
+* ✅ Release v1.1: U_Q for [5,1], [2,1⁴], [4,1,1], [3,1³], [3,3], [2,2,2] (fused
+  path model) and the G-gauge S̄[3,2,1]. Every |R| ≤ 6 now has both 3-strand and
+  two-bridge data.
+* ⏳ Mixed S (R⊗R → R⊗R̄) for [4,2], [2,2,1,1], [3,2,1] (v1.1) is not used yet.
+  It is needed for parallel twist regions (arborescent/pretzel, M3).
 * ⏳ [3,2,1] throughput: batch several knots per q value. U_Q evaluation is
   shared across knots, and the traces are cheap compared with it.
 * [5,1], [4,1,1], [3,3] and their transposes (family H): S̄ and the mixed S only,

@@ -54,7 +54,7 @@ and 7 for 17.
 
 ## 4a. 3-strand knots from the family-P tables (implemented: `racah-3strand`)
 
-The release v1.0.0 (`racah_matrices_upto6_v1.0.zip`, racah_homfly v0.7) gives,
+The release v1.0.0 (`racah_matrices_upto6_v1.1.zip`, racah_homfly v0.7) gives,
 for every Q ∈ R⊗R⊗R, rational matrices R1, R2 (and their inverses) of σ₁ and σ₂
 on the multiplicity space of Q. The topological framing factor is already
 included:

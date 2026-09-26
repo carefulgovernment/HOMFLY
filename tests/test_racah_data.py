@@ -113,9 +113,11 @@ def test_uform_three_strand():
         for name, (a, b) in (("8_19", (3, 4)), ("3_1", (2, 3))):
             assert (m.evaluate(knot(name).braid, R, Fs, A, q)
                     == RossoJones().evaluate(TorusKnot(a, b), R, Fs, A, q)), (R, name)
-    if (4, 2) in reps and (2, 2, 1, 1) in reps:
-        b = knot("5_2").braid
-        assert m.evaluate(b, (2, 2, 1, 1), Fs, A, q) == m.evaluate(b, (4, 2), Fs, A, -(q ** -1))
+    b = knot("5_2").braid
+    for R, RT in [((4, 2), (2, 2, 1, 1)), ((5, 1), (2, 1, 1, 1, 1)), ((4, 1, 1), (3, 1, 1, 1)),
+                  ((3, 3), (2, 2, 2)), ((3, 2, 1), (3, 2, 1))]:
+        if R in reps and RT in reps:
+            assert m.evaluate(b, RT, Fs, A, q) == m.evaluate(b, R, Fs, A, -(q ** -1)), R
 
 
 @pytest.mark.skipif(not _uform_reps(), reason="U-form data (data/racah/large) not imported")
@@ -124,7 +126,7 @@ def test_family_g_two_bridge_vs_three_strand():
     from homfly.methods.racah3 import Racah3StrandU
     Fs = GF(primes_below(2 ** 21, 1)[0])
     A, q = Fs(123457), Fs(765431)
-    for R in [(4, 2), (2, 2, 1, 1)]:
+    for R in [(4, 2), (2, 2, 1, 1), (3, 2, 1), (5, 1), (3, 3)]:
         if R not in _uform_reps() or R not in tb.available_sbar():
             continue
         for name in ["3_1", "5_2", "6_2", "6_3"]:

@@ -1,5 +1,5 @@
 """Import A-independent inclusive 3-strand Racah matrices U_Q (families G and F
-of release v1.0.0) into compact numpy archives:
+of the release, asset v1.1) into compact numpy archives:
 
     python scripts/import_racah_uform.py --archive <racah_matrices_upto6> --reps 42 2211 321
 
@@ -19,7 +19,14 @@ import numpy as np
 
 SRC = {"42": ("R42", "gtpath", "racah_42_inclusive.json"),
        "2211": ("R2211", "gtpath", "racah_2211_inclusive.json"),
-       "321": ("R321", "fused_inclusive", "racah_321_inclusive.json")}
+       "321": ("R321", "fused_inclusive", "racah_321_inclusive.json"),
+       # v1.1: fused-path-model U_Q for the former two-bridge-only 6-box reps
+       "51": ("R51", "fused_inclusive", "racah_51_inclusive.json"),
+       "21111": ("R21111", "fused_inclusive", "racah_21111_inclusive.json"),
+       "411": ("R411", "fused_inclusive", "racah_411_inclusive.json"),
+       "3111": ("R3111", "fused_inclusive", "racah_3111_inclusive.json"),
+       "33": ("R33", "fused_inclusive", "racah_33_inclusive.json"),
+       "222": ("R222", "fused_inclusive", "racah_222_inclusive.json")}
 
 
 def iter_blocks(path):
