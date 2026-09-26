@@ -182,16 +182,104 @@ class PData:
         return out
 
 
+# how family-H objects enter the engine (pinned in tests/test_montesinos.py)
+H_CONV = {"mix": 0, "T": 1, "Tbar": 1, "sbar_inv": 0}
+G_CONV = {"mix": 0, "T": 1, "Tbar": 1, "sbar_inv": 0}
+
+
+class HData:
+    """Family H (Hecke Y-gauge): S̄, mixed S with explicit (X,a,b)/(Q,a,b)
+    labels -> multiplicity blocks."""
+
+    def __init__(self, R, root=DATA_DIR, family="H"):
+        with gzip.open(os.path.join(root, "%s_%s.json.gz" % (family, "".join(map(str, R)))), "rt") as f:
+            d = json.load(f)
+        self.R = tuple(R)
+        self.conv = H_CONV if family == "H" else G_CONV
+        self.anti, self.par = d["anti"], d["par"]
+        self.mats = {k: [[(_Poly(n), _Poly(dd)) for n, dd in row] for row in d[k]]
+                     for k in ("Sbar", "S")}
+        self.Tpar = d["T"]
+        self.n = len(self.anti)
+        self.blocks_anti = self._blocks([((tuple(x["Z"]), tuple(x["Zp"])), x["a"], x["b"])
+                                         for x in self.anti])
+        self.blocks_par = self._blocks([(tuple(x["Q"]), x["a"], x["b"]) for x in self.par])
+        self.vac = next(i for i, x in enumerate(self.anti) if not x["Z"] and not x["Zp"])
+
+    @staticmethod
+    def _blocks(labels):
+        groups = {}
+        for i, (key, a, b) in enumerate(labels):
+            groups.setdefault(key, []).append((a, b, i))
+        out = []
+        for key, items in groups.items():
+            As = sorted({a for a, _, _ in items})
+            Bs = sorted({b for _, b, _ in items})
+            pos = {(a, b): i for a, b, i in items}
+            out.append((key, [[pos[(a, b)] for b in Bs] for a in As]))
+        return out
+
+    def evaluate(self, F, A, q):
+        from ..reps.partitions import kappa
+        from .interpolation import Point
+        cache = {}
+
+        def ev(e):
+            den = e[1].ev(F, A, q, cache)
+            if den == 0:
+                raise BadPoint("pole in Racah data")
+            return e[0].ev(F, A, q, cache) / den
+        Sb = [[ev(e) for e in row] for row in self.mats["Sbar"]]
+        S = [[ev(e) for e in row] for row in self.mats["S"]]
+        Sinv = _inv(S, F)
+        dR = qdim(self.R, A, q)
+        theta = A ** sum(self.R) * q ** (2 * kappa(self.R))
+        T = [sg * A ** ea * q ** eq / theta for sg, ea, eq in self.Tpar]
+        Tb = [x["eps"] * A ** sum(x["Z"]) * q ** (kappa(tuple(x["Z"])) + kappa(tuple(x["Zp"])))
+              for x in self.anti]
+        if self.conv["T"] < 0:
+            T = [t ** -1 for t in T]
+        if self.conv["Tbar"] < 0:
+            Tb = [t ** -1 for t in Tb]
+        mix, mixi = (S, Sinv) if self.conv["mix"] == 0 else (Sinv, S)
+        if self.conv["sbar_inv"]:
+            Sb = _inv(Sb, F)
+        pt = Point(F, A, q)
+        d_anti = [F.zero] * self.n
+        for (Z, Zp), idx in self.blocks_anti:
+            dX = pt.chi((), Z, Zp)
+            for row in idx:
+                for i in row:
+                    d_anti[i] = dX
+        d_par = [F.zero] * self.n
+        for Q, idx in self.blocks_par:
+            dQ = qdim(Q, A, q)
+            for row in idx:
+                for i in row:
+                    d_par[i] = dQ
+        # engine slots: V = (par,anti) transform c_Hpar = V v_Vanti ; S = (anti,par)
+        return {"Sbar": Sb, "V": mix, "S": mixi, "T": T, "Tbar": Tb, "dR": dR,
+                "d_anti": d_anti, "d_par": d_par,
+                "blocks_anti": [idx for _, idx in self.blocks_anti],
+                "blocks_par": [idx for _, idx in self.blocks_par], "vac": self.vac}
+
+
 @lru_cache(maxsize=None)
 def load(R, root=DATA_DIR):
-    return PData(tuple(R), root)
+    R = tuple(R)
+    key = "".join(map(str, R))
+    if os.path.exists(os.path.join(root, "P_%s.json.gz" % key)):
+        return PData(R, root)
+    if os.path.exists(os.path.join(root, "H_%s.json.gz" % key)):
+        return HData(R, root, "H")
+    return HData(R, root, "G")
 
 
 def available(root=DATA_DIR):
     if not os.path.isdir(root):
         return []
-    return [tuple(int(c) for c in f[2:-8]) for f in sorted(os.listdir(root))
-            if f.startswith("P_") and f.endswith(".json.gz")]
+    return sorted({tuple(int(c) for c in f[2:-8]) for f in os.listdir(root)
+                   if f[:2] in ("P_", "H_", "G_") and f.endswith(".json.gz")})
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +317,7 @@ def natural_value(fracs, D, F):
     M, Minv = _transforms(D, F)
     n = len(D["Sbar"])
     e0 = [F.zero] * n
-    e0[0] = F.one
+    e0[D.get("vac", 0)] = F.one
     tb, tp = D["Tbar"], D["T"]
     vecs, verts = [], []
     for base, ops, steps in tl:
