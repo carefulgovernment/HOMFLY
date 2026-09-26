@@ -42,7 +42,7 @@ from functools import lru_cache
 
 from ..algebra.fields import BadPoint, GF
 from ..knots.families import MontesinosKnot
-from ..reps.partitions import P
+from ..reps.partitions import P, conjugate
 from ..reps.qdim import qdim
 from .base import Method
 
@@ -182,11 +182,6 @@ class PData:
         return out
 
 
-# how family-H objects enter the engine (pinned in tests/test_montesinos.py)
-H_CONV = {"mix": 0, "T": 1, "Tbar": 1, "sbar_inv": 0}
-G_CONV = {"mix": 0, "T": 1, "Tbar": 1, "sbar_inv": 0}
-
-
 class HData:
     """Family H (Hecke Y-gauge): S̄, mixed S with explicit (X,a,b)/(Q,a,b)
     labels -> multiplicity blocks."""
@@ -195,10 +190,10 @@ class HData:
         with gzip.open(os.path.join(root, "%s_%s.json.gz" % (family, "".join(map(str, R)))), "rt") as f:
             d = json.load(f)
         self.R = tuple(R)
-        self.conv = H_CONV if family == "H" else G_CONV
+        self.family = family
         self.anti, self.par = d["anti"], d["par"]
         self.mats = {k: [[(_Poly(n), _Poly(dd)) for n, dd in row] for row in d[k]]
-                     for k in ("Sbar", "S")}
+                     for k in ("Sbar", "S") if k in d}
         self.Tpar = d["T"]
         self.n = len(self.anti)
         self.blocks_anti = self._blocks([((tuple(x["Z"]), tuple(x["Zp"])), x["a"], x["b"])
@@ -229,21 +224,20 @@ class HData:
             if den == 0:
                 raise BadPoint("pole in Racah data")
             return e[0].ev(F, A, q, cache) / den
-        Sb = [[ev(e) for e in row] for row in self.mats["Sbar"]]
         S = [[ev(e) for e in row] for row in self.mats["S"]]
+        Sb = [[ev(e) for e in row] for row in self.mats["Sbar"]] if "Sbar" in self.mats else None
         Sinv = _inv(S, F)
         dR = qdim(self.R, A, q)
         theta = A ** sum(self.R) * q ** (2 * kappa(self.R))
         T = [sg * A ** ea * q ** eq / theta for sg, ea, eq in self.Tpar]
         Tb = [x["eps"] * A ** sum(x["Z"]) * q ** (kappa(tuple(x["Z"])) + kappa(tuple(x["Zp"])))
               for x in self.anti]
-        if self.conv["T"] < 0:
-            T = [t ** -1 for t in T]
-        if self.conv["Tbar"] < 0:
-            Tb = [t ** -1 for t in Tb]
-        mix, mixi = (S, Sinv) if self.conv["mix"] == 0 else (Sinv, S)
-        if self.conv["sbar_inv"]:
-            Sb = _inv(Sb, F)
+        if self.family == "G":
+            # family H satisfies T̄^-1 S̄ T̄^-1 = S^-1 T S; family G publishes S̄
+            # in a vacuum-dual gauge (rows and columns normalised differently),
+            # so S̄ is rebuilt from this identity in the gauge of S's columns
+            K = _mm(Sinv, [[T[i] * S[i][j] for j in range(len(S))] for i in range(len(S))], F)
+            Sb = [[Tb[i] * K[i][j] * Tb[j] for j in range(len(S))] for i in range(len(S))]
         pt = Point(F, A, q)
         d_anti = [F.zero] * self.n
         for (Z, Zp), idx in self.blocks_anti:
@@ -258,7 +252,7 @@ class HData:
                 for i in row:
                     d_par[i] = dQ
         # engine slots: V = (par,anti) transform c_Hpar = V v_Vanti ; S = (anti,par)
-        return {"Sbar": Sb, "V": mix, "S": mixi, "T": T, "Tbar": Tb, "dR": dR,
+        return {"Sbar": Sb, "V": S, "S": Sinv, "T": T, "Tbar": Tb, "dR": dR,
                 "d_anti": d_anti, "d_par": d_par,
                 "blocks_anti": [idx for _, idx in self.blocks_anti],
                 "blocks_par": [idx for _, idx in self.blocks_par], "vac": self.vac}
@@ -275,6 +269,7 @@ def load(R, root=DATA_DIR):
     return HData(R, root, "G")
 
 
+@lru_cache(maxsize=None)
 def available(root=DATA_DIR):
     if not os.path.isdir(root):
         return []
@@ -358,7 +353,13 @@ def natural_value(fracs, D, F):
 
 
 def value(fracs, R, F, A, q, root=DATA_DIR):
-    return natural_value(fracs, load(P(R), root).evaluate(F, A, q), F)
+    """H_R of N(sum of tangles) at (A, q); with the sign of the fractions fixed
+    by ``chirality`` this is the STANDARD convention.  A representation without
+    data is taken from its transpose, H_{R^T}(A, q) = H_R(A, -1/q)."""
+    R = P(R)
+    if R not in available(root) and conjugate(R) in available(root):
+        return natural_value(fracs, load(conjugate(R), root).evaluate(F, A, -1 / q), F)
+    return natural_value(fracs, load(R, root).evaluate(F, A, q), F)
 
 
 def chirality(fracs, reference):
@@ -381,7 +382,8 @@ class MontesinosMethod(Method):
         self.root = root
 
     def supports(self, knot, R):
-        return isinstance(knot, MontesinosKnot) and P(R) in available(self.root)
+        av = available(self.root)
+        return isinstance(knot, MontesinosKnot) and (P(R) in av or conjugate(P(R)) in av)
 
     def evaluate(self, knot, R, F, A, q):
         return value(knot.fractions(), R, F, A, q, self.root)

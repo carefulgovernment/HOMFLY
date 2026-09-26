@@ -159,6 +159,33 @@ Ref: Mironov, Morozov, Morozov, Sleptsov, *Tabulating knot polynomials for
 arborescent knots*; *Colored HOMFLY polynomials for the pretzel knots and
 links*.
 
+### 5a. Montesinos knots (implemented: `montesinos`, `methods/montesinos.py`)
+
+N(T₁ + … + T_k) for rational tangles p_i/q_i (KnotInfo `montesinos_notation`).
+Every tangle is built from the 0 or ∞ tangle by twists of the right (H) and
+bottom (V) pairs; the orientation of every endpoint is tracked, so each twist
+is parallel (T, channels Q ∈ R⊗R) or antiparallel (T̄, channels X ∈ R⊗R̄).
+Basis changes: (anti, anti) S̄, (par, anti) mixed S, (anti, par) S⁻¹.
+The sum is the block product C₁E⁻¹C₂E⁻¹… (E = 0-tangle), closed with
+Σ_X d_X Tr: gauge covariant, no Gram matrices.
+
+Data (`scripts/import_racah_montesinos.py` → `data/racah/montesinos/`):
+* family P, rectangular R (|R| ≤ 6): S̄, S, V = S⁻¹, T, T̄;
+* family H: [2,1], [3,1], [5,1], [4,1,1], [3,3], [2,2,2], [3,1³], [2,1⁴];
+  satisfies T̄⁻¹S̄T̄⁻¹ = S⁻¹TS;
+* family G: [4,2], [2,2,1,1], [3,2,1] from the v1.1 mixed S only; the
+  published S̄ is in a vacuum-dual gauge (rows and columns normalised
+  differently), so S̄ is rebuilt as T̄ S⁻¹TS T̄ in the gauge of S's columns;
+* [2,1,1] from [3,1] by H_{Rᵀ}(A, q) = H_R(A, −1/q).
+
+Chirality: the fractions' sign is fixed by H_[1] against KnotInfo; 12 knots
+with mirror-symmetric H_[1] are left out. The non-rectangular 5-box R are not
+covered: only family-P data exist for them, and their R⊗R̄ has multiplicities.
+
+Checks (tests/test_montesinos.py): all 721 Montesinos knots against KnotInfo
+in [1]; colored values equal the 3-strand Racah methods for P, H and G reps;
+the tangle order is irrelevant; transposition.
+
 ## 6. Double-braid knots in rectangular R (specified, M6)
 
 For R = [r^s], R⊗R̄ is multiplicity-free and labelled by sub-diagrams of R.

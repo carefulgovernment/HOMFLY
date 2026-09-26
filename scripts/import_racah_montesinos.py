@@ -110,7 +110,9 @@ def export_G(archive, key, out):
     par = [{"Q": l[0][0], "a": str(l[1]), "b": str(l[2])} for l in ev(S["row_labels"])]
     T = [[sg, 0, k] for sg, k in ev(S["T"])]
     res = {"R": [int(c) for c in key], "family": "G", "anti": anti, "par": par,
-           "Sbar": _g_matrix(Sb, "Sbar_coeffs", "Sbar"),
+           # S̄ is not stored: the engine rebuilds it in the gauge of S's columns
+           # from T̄^-1 S̄ T̄^-1 = S^-1 T S (the published vacuum-dual S̄ is not
+           # the transform between the two antiparallel channel bases)
            "S": _g_matrix(S, "S_coeffs", "S_strings"), "T": T}
     path = os.path.join(out, "G_%s.json.gz" % key)
     with gzip.open(path, "wt") as f:

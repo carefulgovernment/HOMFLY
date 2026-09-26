@@ -11,7 +11,7 @@ Laurent polynomial in (A, q) by interpolation + CRT (reconstruction.pipeline).
 from __future__ import annotations
 
 from .knots.braid import Braid
-from .knots.families import TorusKnot, TwoBridge, DoubleBraid
+from .knots.families import TorusKnot, TwoBridge, DoubleBraid, MontesinosKnot
 from .knots.table import load_table
 from .methods import (Cabling, HeckeFundamental, NotApplicable, RossoJones)
 from .reconstruction.pipeline import reconstruct_laurent, ReconstructionReport
@@ -34,8 +34,9 @@ def default_methods(racah_store=None):
     from .methods.racah3 import Racah3Strand, Racah3StrandU
     from .methods.two_bridge import TwoBridgeMethod
     from .methods.interpolation import DoubleBraidInterpolation
-    ms = [RossoJones(), HeckeFundamental(), Racah3Strand(), TwoBridgeMethod(), Racah3StrandU(),
-          DoubleBraidInterpolation()]
+    from .methods.montesinos import MontesinosMethod
+    ms = [RossoJones(), HeckeFundamental(), Racah3Strand(), TwoBridgeMethod(), MontesinosMethod(),
+          Racah3StrandU(), DoubleBraidInterpolation()]
     if racah_store is not None:
         from .methods.rt_braid import RTBraid
         from .methods.arborescent import Arborescent
@@ -51,8 +52,10 @@ TABLE_TORUS = {"3_1": (2, 3), "5_1": (2, 5), "7_1": (2, 7), "8_19": (3, 4), "9_1
 
 def presentations(name):
     """All descriptions of a table knot usable by some method, best first:
-    3-strand braid, two-bridge (chirality fixed against KnotInfo), braid."""
+    3-strand braid, two-bridge / Montesinos (chirality fixed against
+    KnotInfo), braid."""
     from .methods.two_bridge import chirality
+    from .methods import montesinos
     rec = load_table()[name]
     out = []
     if name in TABLE_TORUS:
@@ -66,6 +69,11 @@ def presentations(name):
         cf = tb.even_cf()
         if len(cf) == 2:              # antiparallel double braid: any R by interpolation
             out.append(DoubleBraid(-cf[0] // 2, -cf[1] // 2))
+    if rec.is_montesinos and rec.montesinos.count(";") >= 2:
+        mk = MontesinosKnot.from_notation(rec.montesinos)
+        c = montesinos.chirality(mk.fractions(), rec.homfly_reference())
+        if c is not None:             # H_[1] mirror-symmetric: chirality undecided
+            out.append(MontesinosKnot(mk.tangles, mirror=(c < 0)))
     if rec.braid is not None and rec.braid.strands > 3:
         out.append(rec.braid)
     return out
@@ -103,4 +111,4 @@ def homfly(knot, R=(1,), method=None, racah_store=None, seed=0, report=None, **k
     return reconstruct_laurent(m.black_box(K, R), steps=m.steps, seed=seed, report=rep, **kw)
 
 
-__all__ = ["homfly", "TorusKnot", "TwoBridge", "DoubleBraid", "Braid"]
+__all__ = ["homfly", "TorusKnot", "TwoBridge", "DoubleBraid", "MontesinosKnot", "Braid"]
