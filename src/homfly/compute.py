@@ -44,12 +44,19 @@ def default_methods(racah_store=None):
     return ms
 
 
+# torus knots of the table (checked against KnotInfo in tests/test_methods.py)
+TABLE_TORUS = {"3_1": (2, 3), "5_1": (2, 5), "7_1": (2, 7), "8_19": (3, 4), "9_1": (2, 9),
+               "10_124": (3, 5), "11a_367": (2, 11)}
+
+
 def presentations(name):
     """All descriptions of a table knot usable by some method, best first:
     3-strand braid, two-bridge (chirality fixed against KnotInfo), braid."""
     from .methods.two_bridge import chirality
     rec = load_table()[name]
     out = []
+    if name in TABLE_TORUS:
+        out.append(TorusKnot(*TABLE_TORUS[name]))
     if rec.braid is not None and rec.braid.strands <= 3:
         out.append(rec.braid)
     if rec.two_bridge is not None:

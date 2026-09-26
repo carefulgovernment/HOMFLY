@@ -48,8 +48,30 @@ def natural_value(R, word, F, A, q, root=portable.DEFAULT_DIR):
     return tot / qdim(R, A, q)
 
 
+def _natural_value_np(data, R, word, F, A, q):
+    import numpy as np
+    p = F.p
+    keys = tuple(sorted({_KEY[a] for a in word}))
+    M = data.evaluate_np(p, int(A), int(q), keys)
+    tot = 0
+    for idx, ch in enumerate(data.channels):
+        prod = M[_KEY[word[0]]][idx]
+        for a in word[1:]:
+            X = M[_KEY[a]][idx]
+            prod = np.fmod(prod.astype(np.float64) @ X.astype(np.float64), p).astype(np.int64)
+        tr = int(np.trace(prod)) % p
+        if tr:
+            tot += int(qdim(ch.Q, A, q)) * tr
+    return F(tot) / qdim(R, A, q)
+
+
+NP_BOUND = 2 ** 21
+
+
 def _natural_value_modp(data, R, word, F, A, q):
     p = F.p
+    if p < NP_BOUND:
+        return _natural_value_np(data, R, word, F, A, q)
     Ai, qi = int(A), int(q)
     keys = sorted({_KEY[a] for a in word})
     tot = 0
@@ -65,6 +87,7 @@ def _natural_value_modp(data, R, word, F, A, q):
 
 class Racah3Strand(Method):
     name = "racah-3strand"
+    prime_bound = NP_BOUND        # numpy/BLAS fast path
 
     def __init__(self, root=portable.DEFAULT_DIR):
         self.root = root

@@ -114,6 +114,64 @@ class PortableInclusive:
         with gzip.open(path, "rt") as f:
             d = json.load(f)
         self.channels = [PortableChannel(c) for c in d["channels"]]
+        self._np = {}
+
+    # ---- vectorised evaluation (numpy, p < 2^21 so that BLAS products are exact)
+    def _flat(self, keys):
+        import numpy as np
+        keys = tuple(keys)
+        if keys in self._np:
+            return self._np[keys]
+        out = {}
+        for which in (0, 1):
+            coef, ai, qj, ptr = [], [], [], []
+            for ch in self.channels:
+                for k in keys:
+                    for row in ch.mats[k]:
+                        for e in row:
+                            ptr.append(len(coef))
+                            terms = e[which].terms or [(0, 0, 0)]
+                            for i, j, c in terms:
+                                coef.append(c)
+                                ai.append(i)
+                                qj.append(j)
+            out[which] = (np.array(coef, dtype=object), np.array(ai), np.array(qj), np.array(ptr))
+        maxA = max(int(out[w][1].max()) for w in (0, 1))
+        maxq = max(int(out[w][2].max()) for w in (0, 1))
+        self._np[keys] = (out, maxA, maxq, {})
+        return self._np[keys]
+
+    def evaluate_np(self, p, A, q, keys):
+        """{key: [per-channel int64 matrix]} mod p."""
+        import numpy as np
+        out, maxA, maxq, cmod = self._flat(keys)
+        Ap = np.empty(maxA + 1, dtype=np.int64)
+        qp = np.empty(maxq + 1, dtype=np.int64)
+        Ap[0] = qp[0] = 1
+        for k in range(1, maxA + 1):
+            Ap[k] = Ap[k - 1] * A % p
+        for k in range(1, maxq + 1):
+            qp[k] = qp[k - 1] * q % p
+        vals = []
+        for which in (0, 1):
+            coef, ai, qj, ptr = out[which]
+            if (which, p) not in cmod:
+                cmod[(which, p)] = np.array([int(c) % p for c in coef], dtype=np.int64)
+            t = cmod[(which, p)] * Ap[ai] % p * qp[qj] % p
+            vals.append(np.add.reduceat(t, ptr) % p)
+        num, den = vals
+        if (den == 0).any():
+            raise BadPoint("pole of a Racah entry")
+        dinv = np.array([pow(int(x), -1, p) for x in den], dtype=np.int64)
+        v = num * dinv % p
+        res = {k: [] for k in keys}
+        pos = 0
+        for ch in self.channels:
+            for k in keys:
+                n = len(ch.mats[k])
+                res[k].append(v[pos:pos + n * n].reshape(n, n))
+                pos += n * n
+        return res
 
 
 @lru_cache(maxsize=None)

@@ -100,3 +100,11 @@ def test_reconstruct_colored():
     assert differential_expansion_symmetric_ok(H2, 2)
     T = homfly(TorusKnot(2, 3), R=(2,))
     assert T.terms[(8, 6)] == 1 and len(T.terms) == 9
+
+
+def test_table_torus_knots():
+    from homfly.compute import TABLE_TORUS
+    rj = RossoJones()
+    for name, (m, n) in TABLE_TORUS.items():
+        ref = knot(name).homfly_reference().evaluate([A0, q0], one=F.one)
+        assert rj.evaluate(TorusKnot(m, n), (1,), F, A0, q0) == ref, name
