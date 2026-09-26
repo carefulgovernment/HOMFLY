@@ -1,5 +1,10 @@
 """Double braid knots in rectangular representations R = [r^s].
 
+SUPERSEDED for antiparallel double braids by methods.interpolation
+(DoubleBraidInterpolation), which covers every R.  Kept as the specification of
+the rectangular closed form (factorised differential expansion) for later
+symbolic-in-(m, n) output.
+
 For rectangular R the representation R ⊗ R̄ is multiplicity free, its
 components are labelled by sub-diagrams of R, the exclusive matrix S̄ is known
 in closed form (conjecturally, via the "eigenvalue"/"hidden integrability"

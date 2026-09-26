@@ -68,7 +68,11 @@ Modular highest-weight vectors in U_q(sl_N) give rational (non-unitary)
 inclusive and exclusive Racah matrices for |R| > 6 and for the large
 intermediate Y needed by 5- and 6-strand braids.
 
-## M6: double-braid knots in rectangular R
+## M6: double-braid knots ✅ (any R, via the interpolation formula; rectangular R included)
+Remaining: parallel twist regions; an explicit closed form for E (open problem 1
+of the paper); speed (cache E rows across points sharing q, vectorise over points).
+
+## M6 (original text): double-braid knots in rectangular R
 Closed-form S̄ for [r] and [r^s], an evolution formula symbolic in (m, n),
 factorised differential expansion checks, and comparison with arborescent
 and cabling results.

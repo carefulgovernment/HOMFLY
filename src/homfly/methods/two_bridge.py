@@ -26,7 +26,7 @@ from functools import lru_cache
 
 from ..algebra.fields import GF, BadPoint
 from ..algebra.linalg import matmul
-from ..knots.families import TwoBridge
+from ..knots.families import DoubleBraid, TwoBridge
 from ..racah.portable import DEFAULT_DIR, _Poly, matmul_mod, rep_key
 from ..reps.partitions import P
 from ..reps.qdim import qdim
@@ -251,6 +251,19 @@ def chirality(p, q, reference=None):
     raise ValueError("two-bridge [%d,%d]: neither chirality matches the reference" % (p, q))
 
 
+def value_std(R, cf, F, A, q, root=DEFAULT_DIR):
+    """STANDARD-convention H_R of the 4-plat with all-even cf (family-P
+    orientation convention), from whichever exclusive data exist for R."""
+    R = P(R)
+    if R in available(root):
+        Ap, qp = _point(A, q)
+        return value(R, cf, F, Ap, qp, root)
+    if load_sbar(R, root).family == "G":
+        Ap, qp = _point(A, q)
+        return value_sbar_alternating(R, cf, F, Ap, qp, root)
+    return value_sbar(R, cf, F, A, q, root)
+
+
 class TwoBridgeMethod(Method):
     name = "two-bridge"
 
@@ -258,15 +271,8 @@ class TwoBridgeMethod(Method):
         self.root = root
 
     def supports(self, knot, R):
-        return (isinstance(knot, TwoBridge) and knot.is_knot()
+        return (isinstance(knot, (TwoBridge, DoubleBraid)) and knot.is_knot()
                 and (P(R) in available(self.root) or P(R) in available_sbar(self.root)))
 
     def evaluate(self, knot, R, F, A, q):
-        R = P(R)
-        if R in available(self.root):
-            Ap, qp = _point(A, q)
-            return value(R, knot.even_cf(), F, Ap, qp, self.root)
-        if load_sbar(R, self.root).family == "G":
-            Ap, qp = _point(A, q)
-            return value_sbar_alternating(R, knot.even_cf(), F, Ap, qp, self.root)
-        return value_sbar(R, knot.even_cf(), F, A, q, self.root)
+        return value_std(P(R), knot.even_cf(), F, A, q, self.root)

@@ -18,6 +18,7 @@ homfly("3_1")                       # -A^4 + A^2 q^2 + A^2 q^-2
 homfly("4_1", R=(2,))               # 3-strand Racah blocks (family P)
 homfly("7_4", R=(3, 2))             # two-bridge, exclusive Racah data
 homfly(TorusKnot(3, 4), R=(2, 1))   # Rosso–Jones
+homfly(DoubleBraid(1, -1), R=(4, 2, 1))  # 4_1 in [4,2,1]: interpolation formula
 ```
 
 ```
@@ -48,6 +49,7 @@ $ python scripts/validate_fundamental.py 12   # all 2977 knots vs KnotInfo
 | **Two-bridge knots from exclusive data**: family P (C, T̄²) for \|R\| ≤ 5, [6], [1⁶]; family H (S̄, T̄²) for [5,1], [4,1,1], [3,3], [2,2,2], [3,1³], [2,1⁴] | ✅ all 362 two-bridge knots ≤ 12 crossings; P agrees with the 3-strand data; H agrees with P on [6] and passes the sl_N reductions |
 | **3-strand, all 11 six-box reps**: [6], [1⁶] (family P generator export); the other nine from A-independent U_Q (families G/F, release v1.1), float64-BLAS mod p < 2²¹ | ✅ Rosso–Jones T[3,4], T[3,5]; transposition pairs; = two-bridge on all 30 overlap knots |
 | **Two-bridge [4,2], [2,2,1,1], [3,2,1]** (family G S̄, alternating chain) | ✅ = G/F 3-strand data on all 30 overlap knots |
+| **Interpolation formula for antiparallel double braids H_R(m,n)**, any R, no Racah matrices (Hopf-link characters + interpolation matrix E) | ✅ = Racah two-bridge data for all 29 R with \|R\| ≤ 6 × 12 (m,n) (348/348); \|R\| = 7: trefoil = Rosso–Jones, 4_1 amphichiral, transposition |
 | Racah data model, JSON store, checks | ✅ |
 | Eigenvalue hypothesis | 2×2 ✅, 3×3–5×5 ⏳ M4 |
 | Highest-weight Racah matrices | ⏳ M5 |
@@ -62,6 +64,7 @@ $ python scripts/validate_fundamental.py 12   # all 2977 knots vs KnotInfo
 | all 2977 | [1] | Hecke (also two-bridge / 3-strand when applicable) |
 | 185 with braid index ≤ 3 | every R with \|R\| ≤ 6 (all 29) | `racah-3strand`, `racah-3strand-U` |
 | 362 two-bridge | every R with \|R\| ≤ 6 (all 29) | `two-bridge` |
+| double braids H(m,n) (4_1, 3_1, twist knots, all two-bridge knots with a 2-term even cf) | any R | `double-braid-interpolation` |
 | torus knots T[m,n] | any R | `rosso-jones` |
 | any braid (small) | m·\|R\| ≲ 10 | `cabling` (reference) |
 

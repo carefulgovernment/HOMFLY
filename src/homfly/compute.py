@@ -33,7 +33,9 @@ def resolve_knot(k):
 def default_methods(racah_store=None):
     from .methods.racah3 import Racah3Strand, Racah3StrandU
     from .methods.two_bridge import TwoBridgeMethod
-    ms = [RossoJones(), HeckeFundamental(), Racah3Strand(), TwoBridgeMethod(), Racah3StrandU()]
+    from .methods.interpolation import DoubleBraidInterpolation
+    ms = [RossoJones(), HeckeFundamental(), Racah3Strand(), TwoBridgeMethod(), Racah3StrandU(),
+          DoubleBraidInterpolation()]
     if racah_store is not None:
         from .methods.rt_braid import RTBraid
         from .methods.arborescent import Arborescent
@@ -52,7 +54,11 @@ def presentations(name):
         out.append(rec.braid)
     if rec.two_bridge is not None:
         p, q = rec.two_bridge
-        out.append(TwoBridge(p, q, mirror=chirality(p, q, rec.homfly_reference())))
+        tb = TwoBridge(p, q, mirror=chirality(p, q, rec.homfly_reference()))
+        out.append(tb)
+        cf = tb.even_cf()
+        if len(cf) == 2:              # antiparallel double braid: any R by interpolation
+            out.append(DoubleBraid(-cf[0] // 2, -cf[1] // 2))
     if rec.braid is not None and rec.braid.strands > 3:
         out.append(rec.braid)
     return out
@@ -71,7 +77,8 @@ def choose_method(knot, R, methods=None):
 def homfly(knot, R=(1,), method=None, racah_store=None, seed=0, report=None, **kw):
     """Reduced colored HOMFLY H_R(K; A, q) as a Laurent polynomial."""
     R = P(R)
-    if knot in ("0_1",) or (isinstance(knot, TorusKnot) and knot.m == 1):
+    if (knot in ("0_1",) or (isinstance(knot, TorusKnot) and knot.m == 1)
+            or (isinstance(knot, DoubleBraid) and (knot.m == 0 or knot.n == 0))):
         from .algebra.laurent import Laurent
         return Laurent.const(1)
     methods = default_methods(racah_store)

@@ -109,6 +109,44 @@ S̄² ≠ 1, so the chain alternates:
 
 It agrees with the G 3-strand data on all 30 knots that have both presentations.
 
+## 4c. Antiparallel double braids in any R: interpolation formula (implemented: `double-braid-interpolation`)
+
+This follows the September 2026 paper "An interpolation formula for colored
+HOMFLY polynomials of the figure-eight knot and of double-braid knots in
+arbitrary representations" (`methods/interpolation.py`):
+
+    H_R(m,n) = 1 + Σ_c F_c(R) φ_c(m) φ_c(n) / (φ_c(1) φ_c(−1)),
+    F_c(R) = d_c Σ_X E_cX (χ̂_X(R) − 1),   φ_c(m) = Σ_X E_cX (Λ_X^m − 1).
+
+* Channels are singles [μ,μ] and pairs {Z,Z′}. Λ_[Z,Z′] = A^{2|Z|} q^{2(κ_Z+κ_Z′)}.
+* χ̂ are Koike composite characters from generic-A power sums, normalised by d_X.
+* Presence is m_c(R) = Σ_γ c^R_{Zγ} c^R_{Z′γ} (LR coefficients). R_min, the order ≺
+  and the supports B(c) follow §4.4 of the paper.
+* Each row of E is solved mod p from the vanishing conditions
+  Σ E_cX ψ_X(ν) = 0 for all ν where c is absent. A rank-deficient system has its
+  free unknowns set to 0 (the paper shows F_c does not depend on them).
+
+Convention: the paper's H(m,n) at (A, q) is our standard H of
+`DoubleBraid(m, n)`, the 4-plat with continued fraction (−2m, −2n); no point map
+is needed. Table knots whose 4-plat has two twist regions get this presentation
+automatically.
+
+Validation (tests/test_interpolation.py and the log in the commit message):
+* the Appendix-B rows of E, the level-1 box sum, the rectangular products, and the
+  closed formula (21) for H_[2,1](4_1) all hold exactly;
+* against the Racah two-bridge data: all 29 R with |R| ≤ 6 × 12 double braids
+  (4_1, 3_1 and its mirror, twist knots, (2,2), (2,−3), (−2,−3), …): 348/348 agree;
+* |R| = 7 ([7], [6,1], [5,2], [4,3], [4,2,1], [3,3,1], [3,2,2], [5,1,1]), which
+  has no Racah data: the trefoil equals Rosso–Jones, 4_1 is amphichiral, and the
+  transposition symmetry holds;
+* the over-determined interpolation systems are consistent (no violated extra
+  conditions);
+* end to end, 4_1 in [3,1] reconstructed from the formula is identical to the
+  Racah reconstruction, and its q = 1 value equals H_[1]⁴.
+
+Cost per point: < 0.1 s up to 5 boxes, 1–2 s for most 6- and 7-box R, ~19 s for
+[3,2,1] (cold caches).
+
 ## 5. Arborescent / 2-bridge from exclusive Racah matrices (general form, M3)
 
 Twist regions become *fingers* S T^a S† (parallel) or S̄ T̄^a S̄† (antiparallel),

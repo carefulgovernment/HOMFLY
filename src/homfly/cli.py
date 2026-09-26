@@ -4,6 +4,7 @@
     homfly compute 4_1 --rep 2              # [2]
     homfly compute --torus 3,4 --rep 2,1    # Rosso--Jones
     homfly compute --braid 1,1,-2,1,-2 --rep 1,1
+    homfly compute --double-braid 2,-3 --rep 4,2,1   # interpolation formula, any R
     homfly info 10_124
 """
 from __future__ import annotations
@@ -31,6 +32,7 @@ def main(argv=None):
     c.add_argument("--rep", default="1")
     c.add_argument("--torus")
     c.add_argument("--braid")
+    c.add_argument("--double-braid", help="m,n: antiparallel double braid H(m,n)")
     c.add_argument("--method")
     c.add_argument("--format", choices=["plain", "mathematica"], default="plain")
     i = sub.add_parser("info")
@@ -47,6 +49,9 @@ def main(argv=None):
 
     if a.torus:
         K = TorusKnot(*_ints(a.torus))
+    elif a.double_braid:
+        from .knots.families import DoubleBraid
+        K = DoubleBraid(*_ints(a.double_braid))
     elif a.braid:
         K = _ints(a.braid)
     else:

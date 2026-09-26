@@ -77,24 +77,28 @@ def even_minus_cf(x: Fraction):
 
 @dataclass(frozen=True)
 class DoubleBraid:
-    """Double braid knot: two twist regions with m and n (full) twists.
+    """Antiparallel double braid H(m, n): two twist regions with m and n full
+    antiparallel twists (convention of the interpolation-formula paper):
+    H(1, -1) = 4_1, H(1, 1) = 3_1 (positive trefoil, KnotInfo chirality),
+    H(m, ±1) = twist knots, H(0, n) = H(m, 0) = unknot.  Genus-1 family
+    C(2m, 2n) of A. Morozov, "Factorization of differential expansion for
+    antiparallel double-braid knots".
 
-    ``antiparallel=(True, True)`` is the genus-1 family C(2m, 2n) of
-    A. Morozov, "Factorization of differential expansion for antiparallel
-    double-braid knots"; twist knots are n = +-1.  Parallel regions give
-    the remaining double-braid families.  The rectangular-representation
-    method (methods.double_braid) uses the evolution in m, n with exclusive
-    Racah matrices S̄ for R ⊗ R̄.
+    It is the 4-plat with all-even continued fraction (-2m, -2n) in the
+    family-P convention of ``TwoBridge.even_cf`` (pinned in
+    tests/test_interpolation.py), so the Racah two-bridge method evaluates it too.
     """
     m: int
     n: int
     antiparallel: tuple = (True, True)
 
-    def two_bridge(self):
-        if self.antiparallel == (True, True):
-            f = Fraction(2 * self.m) + Fraction(1, 2 * self.n)
-            return TwoBridge(abs(f.numerator), abs(f.denominator) % abs(f.numerator))
-        raise NotImplementedError
+    def even_cf(self):
+        if self.antiparallel != (True, True):
+            raise NotImplementedError("parallel twist regions")
+        return (-2 * self.m, -2 * self.n)
+
+    def is_knot(self):
+        return True
 
 
 def continued_fraction(x: Fraction, even=False):
