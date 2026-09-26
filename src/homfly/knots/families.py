@@ -126,3 +126,25 @@ def continued_fraction(x: Fraction, even=False):
         x = 1 / x
         if len(out) > 64:
             raise ValueError("no even continued fraction")
+
+
+@dataclass(frozen=True)
+class MontesinosKnot:
+    """Montesinos knot N(T_1 + ... + T_k) of rational tangles with fractions
+    p_i/q_i (KnotInfo ``montesinos_notation`` K(p1/q1;...;pk/qk) for k >= 3;
+    pretzel P(a,b,c) = K(1/a;1/b;1/c)).  ``mirror`` negates all fractions."""
+    tangles: tuple            # ((p1, q1), (p2, q2), ...)
+    mirror: bool = False
+
+    @classmethod
+    def from_notation(cls, s, mirror=False):
+        body = s.strip()[2:-1]
+        fr = tuple((Fraction(x).numerator, Fraction(x).denominator) for x in body.split(";"))
+        return cls(fr, mirror)
+
+    def fractions(self):
+        sgn = -1 if self.mirror else 1
+        return tuple(sgn * Fraction(p, q) for p, q in self.tangles)
+
+    def is_knot(self):
+        return True
