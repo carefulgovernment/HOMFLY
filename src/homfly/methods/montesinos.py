@@ -148,6 +148,62 @@ class _Poly:
         return s
 
 
+class _Flat:
+    """Matrix of rational entries num/den for vectorised evaluation mod p."""
+
+    def __init__(self, mat):
+        self.shape = (len(mat), len(mat[0]))
+        self.parts = []
+        for which in (0, 1):
+            coef, ai, qj, ptr = [], [], [], []
+            for row in mat:
+                for e in row:
+                    ptr.append(len(coef))
+                    terms = e[which].terms or [(0, 0, 0)]
+                    for i, j, c in terms:
+                        ai.append(i)
+                        qj.append(j)
+                        coef.append(c)
+            self.parts.append((coef, ai, qj, ptr))
+        self._np = None
+        self._coef = {}
+
+    def evaluate(self, p, pw):
+        import numpy as np
+        if self._np is None:
+            self._np = [(np.array(ai), np.array(qj), np.array(ptr)) for _, ai, qj, ptr in self.parts]
+        vals = []
+        for which in (0, 1):
+            key = (which, p)
+            if key not in self._coef:
+                self._coef[key] = np.array([int(c) % p for c in self.parts[which][0]], dtype=np.int64)
+            ai, qj, ptr = self._np[which]
+            t = self._coef[key] * pw("A", ai) % p * pw("q", qj) % p
+            vals.append(np.add.reduceat(t, ptr) % p)
+        num, den = vals
+        if (den == 0).any():
+            raise BadPoint("pole in Racah data")
+        inv = np.array([pow(int(x), -1, p) for x in den], dtype=np.int64)
+        return (num * inv % p).reshape(self.shape)
+
+
+def _powers(p, A, q):
+    """pw(var, exponents array) -> A^e or q^e mod p, from a cached table."""
+    import numpy as np
+    tabs = {}
+
+    def pw(var, e):
+        x = A if var == "A" else q
+        lo, hi = int(e.min()), int(e.max())
+        if var not in tabs or tabs[var][0] > lo or tabs[var][1] < hi:
+            xi = pow(x, -1, p)
+            tab = [pow(xi, -k, p) if k < 0 else pow(x, k, p) for k in range(lo, hi + 1)]
+            tabs[var] = (lo, hi, np.array(tab, dtype=np.int64))
+        lo0, _, tab = tabs[var]
+        return tab[e - lo0]
+    return pw
+
+
 class PData:
     """Family P, multiplicity-free R: S̄, S, V, T, T̄."""
 
@@ -160,6 +216,25 @@ class PData:
                      for k in ("Sbar", "S", "V")}
         self.diags = {k: [(_Poly(n), _Poly(dd)) for n, dd in d[k]] for k in ("T", "Tbar")}
         self.n = len(d["Sbar"])
+        self.flat = {k: _Flat(M) for k, M in self.mats.items()}
+        self.flat.update({k: _Flat([v]) for k, v in self.diags.items()})
+
+    def evaluate_np(self, p, A, q):
+        import numpy as np
+        pw = _powers(p, A, q)
+        out = {k: f.evaluate(p, pw) for k, f in self.flat.items()}
+        out["T"], out["Tbar"] = out["T"][0], out["Tbar"][0]
+        F = GF(p)
+        dR = int(qdim(self.R, F(A), F(q)))
+        Sb, S, V, z = out["Sbar"], out["S"], out["V"], self.vac
+        out["d_anti"] = Sb[z, :] * Sb[:, z] % p * (dR * dR % p) % p
+        out["d_par"] = S[z, :] * V[:, z] % p * (dR * dR % p) % p
+        out["dR"] = dR
+        out["blocks_anti"] = [[[X]] for X in range(self.n)]
+        out["blocks_par"] = [[[Qi]] for Qi in range(self.n)]
+        out["vac"] = z
+        return {k: (np.asarray(v, dtype=np.int64) if k in ("d_anti", "d_par") else v)
+                for k, v in out.items()}
 
     def evaluate(self, F, A, q):
         cache = {}
@@ -200,6 +275,37 @@ class HData:
                                          for x in self.anti])
         self.blocks_par = self._blocks([(tuple(x["Q"]), x["a"], x["b"]) for x in self.par])
         self.vac = next(i for i, x in enumerate(self.anti) if not x["Z"] and not x["Zp"])
+        self.flat = {k: _Flat(M) for k, M in self.mats.items()}
+
+    def evaluate_np(self, p, A, q):
+        import numpy as np
+        from ..reps.partitions import kappa
+        from .interpolation import Point
+        F = GF(p)
+        pw = _powers(p, A, q)
+        S = self.flat["S"].evaluate(p, pw)
+        Sinv = _inv_np(S, p)
+        FA, Fq = F(A), F(q)
+        theta = FA ** sum(self.R) * Fq ** (2 * kappa(self.R))
+        T = np.array([int(sg * FA ** ea * Fq ** eq / theta) for sg, ea, eq in self.Tpar], dtype=np.int64)
+        Tb = np.array([int(x["eps"] * FA ** sum(x["Z"]) * Fq ** (kappa(tuple(x["Z"])) + kappa(tuple(x["Zp"]))))
+                       for x in self.anti], dtype=np.int64)
+        if self.family == "G":
+            K = _mm_np(Sinv, T[:, None] * S % p, p)
+            Sb = Tb[:, None] * K % p * Tb[None, :] % p
+        else:
+            Sb = self.flat["Sbar"].evaluate(p, pw)
+        pt = Point(F, FA, Fq)
+        d_anti = np.zeros(self.n, dtype=np.int64)
+        for (Z, Zp), idx in self.blocks_anti:
+            d_anti[[i for row in idx for i in row]] = int(pt.chi((), Z, Zp))
+        d_par = np.zeros(self.n, dtype=np.int64)
+        for Q, idx in self.blocks_par:
+            d_par[[i for row in idx for i in row]] = int(qdim(Q, FA, Fq))
+        return {"Sbar": Sb, "V": S, "S": Sinv, "T": T, "Tbar": Tb, "dR": int(qdim(self.R, FA, Fq)),
+                "d_anti": d_anti, "d_par": d_par,
+                "blocks_anti": [idx for _, idx in self.blocks_anti],
+                "blocks_par": [idx for _, idx in self.blocks_par], "vac": self.vac}
 
     @staticmethod
     def _blocks(labels):
@@ -295,6 +401,80 @@ def _mm(X, Y, F):
             for i in range(len(X))]
 
 
+NP_BOUND = 2 ** 21       # float64 BLAS products are exact for p < 2^21, n < 2048
+
+
+def _mm_np(X, Y, p):
+    import numpy as np
+    return np.fmod(X.astype(np.float64) @ Y.astype(np.float64), p).astype(np.int64)
+
+
+def _inv_np(M, p):
+    from .two_bridge import _inv_mod_np
+    try:
+        return _inv_mod_np(M, p)
+    except BadPoint:
+        raise BadPoint("singular Racah block")
+
+
+def natural_value_np(fracs, D, p):
+    """``natural_value`` with numpy arrays mod p < NP_BOUND."""
+    import numpy as np
+    comps, tl = _orientations(tuple(Fraction(x) for x in fracs))
+    if comps != 1:
+        raise ValueError("Montesinos sum is not a knot")
+    M = {("anti", "anti"): D["Sbar"], ("par", "anti"): D["V"], ("anti", "par"): D["S"]}
+    Minv = {("par", "anti"): D["S"], ("anti", "par"): D["V"]}
+    n = D["Sbar"].shape[0]
+    tb, tp = D["Tbar"], D["T"]
+    tbi = np.array([pow(int(x), -1, p) for x in tb], dtype=np.int64)
+    tpi = np.array([pow(int(x), -1, p) for x in tp], dtype=np.int64)
+
+    def pw(ev, evi, e):
+        base = ev if e > 0 else evi
+        out = np.ones(n, dtype=np.int64)
+        for _ in range(abs(e)):
+            out = out * base % p
+        return out
+    vecs, verts = [], []
+    for base, ops, steps in tl:
+        basis = "V" if base == "0" else "H"
+        v = np.zeros(n, dtype=np.int64)
+        v[D["vac"]] = 1
+        for (kind, s), o in zip(ops, steps[:-1]):
+            h, vv = _types(o)
+            if kind == "H":
+                if basis == "V":
+                    v, basis = _mm_np(M[(h, vv)], v[:, None], p)[:, 0], "H"
+                ev, evi, e = (tb, tbi, s * GROUP) if h == "anti" else (tp, tpi, -s)
+            else:
+                if basis == "H":
+                    key = (h, vv)
+                    if key not in Minv:
+                        Minv[key] = _inv_np(M[key], p)
+                    v, basis = _mm_np(Minv[key], v[:, None], p)[:, 0], "V"
+                ev, evi, e = (tb, tbi, s) if vv == "anti" else (tp, tpi, -s * GROUP)
+            v = v * pw(ev, evi, e) % p
+        if basis == "V":
+            v = _mm_np(M[_types(steps[-1])], v[:, None], p)[:, 0]
+        vecs.append(v)
+        verts.append(_types(steps[-1])[0])
+    vert = verts[0]
+    E = (D["Sbar"] if vert == "anti" else D["V"])[:, D["vac"]]
+    dims = D["d_anti"] if vert == "anti" else D["d_par"]
+    blocks = D["blocks_anti"] if vert == "anti" else D["blocks_par"]
+    tot = 0
+    for idx in blocks:
+        ix = np.array(idx)
+        Ei = _inv_np(E[ix], p)
+        prod = None
+        for v in vecs:
+            X = _mm_np(v[ix], Ei, p)
+            prod = X if prod is None else _mm_np(prod, X, p)
+        tot = (tot + int(dims[idx[0][0]]) * int(np.trace(prod) % p)) % p
+    return tot * pow(int(D["dR"]), -1, p) % p
+
+
 # ---------------------------------------------------------------------------
 # engine
 # ---------------------------------------------------------------------------
@@ -358,8 +538,12 @@ def value(fracs, R, F, A, q, root=DATA_DIR):
     data is taken from its transpose, H_{R^T}(A, q) = H_R(A, -1/q)."""
     R = P(R)
     if R not in available(root) and conjugate(R) in available(root):
-        return natural_value(fracs, load(conjugate(R), root).evaluate(F, A, -1 / q), F)
-    return natural_value(fracs, load(R, root).evaluate(F, A, q), F)
+        R, q = conjugate(R), -1 / q
+    d = load(R, root)
+    p = getattr(F, "p", None)
+    if p is not None and p < NP_BOUND:
+        return F(natural_value_np(fracs, d.evaluate_np(p, int(A), int(q)), p))
+    return natural_value(fracs, d.evaluate(F, A, q), F)
 
 
 def chirality(fracs, reference):
@@ -377,6 +561,7 @@ def chirality(fracs, reference):
 
 class MontesinosMethod(Method):
     name = "montesinos"
+    prime_bound = NP_BOUND        # numpy/BLAS fast path
 
     def __init__(self, root=DATA_DIR):
         self.root = root
