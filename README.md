@@ -68,6 +68,7 @@ $ python scripts/validate_fundamental.py 12   # all 2977 knots vs KnotInfo
 | 715 Montesinos (≥ 3 tangles, chirality fixed by H_[1], or by H_[2] via cabling when H_[1] is mirror-symmetric; not 10_71, 12a_453, 12a_669, 12n_250, 12n_278, 12n_562 — 5-strand braids, tie unresolved) | every R with \|R\| ≤ 6 (all 29) | `montesinos` |
 | double braids H(m,n) (4_1, 3_1, twist knots, all two-bridge knots with a 2-term even cf) | any R | `double-braid-interpolation` |
 | torus knots T[m,n] | any R | `rosso-jones` |
+| any braid (e.g. polyhedral knots) | band space ≤ 4·10⁶ skew tableaux: 4-strand braids up to \|R\| = 4 and [5], [1⁵] | `cabling-paths` (cabling in the multiplicity spaces W_Q, path basis; from the colored-homfly-cabling skill) |
 | any braid (small) | m·\|R\| ≲ 10 | `cabling` (reference) |
 
 The 3-strand U_Q arrays for the nine 6-box reps other than [6], [1⁶] live in

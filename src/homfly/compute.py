@@ -35,8 +35,9 @@ def default_methods(racah_store=None):
     from .methods.two_bridge import TwoBridgeMethod
     from .methods.interpolation import DoubleBraidInterpolation
     from .methods.montesinos import MontesinosMethod
+    from .methods.cabling_paths import CablingPaths
     ms = [RossoJones(), HeckeFundamental(), Racah3Strand(), TwoBridgeMethod(), MontesinosMethod(),
-          Racah3StrandU(), DoubleBraidInterpolation()]
+          Racah3StrandU(), DoubleBraidInterpolation(), CablingPaths()]
     if racah_store is not None:
         from .methods.rt_braid import RTBraid
         from .methods.arborescent import Arborescent
@@ -106,6 +107,8 @@ def homfly(knot, R=(1,), method=None, racah_store=None, seed=0, report=None, **k
     m, K = choose_method(knot, R, methods)
     rep = report if report is not None else ReconstructionReport()
     rep.method = m.name
+    if getattr(m, "direct", False):
+        return m.polynomial(K, R, report=rep)
     if hasattr(m, "prime_bound"):
         kw.setdefault("prime_bound", m.prime_bound)
     return reconstruct_laurent(m.black_box(K, R), steps=m.steps, seed=seed, report=rep, **kw)
