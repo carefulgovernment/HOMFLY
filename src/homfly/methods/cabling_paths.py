@@ -76,8 +76,9 @@ class CablingPaths(Method):
     name = "cabling-paths"
     direct = True                  # returns the polynomial itself (own reconstruction)
 
-    def __init__(self, max_tableaux=4_000_000):
-        self.max_tableaux = max_tableaux
+    def __init__(self, max_tableaux=None):
+        import os
+        self.max_tableaux = max_tableaux or int(os.environ.get("HOMFLY_CABLING_MAX_TABLEAUX", 4_000_000))
 
     def supports(self, knot, R):
         if not isinstance(knot, Braid) or knot.strands < 2 or not knot.word:
