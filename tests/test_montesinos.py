@@ -64,11 +64,40 @@ def test_colored_against_racah3(R):
         assert MO.value(_oriented(k), R, F, A0, q0) == m.evaluate(k.braid, R, F, A0, q0), k.name
 
 
+@pytest.mark.parametrize("R", [(2, 1, 1), (4, 1), (3, 2), (3, 1, 1), (2, 2, 1), (2, 1, 1, 1)])
+def test_generated_G_against_racah3(R):
+    """mixed S reconstructed by scripts/make_mixed_S_gtpath.sh (antiparallel vertex)"""
+    m = Racah3Strand()
+    for k in _table_montesinos(braid_index=3, limit=3):
+        assert MO.value(_oriented(k), R, F, A0, q0) == m.evaluate(k.braid, R, F, A0, q0), k.name
+
+
+def test_generated_G_transposition_parallel_vertex():
+    """R and R^T were reconstructed independently; knots with a parallel vertex"""
+    n = 0
+    for k in _table_montesinos():
+        fr = MontesinosKnot.from_notation(k.montesinos).fractions()
+        if MO._types(MO._orientations(tuple(fr))[1][0][2][-1])[0] != "par":
+            continue
+        for R, Rt in [((4, 1), (2, 1, 1, 1)), ((3, 2), (2, 2, 1))]:
+            assert MO.value(fr, R, F, A0, q0) == MO.value(fr, Rt, F, A0, -1 / q0), k.name
+        n += 1
+        if n == 4:
+            break
+    assert n == 4
+
+
 @pytest.mark.parametrize("R", [(5, 1), (4, 2), (2, 2, 1, 1)])
 def test_six_boxes_against_racah3U(R):
     m = Racah3StrandU()
     for k in _table_montesinos(braid_index=3, limit=2):
         assert MO.value(_oriented(k), R, F, A0, q0) == m.evaluate(k.braid, R, F, A0, q0), k.name
+
+
+def test_all_29_reps_available():
+    from homfly.reps.partitions import partitions
+    assert all(MO.MontesinosMethod().supports(MontesinosKnot(((2, 3), (2, 3), (1, 2))), R)
+               for k in range(1, 7) for R in partitions(k))
 
 
 def test_8_15_presentation():

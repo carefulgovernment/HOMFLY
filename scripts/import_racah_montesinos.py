@@ -61,6 +61,9 @@ def main():
             print("P R=%s size %d %.1fs" % (list(R), n, sec), flush=True)
 
 
+# mixed S of [2,1,1] and the non-rectangular five-box reps (no Sbar needed): reconstructed with the release's G engine by
+# scripts/make_mixed_S_gtpath.sh, files <mixed-dir>/racah_<R>_S_mixed.json
+G_MIXED_ONLY = ("211", "41", "32", "311", "221", "2111")
 G_FILES = {"42": ("R42", "racah_42_Sbar_rational.json", "racah_42_S_mixed.json"),
            "2211": ("R2211", "racah_2211_Sbar_native_coeffs.json", "racah_2211_S_mixed.json"),
            "321": ("R321", "racah_321_Sbar_coeffs.json", "racah_321_S_mixed.json")}
@@ -97,15 +100,19 @@ def _g_matrix(d, key_coeffs, key_strings):
     return [[entry(sp.sympify(x, locals={"A": A, "q": q})) for x in row] for row in d[key_strings]]
 
 
-def export_G(archive, key, out):
-    lvl, fsb, fs = G_FILES[key]
-    d = os.path.join(archive, "level6", lvl, "gtpath")
-    Sb = _load_json(os.path.join(d, fsb))
-    S = _load_json(os.path.join(d, fs))
+def export_G(archive, key, out, mixed_dir=None):
     ev = lambda x: eval(x) if isinstance(x, str) else x  # noqa: E731
-    sb_labels = ev(Sb["labels"])
-    col_labels = ev(S["col_labels"])
-    assert [json.dumps(x) for x in sb_labels] == [json.dumps(x) for x in col_labels], "label mismatch"
+    if key in G_MIXED_ONLY:
+        S = _load_json(os.path.join(mixed_dir, "racah_%s_S_mixed.json" % key))
+        sb_labels = col_labels = ev(S["col_labels"])
+    else:
+        lvl, fsb, fs = G_FILES[key]
+        d = os.path.join(archive, "level6", lvl, "gtpath")
+        Sb = _load_json(os.path.join(d, fsb))
+        S = _load_json(os.path.join(d, fs))
+        sb_labels = ev(Sb["labels"])
+        col_labels = ev(S["col_labels"])
+        assert [json.dumps(x) for x in sb_labels] == [json.dumps(x) for x in col_labels], "label mismatch"
     anti = [{"Z": l[0][0], "Zp": l[0][1], "a": str(l[1]), "b": str(l[2]), "eps": 1} for l in sb_labels]
     par = [{"Q": l[0][0], "a": str(l[1]), "b": str(l[2])} for l in ev(S["row_labels"])]
     T = [[sg, 0, k] for sg, k in ev(S["T"])]
@@ -123,12 +130,13 @@ def export_G(archive, key, out):
 def main_G(argv):
     ap = argparse.ArgumentParser()
     ap.add_argument("--family-G", action="store_true")
-    ap.add_argument("--archive", required=True)
+    ap.add_argument("--archive")
+    ap.add_argument("--mixed-dir", help="racah_<R>_S_mixed.json of the five-box reps")
     ap.add_argument("--reps", nargs="+", default=list(G_FILES))
     ap.add_argument("--out", default="data/racah/montesinos")
     a = ap.parse_args(argv)
     for key in a.reps:
-        path, n = export_G(a.archive, key, a.out)
+        path, n = export_G(a.archive, key, a.out, a.mixed_dir)
         print("G R=%s size %d -> %s" % (key, n, path), flush=True)
 
 

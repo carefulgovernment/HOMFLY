@@ -176,15 +176,29 @@ Data (`scripts/import_racah_montesinos.py` → `data/racah/montesinos/`):
 * family G: [4,2], [2,2,1,1], [3,2,1] from the v1.1 mixed S only; the
   published S̄ is in a vacuum-dual gauge (rows and columns normalised
   differently), so S̄ is rebuilt as T̄ S⁻¹TS T̄ in the gauge of S's columns;
-* [2,1,1] from [3,1] by H_{Rᵀ}(A, q) = H_R(A, −1/q).
+* family G, generated here: [2,1,1], [4,1], [3,2], [3,1,1], [2,2,1], [2,1³]
+  (`scripts/make_mixed_S_gtpath.sh`). The release's family-P data for these
+  reps are complete (S, V, T, T̄, S̄), but the antiparallel basis is a
+  pivot-normalised eigenbasis of the antiparallel full twist, not matrix units
+  in the multiplicity blocks, so an antiparallel vertex cannot be closed with
+  them (a parallel vertex works). The release's own G engine
+  (`code/mixed_S_gtpath`, the one that produced the v1.1 mixed S) gives the
+  matrix-unit labelled mixed S at any point; the script runs its
+  reconstruction pipeline (probe lines → denominator factors → product grid
+  mod 2³¹−1 → fresh-point check against the direct engine mod 2147483629,
+  0 mismatches in 8 670–27 000 comparisons per rep) and imports the result.
+  R and Rᵀ are generated independently.
+* representations without data would be taken from the transpose,
+  H_{Rᵀ}(A, q) = H_R(A, −1/q); all 29 R with |R| ≤ 6 have their own data now.
 
 Chirality: the fractions' sign is fixed by H_[1] against KnotInfo; 12 knots
-with mirror-symmetric H_[1] are left out. The non-rectangular 5-box R are not
-covered: only family-P data exist for them, and their R⊗R̄ has multiplicities.
+with mirror-symmetric H_[1] are left out.
 
 Checks (tests/test_montesinos.py): all 721 Montesinos knots against KnotInfo
-in [1]; colored values equal the 3-strand Racah methods for P, H and G reps;
-the tangle order is irrelevant; transposition.
+in [1]; colored values equal the 3-strand Racah methods for P, H and G reps
+(including every generated rep) and the two-bridge method on 2-bridge knots;
+the tangle order is irrelevant; transposition between independently generated
+R and Rᵀ at parallel and antiparallel vertices.
 
 ## 6. Double-braid knots in rectangular R (specified, M6)
 
