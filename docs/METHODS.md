@@ -191,8 +191,11 @@ Data (`scripts/import_racah_montesinos.py` → `data/racah/montesinos/`):
 * representations without data would be taken from the transpose,
   H_{Rᵀ}(A, q) = H_R(A, −1/q); all 29 R with |R| ≤ 6 have their own data now.
 
-Chirality: the fractions' sign is fixed by H_[1] against KnotInfo; 12 knots
-with mirror-symmetric H_[1] are left out.
+Chirality: the fractions' sign is fixed by H_[1] against KnotInfo. For the 12
+knots with mirror-symmetric H_[1] the tie is broken by H_[2] from cabling the
+KnotInfo braid (2 × strands ≤ 9): 6 resolved (9_42, 10_48, 10_125, 11n_82,
+12a_1283, 12n_571; confirmed by 3-strand data where available),
+6 with 5-strand braids remain (10_71, 12a_453, 12a_669, 12n_250, 12n_278, 12n_562).
 
 Checks (tests/test_montesinos.py): all 721 Montesinos knots against KnotInfo
 in [1]; colored values equal the 3-strand Racah methods for P, H and G reps

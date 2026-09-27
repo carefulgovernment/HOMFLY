@@ -548,9 +548,11 @@ def value(fracs, R, F, A, q, root=DATA_DIR):
     return natural_value(fracs, d.evaluate(F, A, q), F)
 
 
-def chirality(fracs, reference):
+def chirality(fracs, reference, braid=None):
     """Sign s such that N(s*fractions) matches ``reference`` (the STANDARD
-    fundamental HOMFLY), or None if both mirrors match (symmetric H_[1])."""
+    fundamental HOMFLY).  If H_[1] is mirror-symmetric and a braid of the knot
+    is given, the tie is broken with H_[2] by cabling (2 x strands <= 9);
+    otherwise None."""
     F = GF(2 ** 61 - 1)
     rng = random.Random(hash(tuple(fracs)) & 0xffff)
     A, q = F.random_element(rng), F.random_element(rng)
@@ -558,6 +560,16 @@ def chirality(fracs, reference):
     hits = [s for s in (1, -1) if value([s * Fraction(x) for x in fracs], (1,), F, A, q) == ref]
     if not hits:
         raise ValueError("no chirality matches the reference")
+    if len(hits) == 1:
+        return hits[0]
+    if braid is None or 2 * braid.strands > 9:
+        return None
+    from ..algebra.fields import primes_below
+    from .cabling import Cabling
+    F = GF(primes_below(2 ** 21, 1)[0])
+    A, q = F.random_element(rng), F.random_element(rng)
+    ref2 = Cabling(max_strands=9).evaluate(braid, (2,), F, A, q)
+    hits = [s for s in (1, -1) if value([s * Fraction(x) for x in fracs], (2,), F, A, q) == ref2]
     return hits[0] if len(hits) == 1 else None
 
 

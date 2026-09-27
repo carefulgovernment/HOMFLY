@@ -104,3 +104,15 @@ def test_8_15_presentation():
     assert any(isinstance(K, MontesinosKnot) for K in presentations("8_15"))
     m, K = choose_method("8_15", (4, 2))
     assert m.name == "montesinos" and isinstance(K, MontesinosKnot)
+
+
+def test_chirality_tie_broken_by_cabling():
+    """H_[1] mirror-symmetric: H_[2] by cabling decides (3-strand data confirm)"""
+    t = load_table()
+    k = t["10_48"]
+    fr = MontesinosKnot.from_notation(k.montesinos).fractions()
+    c = MO.chirality(fr, k.homfly_reference(), k.braid)
+    assert c is not None
+    assert MO.value([c * x for x in fr], (2, 1), F, A0, q0) == \
+        Racah3Strand().evaluate(k.braid, (2, 1), F, A0, q0)
+    assert any(isinstance(K, MontesinosKnot) for K in presentations("9_42"))

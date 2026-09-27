@@ -71,8 +71,8 @@ def presentations(name):
             out.append(DoubleBraid(-cf[0] // 2, -cf[1] // 2))
     if rec.is_montesinos and rec.montesinos.count(";") >= 2:
         mk = MontesinosKnot.from_notation(rec.montesinos)
-        c = montesinos.chirality(mk.fractions(), rec.homfly_reference())
-        if c is not None:             # H_[1] mirror-symmetric: chirality undecided
+        c = montesinos.chirality(mk.fractions(), rec.homfly_reference(), rec.braid)
+        if c is not None:             # undecided by H_[1] and H_[2]
             out.append(MontesinosKnot(mk.tangles, mirror=(c < 0)))
     if rec.braid is not None and rec.braid.strands > 3:
         out.append(rec.braid)
