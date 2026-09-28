@@ -90,8 +90,9 @@ def choose_method(knot, R, methods=None):
     raise NotApplicable("no available method for %s in %s" % (knot, R))
 
 
-def homfly(knot, R=(1,), method=None, racah_store=None, seed=0, report=None, **kw):
-    """Reduced colored HOMFLY H_R(K; A, q) as a Laurent polynomial."""
+def homfly(knot, R=(1,), method=None, racah_store=None, seed=0, report=None, exclude=(), **kw):
+    """Reduced colored HOMFLY H_R(K; A, q) as a Laurent polynomial.
+    ``exclude``: names of methods never to use (e.g. slow fallbacks)."""
     R = P(R)
     if (knot in ("0_1",) or (isinstance(knot, TorusKnot) and knot.m == 1)
             or (isinstance(knot, DoubleBraid) and (knot.m == 0 or knot.n == 0))):
@@ -102,6 +103,7 @@ def homfly(knot, R=(1,), method=None, racah_store=None, seed=0, report=None, **k
         methods = [x for x in methods if x.name == method]
     elif method is not None:
         methods = [method]
+    methods = [x for x in methods if x.name not in exclude]
     if isinstance(knot, TorusKnot) and not any(x.supports(knot, R) for x in methods):
         knot = knot.braid()
     m, K = choose_method(knot, R, methods)
