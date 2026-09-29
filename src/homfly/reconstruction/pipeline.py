@@ -77,6 +77,12 @@ def reconstruct_laurent(evaluate, steps=(1, 1), bounds=None, rational=False,
             new[k] = r
         residues, modulus = new, modulus * p
         lifted = _lift(residues, modulus, rational)
+        # early exit: coefficients usually fit one prime; a lift that is wrong
+        # fails at random points of an independent prime with overwhelming
+        # probability, so check it there instead of a full second interpolation
+        if (lifted is not None and previous is None and len(primes) > 2
+                and _verify(Laurent(lifted, AQ), evaluate, primes[-1], verify_points + 2, rng)):
+            previous = lifted
         if lifted is not None and lifted == previous:
             poly = Laurent(lifted, AQ)
             fresh = primes[min(len(rep.primes), len(primes) - 1)]
