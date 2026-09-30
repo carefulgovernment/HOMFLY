@@ -38,7 +38,7 @@ class ReconstructionReport:
 
 def reconstruct_laurent(evaluate, steps=(1, 1), bounds=None, rational=False,
                         prime_bound=DEFAULT_PRIME_BOUND, max_primes=20,
-                        verify_points=3, seed=None, report=None):
+                        verify_points=3, seed=None, report=None, qsym=False):
     """Reconstruct a Laurent polynomial in (A, q) from a modular black box.
 
     Parameters
@@ -68,7 +68,7 @@ def reconstruct_laurent(evaluate, steps=(1, 1), bounds=None, rational=False,
         if bounds is None:
             bounds = detect_exponent_box(f2, F, steps=steps, rng=rng)
         rep.A_range, rep.q_range = bounds
-        img = dense_bivariate(f2, F, bounds[0], bounds[1], steps=steps, rng=rng)
+        img = dense_bivariate(f2, F, bounds[0], bounds[1], steps=steps, rng=rng, qsym=qsym)
         rep.primes.append(p)
         keys = set(residues) | set(img)
         new = {}

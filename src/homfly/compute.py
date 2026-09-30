@@ -113,6 +113,9 @@ def homfly(knot, R=(1,), method=None, racah_store=None, seed=0, report=None, exc
         return m.polynomial(K, R, report=rep)
     if hasattr(m, "prime_bound"):
         kw.setdefault("prime_bound", m.prime_bound)
+    from .reps.partitions import conjugate
+    if R == conjugate(R):             # H_R(A, q) = H_R(A, -1/q): half the q-points
+        kw.setdefault("qsym", True)
     return reconstruct_laurent(m.black_box(K, R), steps=m.steps, seed=seed, report=rep, **kw)
 
 

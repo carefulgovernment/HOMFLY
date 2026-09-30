@@ -144,9 +144,11 @@ def detect_exponent_box(f2, F, steps=(1, 1), lines=2, lower=-16, rng=random):
     return tuple(boxA), tuple(boxq)
 
 
-def dense_bivariate(f2, F, A_range, q_range, steps=(1, 1), rng=random):
+def dense_bivariate(f2, F, A_range, q_range, steps=(1, 1), rng=random, qsym=False):
     """Interpolate f2(A, q) = sum c_{ij} A^i q^j with i in A_range, j in q_range
-    (exponents multiples of the respective step).  Returns {(i, j): c}."""
+    (exponents multiples of the respective step).  Returns {(i, j): c}.
+    ``qsym``: f2(A, -1/q) = f2(A, q) (self-conjugate R); every evaluated q-row
+    is reused at -1/q, halving the evaluations."""
     sA, sq = steps
     (a0, a1), (q0e, q1e) = A_range, q_range
     if a0 is None or q0e is None:
@@ -170,6 +172,12 @@ def dense_bivariate(f2, F, A_range, q_range, steps=(1, 1), rng=random):
         c += [F.zero] * (nA - len(c))
         qpts.append(qv)
         rows.append(c)
+        if qsym and len(rows) < nq:
+            qm = -1 / qv
+            if qm not in usedq and qm ** sq != qv ** sq:
+                usedq.add(qm)
+                qpts.append(qm)
+                rows.append(list(c))
     out = {}
     for i in range(nA):
         ni = NewtonInterpolator(F)
