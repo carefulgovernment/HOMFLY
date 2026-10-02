@@ -137,10 +137,14 @@ def write_knot(n, a, reps, results):
         return False
     polys = {R: from_json(v["poly"]) for R, v in rows.items() if v is not None}
     path = os.path.join(a.out, "%s.txt" % n)
-    if os.path.exists(path):         # never replace a file by one with fewer representations
+    if os.path.exists(path):         # never replace a file by a smaller one
+        import re
         with open(path) as f:
-            if sum(line.startswith("R = ") for line in f) > len(polys):
-                return False
+            text = f.read()
+        old_n = text.count("\nR = ")
+        m = re.search(r"All R with \|R\| <= (\d+)", text)
+        if old_n > len(polys) or (old_n == len(polys) and m and int(m.group(1)) > a.max_size):
+            return False
     H1q = q1(polys[(1,)])
     checks = {}
     for R, H in polys.items():
