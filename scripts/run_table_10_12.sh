@@ -5,6 +5,8 @@
 #
 #   scripts/run_table_10_12.sh [jobs]
 set -e
+# one BLAS thread per worker: the jobs already use all cores
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
 cd "$(dirname "$0")/.."
 J=${1:-4}
 C=${CLASSES:-/tmp/homfly_classes}
