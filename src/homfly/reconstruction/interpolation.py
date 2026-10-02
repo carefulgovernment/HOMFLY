@@ -18,19 +18,30 @@ from ..algebra.fields import BadPoint
 
 
 class NewtonInterpolator:
-    """Incremental Newton interpolation p(x) through points (x_i, y_i)."""
+    """Incremental Newton interpolation p(x) through points (x_i, y_i).
+    Over a prime field the arithmetic runs on plain ints mod p."""
 
     def __init__(self, F):
         self.F = F
+        self.p = getattr(F, "p", None)
         self.xs = []
         self.c = []  # Newton coefficients
 
     def __len__(self):
         return len(self.xs)
 
+    def _value_int(self, x):
+        p, xs, c = self.p, self.xs, self.c
+        r = c[-1]
+        for k in range(len(c) - 2, -1, -1):
+            r = (r * (x - xs[k]) + c[k]) % p
+        return r
+
     def value(self, x):
         if not self.c:
             return self.F.zero
+        if self.p is not None:
+            return self.F(self._value_int(int(x)))
         r = self.c[-1]
         for k in range(len(self.c) - 2, -1, -1):
             r = r * (x - self.xs[k]) + self.c[k]
@@ -38,6 +49,22 @@ class NewtonInterpolator:
 
     def add(self, x, y):
         # divided difference update
+        if self.p is not None:
+            p = self.p
+            x, y = int(x) % p, int(y) % p
+            if not self.xs:
+                self.xs.append(x)
+                self.c.append(y)
+                return
+            num = (y - self._value_int(x)) % p
+            den = 1
+            for xi in self.xs:
+                den = den * (x - xi) % p
+            if den == 0:
+                raise BadPoint("division by zero mod %d" % p)
+            self.xs.append(x)
+            self.c.append(num * pow(den, -1, p) % p)
+            return
         n = len(self.xs)
         if n == 0:
             self.xs.append(x)
@@ -53,6 +80,20 @@ class NewtonInterpolator:
     def monomial_coefficients(self):
         """Coefficients a_0..a_d of the interpolant in the monomial basis."""
         F = self.F
+        if self.p is not None:
+            p = self.p
+            coeffs = [0]
+            for k in range(len(self.c) - 1, -1, -1):
+                xk = self.xs[k]
+                new = [0] * (len(coeffs) + 1)
+                for i, a in enumerate(coeffs):
+                    new[i + 1] += a
+                    new[i] -= a * xk
+                new[0] += self.c[k]
+                coeffs = [v % p for v in new]
+            while len(coeffs) > 1 and coeffs[-1] == 0:
+                coeffs.pop()
+            return [F(v) for v in coeffs]
         coeffs = [F.zero]
         for k in range(len(self.c) - 1, -1, -1):
             # coeffs <- coeffs * (x - xs[k]) + c[k]

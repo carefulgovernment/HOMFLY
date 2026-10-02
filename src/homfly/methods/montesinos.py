@@ -217,6 +217,9 @@ class _Flat:
 def _inv_vec(x, p):
     """Elementwise inverse mod p < 2^31 (Fermat, vectorised)."""
     import numpy as np
+    if x.size <= 64:
+        return np.array([pow(int(v), -1, p) if v % p else 0 for v in x.ravel()],
+                        dtype=np.int64).reshape(x.shape)
     out = np.ones_like(x)
     b, e = x % p, p - 2
     while e:
@@ -297,6 +300,71 @@ class PData:
         return out
 
 
+class _DimTable:
+    """Quantum dimensions of composite representations [Z̄, Z'] (|Z| = |Z'|)
+    at many (A, q) mod p:
+
+        dim_q = dim_q(Z) dim_q(Z') prod_{i,j} [N+1-i-j+Z_i+Z'_j] [N+1-i-j]
+                                             / ([N+1-i-j+Z_i] [N+1-i-j+Z'_j])
+
+    with [N+m] = A q^m - A^-1 q^-m and dim_q(Z) = prod [N+c] / prod [h]
+    (checked against interpolation.Point.chi for all composites of the
+    data).  Per q the hook products are cached; per A only [N+m] products."""
+
+    def __init__(self, items):
+        from ..reps.partitions import boxes, conjugate
+        self.items = []
+        for Z, Zp in items:
+            num, den, hooks = [], [], []
+            for Y in (Z, Zp):
+                lt = conjugate(Y)
+                for i, j in boxes(Y):
+                    num.append(j - i)
+                    hooks.append((Y[i] - j - 1) + (lt[j] - i - 1) + 1)
+            for i in range(1, len(Z) + 1):
+                for j in range(1, len(Zp) + 1):
+                    num += [1 - i - j + Z[i - 1] + Zp[j - 1], 1 - i - j]
+                    den += [1 - i - j + Z[i - 1], 1 - i - j + Zp[j - 1]]
+            for m in list(den):           # cancel
+                if m in num:
+                    num.remove(m)
+                    den.remove(m)
+            self.items.append((num, den, hooks))
+        ms = [m for nm, dn, _ in self.items for m in nm + dn] or [0]
+        self.mlo, self.mhi = min(ms), max(ms)
+        self._row = None
+
+    def evaluate(self, p, A, q):
+        key = (p, q)
+        if self._row is None or self._row[0] != key:
+            qm = {m: pow(q, m, p) for m in range(self.mlo, self.mhi + 1)}
+            hinv = []
+            for _, _, hooks in self.items:
+                h = 1
+                for x in hooks:
+                    h = h * (pow(q, x, p) - pow(q, -x, p)) % p
+                if h == 0:
+                    raise BadPoint("q is a small root of unity")
+                hinv.append(pow(h, -1, p))
+            self._row = (key, qm, hinv)
+        _, qm, hinv = self._row
+        g = {}
+        for m, x in qm.items():
+            y = A * x % p
+            g[m] = (y - pow(y, -1, p)) % p
+        out = []
+        for (num, den, _), hi in zip(self.items, hinv):
+            v, w = hi, 1
+            for m in num:
+                v = v * g[m] % p
+            for m in den:
+                w = w * g[m] % p
+            if w == 0:
+                raise BadPoint("vanishing [N+m]")
+            out.append(v * pow(w, -1, p) % p)
+        return out
+
+
 class HData:
     """Family H (Hecke Y-gauge): S̄, mixed S with explicit (X,a,b)/(Q,a,b)
     labels -> multiplicity blocks."""
@@ -316,32 +384,41 @@ class HData:
         self.blocks_par = self._blocks([(tuple(x["Q"]), x["a"], x["b"]) for x in self.par])
         self.vac = next(i for i, x in enumerate(self.anti) if not x["Z"] and not x["Zp"])
         self.flat = {k: _Flat(M) for k, M in self.mats.items()}
+        self._dims = None
+        self._eig = None
 
     def evaluate_np(self, p, A, q):
         import numpy as np
         from ..reps.partitions import kappa
-        from .interpolation import Point
         F = GF(p)
         pw = _powers(p, A, q)
         S = self.flat["S"].evaluate(p, pw, q)
         Sinv = _inv_np(S, p)
         FA, Fq = F(A), F(q)
-        theta = FA ** sum(self.R) * Fq ** (2 * kappa(self.R))
-        T = np.array([int(sg * FA ** ea * Fq ** eq / theta) for sg, ea, eq in self.Tpar], dtype=np.int64)
-        Tb = np.array([int(x["eps"] * FA ** sum(x["Z"]) * Fq ** (kappa(tuple(x["Z"])) + kappa(tuple(x["Zp"]))))
-                       for x in self.anti], dtype=np.int64)
+        if self._eig is None:
+            arr = lambda xs: np.array(xs, dtype=np.int64)
+            self._eig = (arr([sg for sg, _, _ in self.Tpar]), arr([ea for _, ea, _ in self.Tpar]),
+                         arr([eq for _, _, eq in self.Tpar]), arr([x["eps"] for x in self.anti]),
+                         arr([sum(x["Z"]) for x in self.anti]),
+                         arr([kappa(tuple(x["Z"])) + kappa(tuple(x["Zp"])) for x in self.anti]))
+        sg, ea, eq, eps, az, qz = self._eig
+        theta_inv = pow(pow(A, sum(self.R), p) * pow(q, 2 * kappa(self.R), p) % p, -1, p)
+        T = sg % p * pw("A", ea) % p * pw("q", eq) % p * theta_inv % p
+        Tb = eps % p * pw("A", az) % p * pw("q", qz) % p
         if self.family == "G":
             K = _mm_np(Sinv, T[:, None] * S % p, p)
             Sb = Tb[:, None] * K % p * Tb[None, :] % p
         else:
             Sb = self.flat["Sbar"].evaluate(p, pw, q)
-        pt = Point(F, FA, Fq)
+        if self._dims is None:
+            self._dims = (_DimTable([key for key, _ in self.blocks_anti]),
+                          _DimTable([((), Q) for Q, _ in self.blocks_par]))
         d_anti = np.zeros(self.n, dtype=np.int64)
-        for (Z, Zp), idx in self.blocks_anti:
-            d_anti[[i for row in idx for i in row]] = int(pt.chi((), Z, Zp))
+        for (_, idx), d in zip(self.blocks_anti, self._dims[0].evaluate(p, A, q)):
+            d_anti[[i for row in idx for i in row]] = d
         d_par = np.zeros(self.n, dtype=np.int64)
-        for Q, idx in self.blocks_par:
-            d_par[[i for row in idx for i in row]] = int(qdim(Q, FA, Fq))
+        for (_, idx), d in zip(self.blocks_par, self._dims[1].evaluate(p, A, q)):
+            d_par[[i for row in idx for i in row]] = d
         return {"Sbar": Sb, "V": S, "S": Sinv, "T": T, "Tbar": Tb, "dR": int(qdim(self.R, FA, Fq)),
                 "d_anti": d_anti, "d_par": d_par,
                 "blocks_anti": [idx for _, idx in self.blocks_anti],
@@ -446,19 +523,25 @@ SMALL_PRIME = 2 ** 21    # one float64 BLAS product is exact for n p^2 < 2^53
 
 
 def _mm_np(X, Y, p):
-    """Exact X Y mod p via float64 BLAS: directly when n p^2 < 2^53, else with
-    both factors split into 16-bit halves (four products, each < n 2^32)."""
+    """Exact X Y mod p via float64 BLAS: directly when n p^2 < 2^53; for
+    n < 64 with Y split into 16-bit halves (two products < n 2^47); else with
+    both factors split (four products < n 2^32)."""
     import numpy as np
     n = X.shape[-1]
     if n * (p - 1) ** 2 < 2 ** 53:
         return np.fmod(X.astype(np.float64) @ Y.astype(np.float64), p).astype(np.int64)
     X, Y = X % p, Y % p
+    s16 = 1 << 16
+    if n < 64:                    # split one factor: two products, each < n 2^47
+        Xf = X.astype(np.float64)
+        hi = np.fmod(Xf @ (Y >> 16).astype(np.float64), p).astype(np.int64)
+        lo = np.fmod(Xf @ (Y & 0xFFFF).astype(np.float64), p).astype(np.int64)
+        return (hi * s16 + lo) % p
     X1, X0 = (X >> 16).astype(np.float64), (X & 0xFFFF).astype(np.float64)
     Y1, Y0 = (Y >> 16).astype(np.float64), (Y & 0xFFFF).astype(np.float64)
     hh = np.fmod(X1 @ Y1, p).astype(np.int64)
     mid = (np.fmod(X1 @ Y0, p).astype(np.int64) + np.fmod(X0 @ Y1, p).astype(np.int64)) % p
     ll = np.fmod(X0 @ Y0, p).astype(np.int64)
-    s16 = 1 << 16
     return ((hh * s16 % p * s16 + mid * s16) % p + ll) % p
 
 
