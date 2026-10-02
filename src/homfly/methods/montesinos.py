@@ -169,24 +169,62 @@ class _Flat:
             self.parts.append((coef, ai, qj, ptr))
         self._np = None
         self._coef = {}
+        self._row = {}
 
-    def evaluate(self, p, pw):
+    def _prepare(self):
+        """Static grouping of the terms by (entry, A-exponent), so that for a
+        fixed q (interpolation evaluates whole rows of A-points at one q) every
+        entry collapses to a short polynomial in A."""
+        import numpy as np
+        self._np = []
+        for coef, ai, qj, ptr in self.parts:
+            ai, qj, ptr = np.array(ai), np.array(qj), np.array(ptr)
+            entry = np.repeat(np.arange(len(ptr)), np.diff(np.append(ptr, len(ai))))
+            key = entry * (int(ai.max()) - int(ai.min()) + 1) + (ai - ai.min())
+            order = np.argsort(key, kind="stable")
+            ks = key[order]
+            starts = np.flatnonzero(np.r_[True, ks[1:] != ks[:-1]])
+            g_entry, g_ai = entry[order][starts], ai[order][starts]
+            g_ptr = np.flatnonzero(np.r_[True, g_entry[1:] != g_entry[:-1]])
+            self._np.append((ai, qj, ptr, order, starts, g_ai, g_ptr))
+
+    def evaluate(self, p, pw, q=None):
         import numpy as np
         if self._np is None:
-            self._np = [(np.array(ai), np.array(qj), np.array(ptr)) for _, ai, qj, ptr in self.parts]
+            self._prepare()
         vals = []
         for which in (0, 1):
             key = (which, p)
             if key not in self._coef:
                 self._coef[key] = np.array([int(c) % p for c in self.parts[which][0]], dtype=np.int64)
-            ai, qj, ptr = self._np[which]
-            t = self._coef[key] * pw("A", ai) % p * pw("q", qj) % p
-            vals.append(np.add.reduceat(t, ptr) % p)
+            ai, qj, ptr, order, starts, g_ai, g_ptr = self._np[which]
+            if q is None:
+                t = self._coef[key] * pw("A", ai) % p * pw("q", qj) % p
+                vals.append(np.add.reduceat(t, ptr) % p)
+                continue
+            ck = (which, p, q)
+            if self._row.get(which, (None,))[0] != ck:
+                t = (self._coef[key] * pw("q", qj) % p)[order]
+                self._row[which] = (ck, np.add.reduceat(t, starts) % p)
+            t = self._row[which][1] * pw("A", g_ai) % p
+            vals.append(np.add.reduceat(t, g_ptr) % p)
         num, den = vals
         if (den == 0).any():
             raise BadPoint("pole in Racah data")
-        inv = np.array([pow(int(x), -1, p) for x in den], dtype=np.int64)
-        return (num * inv % p).reshape(self.shape)
+        return (num * _inv_vec(den, p) % p).reshape(self.shape)
+
+
+def _inv_vec(x, p):
+    """Elementwise inverse mod p < 2^31 (Fermat, vectorised)."""
+    import numpy as np
+    out = np.ones_like(x)
+    b, e = x % p, p - 2
+    while e:
+        if e & 1:
+            out = out * b % p
+        b = b * b % p
+        e >>= 1
+    return out
 
 
 def _powers(p, A, q):
@@ -224,7 +262,7 @@ class PData:
     def evaluate_np(self, p, A, q):
         import numpy as np
         pw = _powers(p, A, q)
-        out = {k: f.evaluate(p, pw) for k, f in self.flat.items()}
+        out = {k: f.evaluate(p, pw, q) for k, f in self.flat.items()}
         out["T"], out["Tbar"] = out["T"][0], out["Tbar"][0]
         F = GF(p)
         dR = int(qdim(self.R, F(A), F(q)))
@@ -285,7 +323,7 @@ class HData:
         from .interpolation import Point
         F = GF(p)
         pw = _powers(p, A, q)
-        S = self.flat["S"].evaluate(p, pw)
+        S = self.flat["S"].evaluate(p, pw, q)
         Sinv = _inv_np(S, p)
         FA, Fq = F(A), F(q)
         theta = FA ** sum(self.R) * Fq ** (2 * kappa(self.R))
@@ -296,7 +334,7 @@ class HData:
             K = _mm_np(Sinv, T[:, None] * S % p, p)
             Sb = Tb[:, None] * K % p * Tb[None, :] % p
         else:
-            Sb = self.flat["Sbar"].evaluate(p, pw)
+            Sb = self.flat["Sbar"].evaluate(p, pw, q)
         pt = Point(F, FA, Fq)
         d_anti = np.zeros(self.n, dtype=np.int64)
         for (Z, Zp), idx in self.blocks_anti:
@@ -414,9 +452,35 @@ def _mm_np(X, Y, p):
 def _inv_np(M, p):
     from .two_bridge import _inv_mod_np
     try:
+        if M.shape[0] > 48:
+            # M^-1 = G (M G)^-1 with a random G: M G has nonsingular leading
+            # blocks with high probability even when M is sparse/structured
+            import numpy as np
+            G = np.random.default_rng(M.shape[0]).integers(0, p, M.shape)
+            try:
+                return _mm_np(G, _inv_blocked(_mm_np(M, G, p), p), p)
+            except BadPoint:          # unlucky: pivoted elimination
+                pass
         return _inv_mod_np(M, p)
     except BadPoint:
         raise BadPoint("singular Racah block")
+
+
+def _inv_blocked(M, p):
+    """Inverse by 2x2 Schur complements, products via exact float64 BLAS."""
+    from .two_bridge import _inv_mod_np
+    import numpy as np
+    n = M.shape[0]
+    if n <= 48:
+        return _inv_mod_np(M, p)
+    k = n // 2
+    A, B, C, D = M[:k, :k], M[:k, k:], M[k:, :k], M[k:, k:]
+    Ai = _inv_blocked(A, p)
+    AiB, CAi = _mm_np(Ai, B, p), _mm_np(C, Ai, p)
+    Si = _inv_blocked((D - _mm_np(C, AiB, p)) % p, p)
+    X = _mm_np(AiB, Si, p)
+    Y = _mm_np(Si, CAi, p)
+    return np.block([[(Ai + _mm_np(X, CAi, p)) % p, (-X) % p], [(-Y) % p, Si]])
 
 
 def natural_value_np(fracs, D, p):
@@ -466,15 +530,36 @@ def natural_value_np(fracs, D, p):
     dims = D["d_anti"] if vert == "anti" else D["d_par"]
     blocks = D["blocks_anti"] if vert == "anti" else D["blocks_par"]
     tot = 0
+    by_shape = {}
     for idx in blocks:
-        ix = np.array(idx)
-        Ei = _inv_np(E[ix], p)
+        by_shape.setdefault((len(idx), len(idx[0])), []).append(idx)
+    for idxs in by_shape.values():         # all blocks of one shape at once
+        ix = np.array(idxs)
+        Ei = _inv_stack(E[ix], p)
         prod = None
         for v in vecs:
             X = _mm_np(v[ix], Ei, p)
             prod = X if prod is None else _mm_np(prod, X, p)
-        tot = (tot + int(dims[idx[0][0]]) * int(np.trace(prod) % p)) % p
+        tr = np.trace(prod, axis1=1, axis2=2) % p
+        tot = (tot + int((dims[ix[:, 0, 0]] * tr % p).sum() % p)) % p
     return tot * pow(int(D["dR"]), -1, p) % p
+
+
+def _inv_stack(M, p):
+    """Inverses of a stack of small matrices (Gauss--Jordan, vectorised over
+    the stack; a zero pivot falls back to pivoted elimination per matrix)."""
+    import numpy as np
+    m, n, _ = M.shape
+    X = np.concatenate([M % p, np.broadcast_to(np.eye(n, dtype=np.int64), (m, n, n))], axis=2)
+    for c in range(n):
+        piv = X[:, c, c]
+        if not piv.all():
+            return np.array([_inv_np(B, p) for B in M])
+        X[:, c] = X[:, c] * _inv_vec(piv, p)[:, None] % p
+        f = X[:, :, c].copy()
+        f[:, c] = 0
+        X = (X - f[:, :, None] * X[:, c][:, None, :]) % p
+    return X[:, :, n:]
 
 
 # ---------------------------------------------------------------------------
