@@ -74,11 +74,15 @@ def interpolate(xs, ys, F):
     return ni.monomial_coefficients()
 
 
-def _fresh_point(F, used, rng):
+def _fresh_point(F, used, rng, step=1):
+    """A random point not used before; for an even exponent step also -x is
+    marked used (x^step = (-x)^step would break the interpolation)."""
     while True:
         x = F.random_element(rng)
         if x not in used:
             used.add(x)
+            if step % 2 == 0:
+                used.add(-x)
             return x
 
 
@@ -94,17 +98,25 @@ def univariate_laurent(f, F, lower=-16, step=1, extra=3, budget=64, max_points=2
     exactly at the guess is also retried with a lower guess.
     """
     lower -= lower % step
+    pts, used = [], set()          # black-box values are kept across retries
+
+    def point(k):
+        while len(pts) <= k:
+            b = _fresh_point(F, used, rng, step)
+            try:
+                pts.append((b, f(b)))
+            except BadPoint:
+                continue
+        return pts[k]
     while True:
         if budget > max_points:
             raise RuntimeError("univariate reconstruction did not terminate")
         ni = NewtonInterpolator(F)
-        used, agree = set(), 0
+        agree, k = 0, 0
         while agree < extra and len(ni) <= budget:
-            b = _fresh_point(F, used, rng)
-            try:
-                y = f(b) * b ** (-lower)
-            except BadPoint:
-                continue
+            b, fb = point(k)
+            k += 1
+            y = fb * b ** (-lower)
             X = b ** step
             if len(ni) and ni.value(X) == y:
                 agree += 1
@@ -112,7 +124,10 @@ def univariate_laurent(f, F, lower=-16, step=1, extra=3, budget=64, max_points=2
                 agree = 0
             ni.add(X, y)
         if agree < extra:
-            lower, budget = 2 * lower - step, 2 * budget
+            # the span exceeds the budget: assume it is roughly balanced
+            lower = min(2 * lower - step, -step * (budget // 2))
+            lower -= lower % step
+            budget = 2 * budget
             continue
         coeffs = ni.monomial_coefficients()
         nz = [i for i, a in enumerate(coeffs) if a != 0]
@@ -156,11 +171,11 @@ def dense_bivariate(f2, F, A_range, q_range, steps=(1, 1), rng=random, qsym=Fals
     nA = (a1 - a0) // sA + 1
     nq = (q1e - q0e) // sq + 1
     usedA, usedq = set(), set()
-    Avals = [_fresh_point(F, usedA, rng) for _ in range(nA)]
+    Avals = [_fresh_point(F, usedA, rng, sA) for _ in range(nA)]
     # rows[j] = coefficients in A (length nA) at the j-th q-point
     qpts, rows = [], []
     while len(rows) < nq:
-        qv = _fresh_point(F, usedq, rng)
+        qv = _fresh_point(F, usedq, rng, sq)
         try:
             ys = [f2(a, qv) * a ** (-a0) for a in Avals]
         except BadPoint:
@@ -175,7 +190,7 @@ def dense_bivariate(f2, F, A_range, q_range, steps=(1, 1), rng=random, qsym=Fals
         if qsym and len(rows) < nq:
             qm = -1 / qv
             if qm not in usedq and qm ** sq != qv ** sq:
-                usedq.add(qm)
+                usedq.update((qm, -qm))
                 qpts.append(qm)
                 rows.append(list(c))
     out = {}

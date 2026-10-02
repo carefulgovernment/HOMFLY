@@ -110,7 +110,15 @@ def _mm(X, Y, p):
 
 
 def _inv_vec(x, p):
-    return np.array([pow(int(v), -1, p) if v else 0 for v in x], dtype=np.int64)
+    """Elementwise inverse mod p (0 -> 0), Fermat's little theorem, vectorised."""
+    out = np.ones_like(x, dtype=np.int64)
+    b, e = np.asarray(x, dtype=np.int64) % p, p - 2
+    while e:
+        if e & 1:
+            out = out * b % p
+        b = b * b % p
+        e >>= 1
+    return out
 
 
 @lru_cache(maxsize=None)

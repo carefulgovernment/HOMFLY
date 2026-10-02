@@ -9,6 +9,9 @@ Family P is in our NATURAL convention (pinned by tests/test_racah3.py).
 """
 from __future__ import annotations
 
+from functools import lru_cache
+
+from ..algebra.fields import BadPoint
 from ..algebra.linalg import matmul
 from ..conventions import natural_point
 from ..knots.braid import Braid
@@ -115,6 +118,7 @@ class Racah3StrandU(Method):
         from ..racah import uform
         self.uform = uform
         self.root = root or uform.LARGE_DIR
+        self._row = None
 
     def supports(self, knot, R):
         return (isinstance(knot, Braid) and knot.strands <= 3 and knot.is_knot()
@@ -128,10 +132,48 @@ class Racah3StrandU(Method):
         R = P(R)
         U = self.uform.load(R, self.root)
         word = three_strand_word(knot)
-        t = U.traces(word, F.p, int(q))
-        tot = F.zero
-        for tq, Q in zip(t, U.Q):
-            if tq:
-                tot = tot + qdim(Q, A, q) * tq
-        writhe = sum(1 if a > 0 else -1 for a in word)
-        return tot / qdim(R, A, q) * theta(R, A, q) ** (-writhe)
+        p, a, qq = F.p, int(A), int(q)
+        key = (R, tuple(word), p, qq)
+        if self._row is None or self._row[0] != key:
+            # per q: the traces and, per Q with t_Q != 0, its box contents and
+            # inverse hook product; dim_q(Q) = prod_boxes [A q^c] / prod [q^h]
+            t = U.traces(word, p, qq)
+            terms = []
+            for tq, Q in zip(t, U.Q):
+                if tq:
+                    hd = 1
+                    for h in _hooks(Q):
+                        hd = hd * (pow(qq, h, p) - pow(qq, -h, p)) % p
+                    if hd == 0:
+                        raise BadPoint("q is a small root of unity")
+                    terms.append((tq * pow(hd, -1, p) % p, _contents(Q)))
+            cs = [c for _, cc in terms for c in cc] or [0]
+            qc = {c: pow(qq, c, p) for c in range(min(cs), max(cs) + 1)}
+            self._row = (key, terms, qc)
+        _, terms, qc = self._row
+        g = {}
+        for c, x in qc.items():
+            y = a * x % p
+            if y == 0:
+                raise BadPoint("A q^c = 0")
+            g[c] = (y - pow(y, -1, p)) % p
+        tot = 0
+        for w, cc in terms:
+            for c in cc:
+                w = w * g[c] % p
+            tot += w
+        writhe = sum(1 if x > 0 else -1 for x in word)
+        return F(tot) / qdim(R, A, q) * theta(R, A, q) ** (-writhe)
+
+
+@lru_cache(maxsize=None)
+def _contents(Q):
+    from ..reps.partitions import boxes
+    return tuple(j - i for i, j in boxes(Q))
+
+
+@lru_cache(maxsize=None)
+def _hooks(Q):
+    from ..reps.partitions import boxes, conjugate
+    lt = conjugate(Q)
+    return tuple((Q[i] - j - 1) + (lt[j] - i - 1) + 1 for i, j in boxes(Q))
