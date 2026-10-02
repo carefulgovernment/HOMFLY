@@ -147,7 +147,9 @@ def homfly(knot, R=(1,), method=None, racah_store=None, seed=0, report=None, exc
     rep.method = m.name
     if getattr(m, "direct", False):
         return m.polynomial(K, R, report=rep)
-    if hasattr(m, "prime_bound"):
+    if hasattr(m, "prime_bound_for"):
+        kw.setdefault("prime_bound", m.prime_bound_for(R))
+    elif hasattr(m, "prime_bound"):
         kw.setdefault("prime_bound", m.prime_bound)
     from .reps.partitions import conjugate
     if R == conjugate(R):             # H_R(A, q) = H_R(A, -1/q): half the q-points

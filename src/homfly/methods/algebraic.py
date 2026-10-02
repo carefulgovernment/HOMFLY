@@ -273,7 +273,7 @@ def chirality(tree, reference, braid=None, amphichiral=False):
     ``braid`` by cabling in multiplicity spaces; None if still undecided.  For
     an amphichiral knot both are right (+1)."""
     from ..algebra.fields import primes_below
-    F = GF(primes_below(MO.NP_BOUND, 1)[0])
+    F = GF(primes_below(MO.SMALL_PRIME, 1)[0])
     rng = random.Random(hash(_freeze(tree)) & 0xffff)
     pts = [(F.random_element(rng), F.random_element(rng)) for _ in range(3)]
     trees = {1: _freeze(tree), -1: _freeze(conway.mirror(tree))}
@@ -306,6 +306,9 @@ class AlgebraicMethod(Method):
 
     def __init__(self, root=MO.DATA_DIR):
         self.root = root
+
+    def prime_bound_for(self, R):
+        return MO.prime_bound_for(R)
 
     def supports(self, knot, R):
         av = MO.available(self.root)

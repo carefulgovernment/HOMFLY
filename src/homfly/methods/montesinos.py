@@ -441,12 +441,31 @@ def _mm(X, Y, F):
             for i in range(len(X))]
 
 
-NP_BOUND = 2 ** 21       # float64 BLAS products are exact for p < 2^21, n < 2048
+NP_BOUND = 2 ** 31       # residues in int64 (products < 2^62); matrix products below
+SMALL_PRIME = 2 ** 21    # one float64 BLAS product is exact for n p^2 < 2^53
 
 
 def _mm_np(X, Y, p):
+    """Exact X Y mod p via float64 BLAS: directly when n p^2 < 2^53, else with
+    both factors split into 16-bit halves (four products, each < n 2^32)."""
     import numpy as np
-    return np.fmod(X.astype(np.float64) @ Y.astype(np.float64), p).astype(np.int64)
+    n = X.shape[-1]
+    if n * (p - 1) ** 2 < 2 ** 53:
+        return np.fmod(X.astype(np.float64) @ Y.astype(np.float64), p).astype(np.int64)
+    X, Y = X % p, Y % p
+    X1, X0 = (X >> 16).astype(np.float64), (X & 0xFFFF).astype(np.float64)
+    Y1, Y0 = (Y >> 16).astype(np.float64), (Y & 0xFFFF).astype(np.float64)
+    hh = np.fmod(X1 @ Y1, p).astype(np.int64)
+    mid = (np.fmod(X1 @ Y0, p).astype(np.int64) + np.fmod(X0 @ Y1, p).astype(np.int64)) % p
+    ll = np.fmod(X0 @ Y0, p).astype(np.int64)
+    s16 = 1 << 16
+    return ((hh * s16 % p * s16 + mid * s16) % p + ll) % p
+
+
+def prime_bound_for(R, root=None):
+    """Primes < 2^31 (|R| = 6 coefficients mostly fit one of them) unless the
+    data matrices are so large that the split products dominate: [3,2,1]."""
+    return SMALL_PRIME if sum(R) >= 6 and P(R) in ((3, 2, 1),) else NP_BOUND
 
 
 def _inv_np(M, p):
@@ -664,6 +683,9 @@ class MontesinosMethod(Method):
 
     def __init__(self, root=DATA_DIR):
         self.root = root
+
+    def prime_bound_for(self, R):
+        return prime_bound_for(R)
 
     def supports(self, knot, R):
         av = available(self.root)
