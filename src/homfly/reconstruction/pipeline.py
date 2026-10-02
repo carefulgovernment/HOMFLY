@@ -66,7 +66,9 @@ def reconstruct_laurent(evaluate, steps=(1, 1), bounds=None, rational=False,
         F = GF(p)
         f2 = black_box(F)
         if bounds is None:
-            bounds = detect_exponent_box(f2, F, steps=steps, rng=rng)
+            # one line per variable: a missed extreme term would need its
+            # coefficient to vanish at a random point (and fails verification)
+            bounds = detect_exponent_box(f2, F, steps=steps, lines=1, rng=rng)
         rep.A_range, rep.q_range = bounds
         img = dense_bivariate(f2, F, bounds[0], bounds[1], steps=steps, rng=rng, qsym=qsym)
         rep.primes.append(p)
