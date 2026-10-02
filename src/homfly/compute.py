@@ -10,6 +10,8 @@ Laurent polynomial in (A, q) by interpolation + CRT (reconstruction.pipeline).
 """
 from __future__ import annotations
 
+from functools import lru_cache
+
 from .knots.braid import Braid
 from .knots.families import TorusKnot, TwoBridge, DoubleBraid, MontesinosKnot
 from .knots.table import load_table
@@ -36,8 +38,9 @@ def default_methods(racah_store=None):
     from .methods.interpolation import DoubleBraidInterpolation
     from .methods.montesinos import MontesinosMethod
     from .methods.cabling_paths import CablingPaths
-    ms = [RossoJones(), HeckeFundamental(), Racah3Strand(), TwoBridgeMethod(), MontesinosMethod(),
-          Racah3StrandU(), DoubleBraidInterpolation(), CablingPaths()]
+    from .methods.algebraic import AlgebraicMethod
+    ms = [RossoJones(), HeckeFundamental(), TwoBridgeMethod(), MontesinosMethod(), AlgebraicMethod(),
+          Racah3Strand(), Racah3StrandU(), DoubleBraidInterpolation(), CablingPaths()]
     if racah_store is not None:
         from .methods.rt_braid import RTBraid
         from .methods.arborescent import Arborescent
@@ -75,9 +78,42 @@ def presentations(name):
         c = montesinos.chirality(mk.fractions(), rec.homfly_reference(), rec.braid)
         if c is not None:             # undecided by H_[1] and H_[2]
             out.append(MontesinosKnot(mk.tangles, mirror=(c < 0)))
+    if rec.two_bridge is None and not any(isinstance(K, MontesinosKnot) for K in out):
+        ak = algebraic_presentation(name)
+        if ak is not None:
+            out.append(ak)
     if rec.braid is not None and rec.braid.strands > 3:
         out.append(rec.braid)
     return out
+
+
+@lru_cache(maxsize=None)
+def algebraic_presentation(name):
+    """N(algebraic tangle) from the Conway notation (Montesinos knots whose
+    chirality the Montesinos tie-break left open: from their fractions), with
+    the chirality fixed against KnotInfo; None if not algebraic or undecided."""
+    from fractions import Fraction
+    from .knots import conway
+    from .methods import algebraic
+    rec = load_table()[name]
+    if rec.is_montesinos and rec.montesinos.count(";") >= 2:
+        fr = MontesinosKnot.from_notation(rec.montesinos).fractions()
+        tree, notation = ("H", [conway.leaf(Fraction(f)) for f in fr]), rec.montesinos
+    elif rec.conway and conway.is_algebraic(rec.conway):
+        try:
+            tree, notation = conway.parse(rec.conway), rec.conway
+        except ValueError:
+            return None
+    else:
+        return None
+    try:
+        c = algebraic.chirality(tree, rec.homfly_reference(), rec.braid,
+                                amphichiral="amphicheiral" in rec.symmetry)
+    except ValueError:              # notation does not match the knot
+        return None
+    if c is None:
+        return None
+    return algebraic.AlgebraicKnot(tree, mirror=(c < 0), notation=notation)
 
 
 def choose_method(knot, R, methods=None):
