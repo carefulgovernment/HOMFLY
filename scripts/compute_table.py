@@ -136,6 +136,11 @@ def write_knot(n, a, reps, results):
     if (missing and not a.partial) or (1,) in missing:
         return False
     polys = {R: from_json(v["poly"]) for R, v in rows.items() if v is not None}
+    path = os.path.join(a.out, "%s.txt" % n)
+    if os.path.exists(path):         # never replace a file by one with fewer representations
+        with open(path) as f:
+            if sum(line.startswith("R = ") for line in f) > len(polys):
+                return False
     H1q = q1(polys[(1,)])
     checks = {}
     for R, H in polys.items():
@@ -146,7 +151,7 @@ def write_knot(n, a, reps, results):
         else:
             tr = polys[RT] == transpose_rep(H) if RT in polys else None
         checks[R] = (sp, tr)
-    with open(os.path.join(a.out, "%s.txt" % n), "w") as f:
+    with open(path, "w") as f:
         f.write("# Reduced colored HOMFLY polynomials H_R(A, q) of knot %s\n" % n)
         f.write("# Convention: A^{-1}H(L+) - A H(L-) = (q - 1/q) H(L0); H_R(unknot) = 1;\n")
         f.write("#   A = v, z = q - 1/q relative to KnotInfo; topological framing (docs/CONVENTIONS.md).\n")
