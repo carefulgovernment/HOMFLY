@@ -22,8 +22,14 @@ run --knots-file "$C/easy.txt" --max-size 6 --exclude-methods $SLOW
 # 2. other 3-braids: 3-strand Racah data (the 6-box U-form ones are slow)
 run --knots-file "$C/braid3.txt" --max-size 5 --exclude-methods cabling-paths cabling
 run --knots-file "$C/braid3.txt" --max-size 6 --exclude-methods cabling-paths cabling
-# 3. the rest (polyhedral): cabling in multiplicity spaces, small R first
-#    (|R| = 4 costs minutes per representation, |R| = 5 hours)
-run --knots-file "$C/other.txt" --max-size 3 --exclude-methods cabling racah-3strand-U
-run --knots-file "$C/other.txt" --max-size 4 --exclude-methods cabling racah-3strand-U
+# 3. the rest (polyhedral): cabling in multiplicity spaces, small R and few
+#    strands first (cost grows steeply with |R| x strands)
+[ -f "$C/other_by_strands.txt" ] || python3 -c "
+import sys; sys.path.insert(0, 'src')
+from homfly.knots.table import load_table
+t = load_table()
+names = [x.strip() for x in open('$C/other.txt') if x.strip()]
+print('\n'.join(sorted(names, key=lambda n: t[n].braid.strands)))" > "$C/other_by_strands.txt"
+run --knots-file "$C/other_by_strands.txt" --max-size 3 --exclude-methods cabling racah-3strand-U
+run --knots-file "$C/other_by_strands.txt" --max-size 4 --exclude-methods cabling racah-3strand-U
 echo "ALL STAGES DONE"
