@@ -678,6 +678,24 @@ class CablingEngine:
                 return int(np.trace(M) % p)
             return int(np.sum((M * C[self.braid[-1]].T) % p) % p)
         M = np.eye(w, dtype=np.int64)
+        if (p - 1) ** 2 * max(idx.shape[1] for j in info['groups'] for _, idx in info['groups'][j]) < 2 ** 53:
+            # all blocks of one size at once: a batched exact float64 product
+            prep = {}
+            for g in set(self.braid):
+                j, s = abs(g), (1 if g > 0 else -1)
+                by_b = {}
+                for bkey, idx in info['groups'][j]:
+                    G, b = idx.shape
+                    cols, Bs = by_b.setdefault(b, ([], []))
+                    cols.append(idx)
+                    Bs.append(np.broadcast_to(Bblk[bkey][s].astype(np.float64), (G, b, b)))
+                prep[g] = [(np.concatenate(c), np.concatenate(B)) for c, B in by_b.values()]
+            for g in self.braid:
+                for cols, Bs in prep[g]:
+                    sub = M[:, cols].transpose(1, 0, 2).astype(np.float64)        # (G, w, b)
+                    R = np.fmod(np.matmul(sub, Bs), p).astype(np.int64)
+                    M[:, cols] = R.transpose(1, 0, 2)
+            return int(np.trace(M) % p)
         for g in self.braid:
             j, s = abs(g), (1 if g > 0 else -1)
             for bkey, idx in info['groups'][j]:
