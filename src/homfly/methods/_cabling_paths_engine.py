@@ -78,7 +78,10 @@ def primes_below(N, count):
     return out
 
 
-PRIMES = primes_below(2 ** 31, 12)
+# primes < 2^21: matrix products are then single exact float64 BLAS calls
+# (k p^2 < 2^53 for inner dimensions k < 2048); more primes are combined by
+# CRT when the coefficients need them
+PRIMES = primes_below(2 ** 21, 24)
 
 
 def powmod_arr(a, e, p):
@@ -106,6 +109,8 @@ def matmul_mod(A, B, p):
     B = np.ascontiguousarray(B, dtype=np.int64)
     n, k = A.shape
     m = B.shape[1]
+    if k * (p - 1) ** 2 < 2 ** 53:      # one exact float64 product (primes < 2^21)
+        return np.fmod(A.astype(np.float64) @ B.astype(np.float64), p).astype(np.int64)
     out = np.zeros((n, m), dtype=np.int64)
     mask = (1 << _CH) - 1
     for s in range(0, k, _KMAX):
