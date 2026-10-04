@@ -52,8 +52,8 @@ def ks(Y):
 # ---------------------------------------------------------------------------
 
 class Engine:
-    def __init__(self, R, engine_dir, work, jobs, chunk):
-        self.R, self.work, self.jobs, self.chunk = R, work, jobs, chunk
+    def __init__(self, R, engine_dir, work, jobs, chunk, fast=False):
+        self.R, self.work, self.jobs, self.chunk, self.fast = R, work, jobs, chunk, fast
         self.dir = os.path.join(work, "engine")
         if not os.path.isdir(self.dir):
             shutil.copytree(engine_dir, self.dir, ignore=shutil.ignore_patterns("__pycache__"))
@@ -89,7 +89,9 @@ class Engine:
                 while sum(pr is not None and pr.poll() is None for _, _, pr in procs) >= self.jobs:
                     time.sleep(10)
                 env = dict(os.environ, RACAH_P=str(p), RACAH_P31=str(p), OMP_NUM_THREADS="1")
-                pr = subprocess.Popen([sys.executable, "mix_pts.py", rk, pf, out], cwd=self.dir, env=env,
+                cmd = ([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "fast_mix_pts.py"),
+                        self.dir, rk, pf, out] if self.fast else [sys.executable, "mix_pts.py", rk, pf, out])
+                pr = subprocess.Popen(cmd, cwd=self.dir, env=env,
                                       stdout=open(out + ".log", "w"), stderr=subprocess.STDOUT)
             else:
                 pr = None
@@ -188,13 +190,16 @@ def main():
     ap.add_argument("--qlower", type=int, default=-400)
     ap.add_argument("--alower", type=int, default=-160)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--fast", action="store_true", help="fast_mix_pts.py (fast_mixed_ctx) instead of mix_pts.py")
+    ap.add_argument("--check-transposed", type=int, default=0, metavar="N",
+                    help="also evaluate R^T at N points: H_{R^T}(A,q) = H_R(A,-1/q)")
     a = ap.parse_args()
     R = tuple(int(x) for x in a.R.split(","))
     os.makedirs(a.work, exist_ok=True)
     mk = next(K for K in presentations(a.knot) if isinstance(K, MontesinosKnot))
     fracs = mk.fractions()
     print("%s = N(%s), R = %s" % (a.knot, ", ".join(map(str, fracs)), R), flush=True)
-    eng = Engine(R, a.engine, a.work, a.jobs, a.chunk)
+    eng = Engine(R, a.engine, a.work, a.jobs, a.chunk, fast=a.fast)
     F = GF(P1)
     rng = random.Random(1)
     steps = (2, 2)
@@ -252,7 +257,22 @@ def main():
                "seconds": round(time.time() - t0, 1), "primes": 1, "verified": ok, "q1_check": q1,
                "poly": to_json(H)}, open(out, "w"))
     print("wrote %s" % out, flush=True)
-    if not (ok and q1):
+    tr = None
+    if a.check_transposed:
+        RT = tuple(sum(1 for x in R if x > j) for j in range(R[0]))
+        engT = Engine(RT, a.engine, os.path.join(a.work, "transposed"), 1, a.chunk, fast=a.fast)
+        os.makedirs(engT.work, exist_ok=True)
+        rT = random.Random(5)
+        ptsT = [(F.random_element(rT), F.random_element(rT)) for _ in range(a.check_transposed)]
+        engT.evaluate(P1, [(int(x), int(y)) for x, y in ptsT])
+        dataT = PointData(RT, engT)
+        tr = all(H.evaluate([x, -1 / y], one=F.one) == F(H_at(dataT, fracs, P1, x, y)) for x, y in ptsT)
+        print("transposition check with an independent %s computation at %d points: %s"
+              % (list(RT), len(ptsT), tr), flush=True)
+        rec = json.load(open(out))
+        rec["transposition_check"] = tr
+        json.dump(rec, open(out, "w"))
+    if not (ok and q1) or tr is False:
         raise SystemExit("checks failed")
 
 
