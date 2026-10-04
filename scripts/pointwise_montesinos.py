@@ -64,37 +64,47 @@ class Engine:
         self.n_batch = 0
 
     def evaluate(self, p, pts):
-        """S at all points (A, q) mod p (cached)."""
-        todo = sorted({(a, q) for a, q in pts if (p, a, q) not in self.table})
-        if not todo:
-            return
+        self.evaluate_many({p: pts})
+
+    def evaluate_many(self, by_prime):
+        """S at all points (A, q) mod p for every prime (cached); one engine
+        round: the chunks of all primes run concurrently (each process pays
+        the engine's set-up, the points themselves are cheap)."""
         rk = ",".join(map(str, self.R))
-        n = max(1, min(self.jobs, -(-len(todo) // 1)))
-        size = min(self.chunk, -(-len(todo) // n))
+        jobs = []
+        for i, (p, pts) in enumerate(by_prime.items()):
+            todo = sorted({(a, q) for a, q in pts if (p, a, q) not in self.table})
+            # the first prime takes the free slots, every further prime one
+            n = max(1, min(self.jobs - len(by_prime) + 1 if i == 0 else 1, len(todo)))
+            size = min(self.chunk, -(-len(todo) // n)) if todo else 1
+            jobs += [(p, todo[i:i + size]) for i in range(0, len(todo), size)]
         procs = []
-        for i in range(0, len(todo), size):
-            tag = "b%03d_%d" % (self.n_batch, i // size)
+        for k, (p, chunk) in enumerate(jobs):
+            tag = "b%03d_%d" % (self.n_batch, k)
             pf = os.path.join(self.work, tag + ".txt")
-            with open(pf, "w") as f:
-                f.write("".join("%d %d\n" % x for x in todo[i:i + size]))
             out = os.path.join(self.work, tag + ".pkl")
-            env = dict(os.environ, RACAH_P=str(p), RACAH_P31=str(p), OMP_NUM_THREADS="1")
-            procs.append((out, subprocess.Popen([sys.executable, "mix_pts.py", rk, pf, out], cwd=self.dir, env=env,
-                                                stdout=open(out + ".log", "w"), stderr=subprocess.STDOUT)))
-            while sum(pr.poll() is None for _, pr in procs) >= self.jobs:
-                time.sleep(5)
+            with open(pf, "w") as f:
+                f.write("".join("%d %d\n" % x for x in chunk))
+            if not os.path.exists(out):          # resumable
+                while sum(pr is not None and pr.poll() is None for _, _, pr in procs) >= self.jobs:
+                    time.sleep(10)
+                env = dict(os.environ, RACAH_P=str(p), RACAH_P31=str(p), OMP_NUM_THREADS="1")
+                pr = subprocess.Popen([sys.executable, "mix_pts.py", rk, pf, out], cwd=self.dir, env=env,
+                                      stdout=open(out + ".log", "w"), stderr=subprocess.STDOUT)
+            else:
+                pr = None
+            procs.append((p, out, pr))
         self.n_batch += 1
-        for out, pr in procs:
-            if pr.wait() != 0:
+        for p, out, pr in procs:
+            if pr is not None and pr.wait() != 0:
                 raise RuntimeError("engine failed: see %s.log" % out)
             d = pickle.load(open(out, "rb"))
             assert d["P"] == p
-            if self.labels is None:
+            if self.labels is None and p == P1:
                 self.labels = (d["qlab"], d["xlab"], d["ev"][:, 0].astype(np.int64), d["pts"][0])
             for k, pt in enumerate(d["pts"]):
                 self.table[(p,) + tuple(pt)] = d["S"][:, :, k]
-            os.remove(out)
-        print("engine: %d points mod %d done" % (len(todo), p), flush=True)
+        print("engine: %s points done" % {p: len(v) for p, v in by_prime.items()}, flush=True)
 
 
 class PointData(MO.HData):
@@ -194,7 +204,11 @@ def main():
     A0, q0 = F.random_element(rng), F.random_element(rng)
     qs = [F.random_element(rng) for _ in range(a.qline)]
     As = [F.random_element(rng) for _ in range(a.aline)]
-    eng.evaluate(P1, [(int(A0), int(q)) for q in qs] + [(int(x), int(q0)) for x in As])
+    F2 = GF(P2)
+    r2 = random.Random(3)
+    pts2 = [(F2.random_element(r2), F2.random_element(r2)) for _ in range(6)]
+    eng.evaluate_many({P1: [(int(A0), int(q)) for q in qs] + [(int(x), int(q0)) for x in As],
+                       P2: [(int(x), int(y)) for x, y in pts2]})
     data = PointData(R, eng)
     yq = [F(H_at(data, fracs, P1, A0, q)) for q in qs]
     yA = [F(H_at(data, fracs, P1, x, q0)) for x in As]
@@ -226,10 +240,6 @@ def main():
     print("interpolated: %d terms, max |c| = %d  (%.0fs)" % (len(terms), big, time.time() - t0), flush=True)
 
     # 3. checks
-    F2 = GF(P2)
-    r2 = random.Random(3)
-    pts2 = [(F2.random_element(r2), F2.random_element(r2)) for _ in range(6)]
-    eng.evaluate(P2, [(int(x), int(y)) for x, y in pts2])
     ok = all(H.evaluate([x, y], one=F2.one) == F2(H_at(data, fracs, P2, x, y)) for x, y in pts2)
     print("fresh points mod %d: %s" % (P2, ok), flush=True)
     from homfly.checks.structural import specialise_q1
