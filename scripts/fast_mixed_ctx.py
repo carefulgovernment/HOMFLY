@@ -518,7 +518,11 @@ class FastCtx:
             W[rows, col:col + V.shape[1]] = V
             col += V.shape[1]
         if d > want + 2:                       # project only random combinations
-            G = self._rng.integers(1, P, size=(d, want + 2)).astype(np.int64)
+            # seeded by the key: a recomputation after LRU eviction must give
+            # the same basis as the one earlier results were expressed in
+            import hashlib
+            seed = int.from_bytes(hashlib.sha1(repr(key).encode()).digest()[:8], "little")
+            G = np.random.default_rng(seed).integers(1, P, size=(d, want + 2)).astype(np.int64)
             W = mix_cols(W, G)
         r, c = _cells(self.R)[j - 1]
         t = c - r
