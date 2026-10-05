@@ -19,11 +19,119 @@ Interface (as used by mixedS.build_mixed / r1_eigenbasis / sbar_vacuum_column):
   targets(start, kind) -> [(end, mult)]
   fcross_left / fcross_right -> {(mu', k'): FN}
 """
+import os
+
 import numpy as np
 
 from bip import steps
 from fvn import FN, P
 from ratmodel import cross_r
+
+
+def _load_kernels():
+    """compile fast_kernels.c for this prime (cached); None if no compiler."""
+    import ctypes, hashlib, os, subprocess, tempfile
+    here = os.path.dirname(os.path.abspath(__file__))
+    srcf = os.path.join(here, "fast_kernels.c")
+    try:
+        code = open(srcf, "rb").read()
+        tag = hashlib.sha1(code + str(P).encode()).hexdigest()[:12]
+        d = os.path.join(tempfile.gettempdir(), "fast_kernels_cache")
+        os.makedirs(d, exist_ok=True)
+        so = os.path.join(d, "fk_%s.so" % tag)
+        if not os.path.exists(so):
+            tmp = so + ".%d" % os.getpid()
+            subprocess.check_call(["gcc", "-O3", "-march=native", "-shared", "-fPIC",
+                                   "-DPMOD=%dULL" % P, srcf, "-o", tmp])
+            os.replace(tmp, so)
+        lib = ctypes.CDLL(so)
+    except Exception:
+        return None
+    p = ctypes.c_void_p
+    i = ctypes.c_int64
+    lib.gather_mul_acc.argtypes = [p, i, i, p, p, i, i, p, p, p]
+    lib.small_matmul.argtypes = [p, p, i, i, i, p]
+    lib.mix_cols.argtypes = [p, p, i, i, i, i, p]
+    lib.modpow.argtypes = [p, i, ctypes.c_uint64, p]
+    return lib
+
+
+_K = None if os.environ.get("FAST_NO_C") else _load_kernels()
+
+
+def _ptr(a):
+    return a.ctypes.data
+
+
+if _K is not None:
+    import fvn as _fvn
+
+    def _c_modpow(a, e):
+        a = np.ascontiguousarray(a, dtype=np.int64)
+        out = np.empty_like(a)
+        _K.modpow(_ptr(a), a.size, int(e), _ptr(out))
+        return out
+
+    _fvn._modpow = _c_modpow
+
+
+def mix_cols(W, G):
+    """W (Np, d, K) times the point independent matrix G (d, c) -> (Np, c, K)."""
+    Np, d, K = W.shape
+    nc = G.shape[1]
+    if _K is None:
+        out = np.zeros((Np, nc, K), dtype=np.int64)
+        for a in range(d):
+            out = (out + W[:, a:a + 1, :] * G[a][None, :, None] % P) % P
+        return out
+    W = np.ascontiguousarray(W, dtype=np.int64)
+    G = np.ascontiguousarray(G, dtype=np.int64)
+    out = np.empty((Np, nc, K), dtype=np.int64)
+    _K.mix_cols(_ptr(W), _ptr(G), Np, d, nc, K, _ptr(out))
+    return out
+
+
+def gather_mul_acc(V, src, starts, udst, C, out):
+    """out[udst[g]] = sum_{e in group g} V[src[e]] * C[e] (broadcast over the
+    middle axes of V), groups = runs of equal destinations starting at starts."""
+    if not len(src):
+        return out
+    if _K is None:
+        Cb = C.reshape((len(src),) + (1,) * (V.ndim - 2) + (C.shape[-1],))
+        out[udst] = np.add.reduceat(V[src] * Cb % P, starts, axis=0) % P
+        return out
+    V = np.ascontiguousarray(V, dtype=np.int64)
+    C = np.ascontiguousarray(C, dtype=np.int64)
+    src = np.ascontiguousarray(src, dtype=np.int64)
+    starts = np.ascontiguousarray(starts, dtype=np.int64)
+    udst = np.ascontiguousarray(udst, dtype=np.int64)
+    assert out.flags.c_contiguous and out.dtype == np.int64
+    K = V.shape[-1]
+    B = V[0].size // K if V.shape[0] else 0
+    _K.gather_mul_acc(_ptr(V), B, K, _ptr(src), _ptr(starts), len(starts), len(src),
+                      _ptr(udst), _ptr(C), _ptr(out))
+    return out
+
+
+def small_matmul(Mx, X):
+    """out[a] = sum_b Mx[a, b] * X[b] per point; Mx (m, m, K), X (m, ..., K)."""
+    m = Mx.shape[0]
+    K = Mx.shape[2]
+    if _K is None:
+        out = np.zeros(X.shape, dtype=np.int64)
+        sh = (1,) * (X.ndim - 2) + (K,)
+        for a in range(m):
+            acc = np.zeros(X.shape[1:], dtype=np.int64)
+            for b in range(m):
+                acc = (acc + Mx[a, b].reshape(sh) * X[b] % P) % P
+            out[a] = acc
+        return out
+    Mx = np.ascontiguousarray(Mx, dtype=np.int64)
+    X = np.ascontiguousarray(X, dtype=np.int64)
+    out = np.empty(X.shape, dtype=np.int64)
+    B = X[0].size // K if m else 0
+    _K.small_matmul(_ptr(Mx), _ptr(X), m, B, K, _ptr(out))
+    return out
 
 
 def _fv(x, K):
@@ -97,6 +205,8 @@ class FastCtx:
         self._paths_cache = {}
         self._vec_cache = _BasisStore(budget=int(float(__import__("os").environ.get("FAST_CACHE_GB", "1.5")) * 2 ** 30))
         self._gen = {}        # (paths key) -> generator tables
+        self._xc = {}         # local cross_r results -> ((mp, coef row id), ...)
+        self._carr, self._cn = np.zeros((1024, self.K), dtype=np.int64), 0
         self.stats = {"bases": 0, "fcross": 0}
 
     # ------------------------------------------------------------------
@@ -158,6 +268,24 @@ class FastCtx:
     # ------------------------------------------------------------------
     # generator action on arrays of path vectors
     # ------------------------------------------------------------------
+    def _cross(self, a, b, c, k1, k2, inv):
+        """cross_r memoised; coefficients as row ids of the table _coef."""
+        key = (a, b, c, k1, k2, inv)
+        r = self._xc.get(key)
+        if r is None:
+            r = []
+            for mp, x in cross_r(self.M, a, b, c, k1, k2, inv).items():
+                if self._cn == len(self._carr):
+                    self._carr = np.concatenate([self._carr, np.zeros_like(self._carr)])
+                self._carr[self._cn] = _fv(x, self.K)
+                r.append((mp, self._cn))
+                self._cn += 1
+            r = self._xc[key] = tuple(r)
+        return r
+
+    def _coef(self, ids):
+        return self._carr[np.asarray(ids, dtype=np.int64)] if len(ids) else np.zeros((0, self.K), dtype=np.int64)
+
     def _apply_gen(self, paths, idx, V, kinds, i, inv=False, new_paths=None):
         """V: (N, ..., K) over `paths`; returns (paths', idx', V') after the
         generator at position i (kinds swapped)."""
@@ -169,7 +297,7 @@ class FastCtx:
         if new_paths is not None:
             nidx = {p: j for j, p in enumerate(new_paths)}
         for r, p in enumerate(paths):
-            for mp, x in cross_r(M, p[i], p[i + 1], p[i + 2], k1, k2, inv).items():
+            for mp, x in self._cross(p[i], p[i + 1], p[i + 2], k1, k2, inv):
                 q_ = p[:i + 1] + (mp,) + p[i + 2:]
                 j = nidx.get(q_)
                 if j is None:
@@ -179,17 +307,16 @@ class FastCtx:
                     npaths.append(q_)
                 src.append(r)
                 dst.append(j)
-                coef.append(_fv(x, K))
+                coef.append(x)
         out = np.zeros((len(npaths),) + V.shape[1:], dtype=np.int64)
         if src:
             src = np.array(src)
             dst = np.array(dst)
-            C = np.stack(coef)                                 # (nnz, K)
+            C = self._coef(coef)                               # (nnz, K)
             order = np.argsort(dst, kind="stable")
             src, dst, C = src[order], dst[order], C[order]
             starts = np.flatnonzero(np.r_[True, dst[1:] != dst[:-1]])
-            C = C.reshape((len(src),) + (1,) * (V.ndim - 2) + (K,))
-            out[dst[starts]] = np.add.reduceat(V[src] * C % P, starts, axis=0) % P
+            gather_mul_acc(V, src, starts, dst[starts], C, out)
         nk = kinds[:i] + (k2, k1) + kinds[i + 2:]
         return npaths, nidx, out, nk
 
@@ -202,17 +329,17 @@ class FastCtx:
         for i in range(self.n - 1):
             src, dst, coef = [], [], []
             for r, p in enumerate(paths):
-                for mp, x in cross_r(M, p[i], p[i + 1], p[i + 2], kind, kind, False).items():
+                for mp, x in self._cross(p[i], p[i + 1], p[i + 2], kind, kind, False):
                     q_ = p[:i + 1] + (mp,) + p[i + 2:]
                     j = idx.get(q_)
                     if j is None:
                         continue
                     src.append(r)
                     dst.append(j)
-                    coef.append(_fv(x, K))
+                    coef.append(x)
             src = np.array(src, dtype=np.int64)
             dst = np.array(dst, dtype=np.int64)
-            C = np.stack(coef) if coef else np.zeros((0, K), dtype=np.int64)
+            C = self._coef(coef)
             order = np.argsort(dst, kind="stable")
             src, dst, C = src[order], dst[order], C[order]
             starts = np.flatnonzero(np.r_[True, dst[1:] != dst[:-1]]) if len(dst) else np.zeros(0, np.int64)
@@ -224,10 +351,7 @@ class FastCtx:
     def _gen_apply(tab, V, N):
         src, dst, C, starts, udst = tab
         out = np.zeros((N,) + V.shape[1:], dtype=np.int64)
-        if len(src):
-            Cb = C.reshape((len(src),) + (1,) * (V.ndim - 2) + (C.shape[-1],))
-            out[udst] = np.add.reduceat(V[src] * Cb % P, starts, axis=0) % P
-        return out
+        return gather_mul_acc(V, src, starts, udst, C, out)
 
     def _idempotent(self, tabs, V, N):
         """e_T (row reading tableau of R) on a batch V (N, B, K)."""
@@ -395,10 +519,7 @@ class FastCtx:
             col += V.shape[1]
         if d > want + 2:                       # project only random combinations
             G = self._rng.integers(1, P, size=(d, want + 2)).astype(np.int64)
-            Wc = np.zeros((len(paths), want + 2, K), dtype=np.int64)
-            for a in range(d):
-                Wc = (Wc + W[:, a:a + 1, :] * G[a][None, :, None] % P) % P
-            W = Wc
+            W = mix_cols(W, G)
         r, c = _cells(self.R)[j - 1]
         t = c - r
         shape = list(self._shape_j(j - 1))
@@ -475,17 +596,17 @@ class FastCtx:
         for i in range(j - 1):
             src, dst, coef = [], [], []
             for r, p in enumerate(paths):
-                for mp, x in cross_r(M, p[i], p[i + 1], p[i + 2], kind, kind, False).items():
+                for mp, x in self._cross(p[i], p[i + 1], p[i + 2], kind, kind, False):
                     q_ = p[:i + 1] + (mp,) + p[i + 2:]
                     jj = idx.get(q_)
                     if jj is None:
                         continue
                     src.append(r)
                     dst.append(jj)
-                    coef.append(_fv(x, K))
+                    coef.append(x)
             src = np.array(src, dtype=np.int64)
             dst = np.array(dst, dtype=np.int64)
-            C = np.stack(coef) if coef else np.zeros((0, K), dtype=np.int64)
+            C = self._coef(coef)
             order = np.argsort(dst, kind="stable")
             src, dst, C = src[order], dst[order], C[order]
             starts = np.flatnonzero(np.r_[True, dst[1:] != dst[:-1]]) if len(dst) else np.zeros(0, np.int64)
@@ -546,14 +667,7 @@ class FastCtx:
             j = pos.get(pp)
             if j is not None:
                 rhs[k] = W[j]
-        # coords = minv @ rhs per point
-        out = np.zeros((m, B, self.K), dtype=np.int64)
-        for a in range(m):
-            acc = np.zeros((B, self.K), dtype=np.int64)
-            for b in range(m):
-                acc = (acc + minv[a, b][None, :] * rhs[b] % P) % P
-            out[a] = acc
-        return out
+        return small_matmul(minv, rhs)        # coords = minv @ rhs per point
 
     def coords(self, start, end, kind, w):
         key = (start, end, kind)
@@ -598,7 +712,8 @@ class FastCtx:
         for r, p in enumerate(cur):
             g = p[1] if side == "L" else p[n]
             groups.setdefault(g, []).append(r)
-        outs = [dict() for _ in range(m)]
+        labs = [[] for _ in range(m)]
+        blks = [[] for _ in range(m)]
         for mp, rows in groups.items():
             sub = V[rows]                                  # (len, m, K)
             plist = [cur[r][1:] if side == "L" else cur[r][:n + 1] for r in rows]
@@ -606,26 +721,31 @@ class FastCtx:
                 cs = self._coords_arr(mp, nu, K, sub, plist)
             else:
                 cs = self._coords_arr(lam, mp, K, sub, plist)
-            for kk in range(cs.shape[0]):
-                for k in range(m):
-                    c = cs[kk, k]
-                    if c.any():
-                        outs[k][(mp, kk)] = FN(c.copy())
-        return outs
+            nz = cs.any(axis=2)                                # (m', m)
+            for k in range(m):
+                kks = np.flatnonzero(nz[:, k])
+                if len(kks):
+                    labs[k].extend((mp, int(kk)) for kk in kks)
+                    blks[k].append(cs[kks, k])
+        z = np.zeros((0, self.K), dtype=np.int64)
+        return [(tuple(labs[k]), np.concatenate(blks[k]) if blks[k] else z) for k in range(m)]
+
+    def fcross_arr(self, side, lam, mu, nu, K, k, inv=False):
+        """((mu', k'), ...), coefficient rows (len, K) of moving a V step past
+        basis vector k of a fused block (side L: block first)."""
+        key = (side, lam, mu, nu, K, inv)
+        if key not in self.fc:
+            self.stats["fcross"] += 1
+            self.fc[key] = self._fcross(side, lam, mu, nu, K, inv)
+        return self.fc[key][k]
 
     def fcross_left(self, lam, mu, nu, K, k, inv=False):
-        key = ("L", lam, mu, nu, K, inv)
-        if key not in self.fc:
-            self.stats["fcross"] += 1
-            self.fc[key] = self._fcross("L", lam, mu, nu, K, inv)
-        return self.fc[key][k]
+        labs, C = self.fcross_arr("L", lam, mu, nu, K, k, inv)
+        return {l: FN(C[r].copy()) for r, l in enumerate(labs)}
 
     def fcross_right(self, lam, mu, nu, K, k, inv=False):
-        key = ("R", lam, mu, nu, K, inv)
-        if key not in self.fc:
-            self.stats["fcross"] += 1
-            self.fc[key] = self._fcross("R", lam, mu, nu, K, inv)
-        return self.fc[key][k]
+        labs, C = self.fcross_arr("R", lam, mu, nu, K, k, inv)
+        return {l: FN(C[r].copy()) for r, l in enumerate(labs)}
 
 
 # ----------------------------------------------------------------------
@@ -664,33 +784,35 @@ def fapply_arr(ctx, keys, A, kinds, i):
     for r, (st, lb) in enumerate(keys):
         lam, mu, nu = st[i], st[i + 1], st[i + 2]
         if k1 != 'V' and k2 == 'V':
-            res = ctx.fcross_left(lam, mu, nu, k1[1], lb[i])
+            labs, Cr = ctx.fcross_arr("L", lam, mu, nu, k1[1], lb[i])
             left = True
         elif k1 == 'V' and k2 != 'V':
-            res = ctx.fcross_right(lam, mu, nu, k2[1], lb[i + 1])
+            labs, Cr = ctx.fcross_arr("R", lam, mu, nu, k2[1], lb[i + 1])
             left = False
         else:
             raise ValueError(kinds)
+        if not labs:
+            continue
         pre_s, post_s = st[:i + 1], st[i + 2:]
         pre_l, post_l = lb[:i], lb[i + 2:]
-        for (mp, kk), x in res.items():
+        for mp, kk in labs:
             key = (pre_s + (mp,) + post_s, pre_l + ((None, kk) if left else (kk, None)) + post_l)
             j = nidx.get(key)
             if j is None:
                 j = nidx[key] = len(nkeys)
                 nkeys.append(key)
-            src.append(r)
             dst.append(j)
-            coef.append(x.v)
+        src.extend([r] * len(labs))
+        coef.append(Cr)
     out = np.zeros((len(nkeys),) + A.shape[1:], dtype=np.int64)
     if src:
         src = np.array(src)
         dst = np.array(dst)
-        C = np.stack(coef)
+        C = np.concatenate(coef)
         order = np.argsort(dst, kind="stable")
         src, dst, C = src[order], dst[order], C[order]
         starts = np.flatnonzero(np.r_[True, dst[1:] != dst[:-1]])
-        out[dst[starts]] = np.add.reduceat(A[src] * C[:, None, :] % P, starts, axis=0) % P
+        gather_mul_acc(A, src, starts, dst[starts], C, out)
     keep = np.flatnonzero(out.any(axis=(1, 2)))
     nk = kinds[:i] + (k2, k1) + kinds[i + 2:]
     return [nkeys[r] for r in keep], out[keep], nk
