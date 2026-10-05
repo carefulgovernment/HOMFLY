@@ -196,7 +196,10 @@ class FastCtx:
         self.K = len(M.q.v)
         self.zero = M.one * 0
         self.fb = {}          # (start, end, kind) -> (vecs dicts | None, piv, matinv (m,m,K), m)
-        self.fc = {}
+        from collections import OrderedDict as _OD
+        self.fc = _OD()       # fcross results, LRU by bytes (recomputation is deterministic)
+        self._fcbytes = 0
+        self._fcbudget = int(float(__import__("os").environ.get("FAST_FC_GB", "1.0")) * 2 ** 30)
         from collections import OrderedDict
         import os as _os
         self._umemo, self._ubytes = OrderedDict(), 0
@@ -738,10 +741,17 @@ class FastCtx:
         """((mu', k'), ...), coefficient rows (len, K) of moving a V step past
         basis vector k of a fused block (side L: block first)."""
         key = (side, lam, mu, nu, K, inv)
-        if key not in self.fc:
+        res = self.fc.get(key)
+        if res is None:
             self.stats["fcross"] += 1
-            self.fc[key] = self._fcross(side, lam, mu, nu, K, inv)
-        return self.fc[key][k]
+            res = self.fc[key] = self._fcross(side, lam, mu, nu, K, inv)
+            self._fcbytes += sum(C.nbytes + 100 * len(l) for l, C in res)
+            while self._fcbytes > self._fcbudget and len(self.fc) > 1:
+                _, old = self.fc.popitem(last=False)
+                self._fcbytes -= sum(C.nbytes + 100 * len(l) for l, C in old)
+        else:
+            self.fc.move_to_end(key)
+        return res[k]
 
     def fcross_left(self, lam, mu, nu, K, k, inv=False):
         labs, C = self.fcross_arr("L", lam, mu, nu, K, k, inv)
