@@ -42,6 +42,42 @@ def _inv_mod(a):
     return r
 
 
+class _BasisStore:
+    """fused bases: small part (pivot paths, inverse pivot matrix) kept forever,
+    big part (paths, index, vectors as uint32) in an LRU cache with a byte
+    budget; an evicted basis is recomputed on demand (deterministically)."""
+
+    def __init__(self, budget):
+        from collections import OrderedDict
+        self.small, self.big, self.budget, self.bytes = {}, OrderedDict(), budget, 0
+
+    def __contains__(self, key):
+        return key in self.small and key in self.big
+
+    def has_small(self, key):
+        return key in self.small
+
+    def __setitem__(self, key, val):
+        paths, idx, Vk, piv, minv = val
+        self.small[key] = (Vk.shape[1], [paths[r] for r in piv], minv, Vk.shape[0])
+        if key in self.big:
+            self.bytes -= self.big.pop(key)[3]
+        V32 = Vk.astype(np.uint32)
+        nb = V32.nbytes + 200 * len(paths)
+        self.big[key] = (paths, idx, V32, nb)
+        self.bytes += nb
+        while self.bytes > self.budget and len(self.big) > 1:
+            _, v = self.big.popitem(last=False)
+            self.bytes -= v[3]
+
+    def __getitem__(self, key):
+        paths, idx, V32, _ = self.big[key]
+        self.big.move_to_end(key)
+        m, ppaths, minv, N = self.small[key]
+        piv = [idx[p] for p in ppaths] if idx else []
+        return paths, idx, V32.astype(np.int64), piv, minv
+
+
 def _cells(R):
     return [(r, c) for r, length in enumerate(R) for c in range(length)]
 
@@ -53,7 +89,13 @@ class FastCtx:
         self.zero = M.one * 0
         self.fb = {}          # (start, end, kind) -> (vecs dicts | None, piv, matinv (m,m,K), m)
         self.fc = {}
-        self._vec_cache = {}  # (start, end, kind) -> (paths, idx, V (N, m, K))
+        from collections import OrderedDict
+        import os as _os
+        self._umemo, self._ubytes = OrderedDict(), 0
+        self._ubudget = int(float(_os.environ.get("FAST_UMEMO_GB", "1.0")) * 2 ** 30)
+        self._rng = np.random.default_rng(12345)
+        self._paths_cache = {}
+        self._vec_cache = _BasisStore(budget=int(float(__import__("os").environ.get("FAST_CACHE_GB", "1.5")) * 2 ** 30))
         self._gen = {}        # (paths key) -> generator tables
         self.stats = {"bases": 0, "fcross": 0}
 
@@ -81,6 +123,16 @@ class FastCtx:
 
     def _paths(self, start, end, kind, n=None):
         n = self.n if n is None else n
+        ck = (start, end, kind, n)
+        if ck in self._paths_cache:
+            return self._paths_cache[ck]
+        res = self._paths_uncached(start, end, kind, n)
+        if len(self._paths_cache) > 20000:
+            self._paths_cache.clear()
+        self._paths_cache[ck] = res
+        return res
+
+    def _paths_uncached(self, start, end, kind, n):
         lay = self._layers(start, kind, n)
         if end not in lay[-1]:
             return []
@@ -298,107 +350,124 @@ class FastCtx:
     # ------------------------------------------------------------------
     # recursive construction of all fused bases from one start state
     # ------------------------------------------------------------------
-    def _all_bases(self, start, kind, only=None):
-        """image of e_T built step by step (Young seminormal recursion): after j
-        steps a basis of e_{T_j}(paths of length j) per end state; extend by one
-        step and project only with the L_j factors.  Fills _vec_cache for every
-        end with nonzero multiplicity."""
-        n, K, q = self.n, self.K, self.M.q
-        lay = self._layers(start, kind, n)
-        ends = [e for e in lay[n] if self._expected(start, e, kind) > 0] if only is None else [only]
-        good = [None] * (n + 1)
-        good[n] = set(ends)
-        for t in range(n - 1, -1, -1):
-            good[t] = {x for x in lay[t] if any(m in good[t + 1] for m, _ in steps(x, kind))}
-        cells = _cells(self.R)
-        # U: end state -> (paths list, idx, vectors (N, d, K))
-        U = {start: ([(start,)], {(start,): 0}, np.ones((1, 1, K), dtype=np.int64))}
+    def _shape_j(self, j):
+        cells = _cells(self.R)[:j]
         shape = []
-        for j in range(1, n + 1):
-            r, c = cells[j - 1]
-            t = c - r
-            others = []
-            if j >= 2:
-                for rr in range(len(shape) + 1):
-                    cur = shape[rr] if rr < len(shape) else 0
-                    if rr == 0 or shape[rr - 1] > cur:
-                        cc = cur - rr
-                        if cc != t:
-                            others.append(cc)
-            # extend
-            ext = {}
-            for s0, (pl, pidx, V) in U.items():
-                for s1, _ in steps(s0, kind):
-                    if s1 not in good[j]:
-                        continue
-                    ext.setdefault(s1, []).append((pl, V))
-            newU = {}
-            for s1, parts in ext.items():
-                # all paths of length j to s1 (generators leave the supports)
-                paths = self._paths(start, s1, kind, n=j)
-                idx = {p: k for k, p in enumerate(paths)}
-                d = sum(V.shape[1] for _, V in parts)
-                W = np.zeros((len(paths), d, K), dtype=np.int64)
-                col = 0
-                for pl, V in parts:
-                    rows = [idx[p + (s1,)] for p in pl]
-                    W[rows, col:col + V.shape[1]] = V
-                    col += V.shape[1]
-                if others:
-                    tabs = self._prefix_gens(paths, idx, kind, j)
-                    for cc in others:
-                        Lv = W
-                        for i in list(range(j - 2, -1, -1)) + list(range(0, j - 1)):
-                            Lv = self._gen_apply(tabs[i], Lv, len(paths))
-                        mc = (-(q ** (2 * cc))).v
-                        fac = (1 / (q ** (2 * t) - q ** (2 * cc))).v
-                        W = (Lv + W * mc % P) % P * fac % P
-                # basis of the span (rank at point 0)
-                keep, ech = [], []
-                for b in range(W.shape[1]):
-                    x = W[:, b, 0].copy()
-                    for pk, row in ech:
-                        cx = x[pk]
-                        if cx:
-                            x = (x - cx * row) % P
-                    nz = np.flatnonzero(x)
-                    if len(nz) == 0:
-                        continue
-                    pk = int(nz[0])
-                    ech.append((pk, x * pow(int(x[pk]), P - 2, P) % P))
-                    keep.append(b)
-                if keep:
-                    newU[s1] = (paths, idx, W[:, keep, :])
-            U = newU
+        for r, c in cells:
             if r == len(shape):
                 shape.append(1)
             else:
                 shape[r] += 1
-        for e in ends:
-            key = (start, e, kind)
-            if key in self._vec_cache:
+        return tuple(shape)
+
+    def _U(self, start, kind, j, s):
+        """basis (paths, idx, V (N, d, K)) of e_{T_j}(paths of length j from start
+        to s), memoised (LRU by bytes); built from the U(j-1, predecessors)."""
+        key = (start, kind, j, s)
+        hit = self._umemo.get(key)
+        if hit is not None:
+            self._umemo.move_to_end(key)
+            return hit
+        K, q = self.K, self.M.q
+        if j == 0:
+            res = ([(start,)], {(start,): 0}, np.ones((1, 1, K), dtype=np.int64))
+            self._umemo_put(key, res)
+            return res
+        paths = self._paths(start, s, kind, n=j)
+        idx = {p: k for k, p in enumerate(paths)}
+        preds = sorted({p[-2] for p in paths})
+        parts = []
+        for s0 in preds:
+            pl, _, V = self._U(start, kind, j - 1, s0)
+            if V.shape[1]:
+                parts.append((pl, V))
+        d = sum(V.shape[1] for _, V in parts)
+        want = self._expected(start, s, kind, self._shape_j(j))
+        if d == 0 or want == 0:
+            res = (paths, idx, np.zeros((len(paths), 0, K), dtype=np.int64))
+            self._umemo_put(key, res)
+            return res
+        W = np.zeros((len(paths), d, K), dtype=np.int64)
+        col = 0
+        for pl, V in parts:
+            rows = [idx[p + (s,)] for p in pl]
+            W[rows, col:col + V.shape[1]] = V
+            col += V.shape[1]
+        if d > want + 2:                       # project only random combinations
+            G = self._rng.integers(1, P, size=(d, want + 2)).astype(np.int64)
+            Wc = np.zeros((len(paths), want + 2, K), dtype=np.int64)
+            for a in range(d):
+                Wc = (Wc + W[:, a:a + 1, :] * G[a][None, :, None] % P) % P
+            W = Wc
+        r, c = _cells(self.R)[j - 1]
+        t = c - r
+        shape = list(self._shape_j(j - 1))
+        others = []
+        if j >= 2:
+            for rr in range(len(shape) + 1):
+                cur = shape[rr] if rr < len(shape) else 0
+                if rr == 0 or shape[rr - 1] > cur:
+                    cc = cur - rr
+                    if cc != t:
+                        others.append(cc)
+        if others:
+            tabs = self._prefix_gens(paths, idx, kind, j)
+            for cc in others:
+                Lv = W
+                for i in list(range(j - 2, -1, -1)) + list(range(0, j - 1)):
+                    Lv = self._gen_apply(tabs[i], Lv, len(paths))
+                mc = (-(q ** (2 * cc))).v
+                fac = (1 / (q ** (2 * t) - q ** (2 * cc))).v
+                W = (Lv + W * mc % P) % P * fac % P
+        keep, ech = [], []
+        for b in range(W.shape[1]):
+            x = W[:, b, 0].copy()
+            for pk, row in ech:
+                cx = x[pk]
+                if cx:
+                    x = (x - cx * row) % P
+            nz = np.flatnonzero(x)
+            if len(nz) == 0:
                 continue
-            if e not in U:
-                self._vec_cache[key] = ([], {}, np.zeros((0, 0, K), dtype=np.int64), [],
-                                        np.zeros((0, 0, K), dtype=np.int64))
-                continue
-            paths, idx, Vk = U[e]
-            m = Vk.shape[1]
-            assert m == self._expected(start, e, kind), (start, e, m)
-            piv, E = [], []
-            for i in range(m):
-                w = Vk[:, i, :].copy()
-                for pk, row in E:
-                    cw = w[pk]
-                    if cw.any():
-                        w = (w - cw * row) % P
-                nz = np.flatnonzero(w.any(axis=1))
-                pk = int(nz[0])
-                E.append((pk, w * _inv_mod(w[pk]) % P))
-                piv.append(pk)
-            mat = Vk[piv, :, :]
-            self._vec_cache[key] = (paths, idx, Vk, piv, self._matinv(mat))
-            self.stats["bases"] += 1
+            pk = int(nz[0])
+            ech.append((pk, x * pow(int(x[pk]), P - 2, P) % P))
+            keep.append(b)
+            if len(keep) == want:
+                break
+        assert len(keep) == want, (start, s, j, len(keep), want)
+        res = (paths, idx, W[:, keep, :])
+        self._umemo_put(key, res)
+        return res
+
+    def _umemo_put(self, key, res):
+        nb = res[2].nbytes + 200 * len(res[0])
+        self._umemo[key] = res
+        self._ubytes += nb
+        while self._ubytes > self._ubudget and len(self._umemo) > 1:
+            _, v = self._umemo.popitem(last=False)
+            self._ubytes -= v[2].nbytes + 200 * len(v[0])
+
+    def _all_bases(self, start, kind, only=None):
+        n, K = self.n, self.K
+        e = only
+        key = (start, e, kind)
+        paths, idx, Vk = self._U(start, kind, n, e)
+        m = Vk.shape[1]
+        assert m == self._expected(start, e, kind), (start, e, m)
+        piv, E = [], []
+        for i in range(m):
+            w = Vk[:, i, :].copy()
+            for pk, row in E:
+                cw = w[pk]
+                if cw.any():
+                    w = (w - cw * row) % P
+            nz = np.flatnonzero(w.any(axis=1))
+            pk = int(nz[0])
+            E.append((pk, w * _inv_mod(w[pk]) % P))
+            piv.append(pk)
+        mat = Vk[piv, :, :]
+        self._vec_cache[key] = (paths, idx, Vk, piv, self._matinv(mat))
+        self.stats["bases"] += 1
 
     def _prefix_gens(self, paths, idx, kind, j):
         M, K = self.M, self.K
@@ -423,11 +492,12 @@ class FastCtx:
             tabs.append((src, dst, C, starts, dst[starts] if len(dst) else dst))
         return tabs
 
-    def _expected(self, start, end, kind):
+    def _expected(self, start, end, kind, shape=None):
         from racah_rat import expected_mult
-        key = ("mult", start, end, kind)
+        shape = self.R if shape is None else tuple(shape)
+        key = ("mult", start, end, kind, shape)
         if key not in self.fb:
-            self.fb[key] = expected_mult(start, end, self.R, kind)
+            self.fb[key] = expected_mult(start, end, shape, kind) if shape else int(start == end)
         return self.fb[key]
 
     @staticmethod
@@ -462,16 +532,18 @@ class FastCtx:
 
     def _coords_arr(self, start, end, kind, W, pathlist):
         """coordinates of vectors W (len(pathlist), B, K) given over pathlist."""
-        paths, idx, Vk, piv, minv = self._basis_arrays(start, end, kind)
-        m = Vk.shape[1]
+        key = (start, end, kind)
+        if not self._vec_cache.has_small(key):
+            self._basis_arrays(start, end, kind)
+        m, ppaths, minv, _ = self._vec_cache.small[key]
         B = W.shape[1]
         if m == 0:
             assert not W.any(), "vector outside fused space"
             return np.zeros((0, B, self.K), dtype=np.int64)
         pos = {p: r for r, p in enumerate(pathlist)}
         rhs = np.zeros((m, B, self.K), dtype=np.int64)
-        for k, r in enumerate(piv):
-            j = pos.get(paths[r])
+        for k, pp in enumerate(ppaths):
+            j = pos.get(pp)
             if j is not None:
                 rhs[k] = W[j]
         # coords = minv @ rhs per point
@@ -484,8 +556,10 @@ class FastCtx:
         return out
 
     def coords(self, start, end, kind, w):
-        paths, idx, Vk, piv, minv = self._basis_arrays(start, end, kind)
-        m = Vk.shape[1]
+        key = (start, end, kind)
+        if not self._vec_cache.has_small(key):
+            self._basis_arrays(start, end, kind)
+        m = self._vec_cache.small[key][0]
         if m == 0:
             assert not w, "vector outside fused space"
             return []
@@ -581,6 +655,47 @@ def fapply_vec(ctx, vec, kinds, i):
     return {k: v for k, v in out.items() if v.any()}, nk
 
 
+def fapply_arr(ctx, keys, A, kinds, i):
+    """fapply on arrays: keys [(states, labels)], A (len(keys), C, K)."""
+    k1, k2 = kinds[i], kinds[i + 1]
+    K = A.shape[-1]
+    src, dst, coef = [], [], []
+    nidx, nkeys = {}, []
+    for r, (st, lb) in enumerate(keys):
+        lam, mu, nu = st[i], st[i + 1], st[i + 2]
+        if k1 != 'V' and k2 == 'V':
+            res = ctx.fcross_left(lam, mu, nu, k1[1], lb[i])
+            left = True
+        elif k1 == 'V' and k2 != 'V':
+            res = ctx.fcross_right(lam, mu, nu, k2[1], lb[i + 1])
+            left = False
+        else:
+            raise ValueError(kinds)
+        pre_s, post_s = st[:i + 1], st[i + 2:]
+        pre_l, post_l = lb[:i], lb[i + 2:]
+        for (mp, kk), x in res.items():
+            key = (pre_s + (mp,) + post_s, pre_l + ((None, kk) if left else (kk, None)) + post_l)
+            j = nidx.get(key)
+            if j is None:
+                j = nidx[key] = len(nkeys)
+                nkeys.append(key)
+            src.append(r)
+            dst.append(j)
+            coef.append(x.v)
+    out = np.zeros((len(nkeys),) + A.shape[1:], dtype=np.int64)
+    if src:
+        src = np.array(src)
+        dst = np.array(dst)
+        C = np.stack(coef)
+        order = np.argsort(dst, kind="stable")
+        src, dst, C = src[order], dst[order], C[order]
+        starts = np.flatnonzero(np.r_[True, dst[1:] != dst[:-1]])
+        out[dst[starts]] = np.add.reduceat(A[src] * C[:, None, :] % P, starts, axis=0) % P
+    keep = np.flatnonzero(out.any(axis=(1, 2)))
+    nk = kinds[:i] + (k2, k1) + kinds[i + 2:]
+    return [nkeys[r] for r in keep], out[keep], nk
+
+
 def fast_build_mixed(M, R, ctx, log=None):
     from racah_num import tableau_path
     from mixedS import r1_eigenbasis
@@ -622,12 +737,15 @@ def fast_build_mixed(M, R, ctx, log=None):
                     arr = w[key] = np.zeros((Cg, K), dtype=np.int64)
                 arr[g] = (arr[g] + x.v) % P
         kinds = ('FV', 'FW') + ('V',) * n
+        keys = list(w)
+        A = np.stack([w[k] for k in keys])
+        del w
         for t in range(n):
-            w, kinds = fapply_vec(ctx, w, kinds, t + 1)
-            w, kinds = fapply_vec(ctx, w, kinds, t)
+            keys, A, kinds = fapply_arr(ctx, keys, A, kinds, t + 1)
+            keys, A, kinds = fapply_arr(ctx, keys, A, kinds, t)
         assert kinds == ('V',) * n + ('FV', 'FW')
         idxs = [c for c, _, _ in cols]
-        for (st, lb), arr in w.items():
+        for (st, lb), arr in zip(keys, A):
             assert st[:n + 1] == TRp and st[n + 2] == RR
             r = qidx[(st[n + 1], lb[n], lb[n + 1])]
             S[r, idxs] = (S[r, idxs] + arr) % P
