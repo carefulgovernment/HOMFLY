@@ -861,7 +861,11 @@ def fast_build_mixed(M, R, ctx, log=None):
     groups = {}
     for c, (X, i, j) in enumerate(xlab):
         groups.setdefault(X, []).append((c, i, j))
-    for gi, (X, cols) in enumerate(groups.items()):
+    # at most FAST_COL_ELEMS / K columns at once: the moved arrays are (keys, columns, K)
+    import os
+    width = max(1, int(os.environ.get("FAST_COL_ELEMS", "480")) // K)
+    batches = [(X, cols[a:a + width]) for X, cols in groups.items() for a in range(0, len(cols), width)]
+    for gi, (X, cols) in enumerate(batches):
         Cg = len(cols)
         w = {}
         for g, (c, i, j) in enumerate(cols):
@@ -886,7 +890,7 @@ def fast_build_mixed(M, R, ctx, log=None):
             r = qidx[(st[n + 1], lb[n], lb[n + 1])]
             S[r, idxs] = (S[r, idxs] + arr) % P
         if log:
-            log("X %d/%d %s: %d columns, bases %d fcross %d" % (gi + 1, len(groups), X, Cg,
+            log("X %d/%d %s: %d columns, bases %d fcross %d" % (gi + 1, len(batches), X, Cg,
                                                               ctx.stats["bases"], ctx.stats["fcross"]))
     # R1 eigenbasis on the a index: S_new[(Q,a,b)] = sum_a2 Ginv[a][a2] S[(Q,a2,b)]
     ev = np.zeros((N, K), dtype=np.int64)
