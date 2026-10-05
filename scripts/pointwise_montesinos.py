@@ -19,6 +19,7 @@ conventions, S̄ = T̄ S^-1 T S T̄) turns each point into H_R(A, q) mod p.
      (H_{R^T}(A, q) = H_R(A, -1/q)) from an independent engine run.
 """
 import argparse
+import hashlib
 import json
 import os
 import pickle
@@ -63,6 +64,25 @@ class Engine:
         self.labels = None
         self.n_batch = 0
 
+    def _load_existing(self):
+        """every finished chunk in the work directory, whatever its name"""
+        seen = getattr(self, "_loaded", set())
+        self._loaded = seen
+        for fn in sorted(os.listdir(self.work)):
+            if not fn.endswith(".pkl") or fn in seen:
+                continue
+            try:
+                d = pickle.load(open(os.path.join(self.work, fn), "rb"))
+            except Exception:
+                continue
+            seen.add(fn)
+            if tuple(d["R"]) != tuple(self.R):
+                continue
+            if self.labels is None and d["P"] == P1:
+                self.labels = (d["qlab"], d["xlab"], d["ev"][:, 0].astype(np.int64), d["pts"][0])
+            for k, pt in enumerate(d["pts"]):
+                self.table[(d["P"],) + tuple(int(x) for x in pt)] = d["S"][:, :, k]
+
     def evaluate(self, p, pts):
         self.evaluate_many({p: pts})
 
@@ -71,6 +91,7 @@ class Engine:
         round: the chunks of all primes run concurrently (each process pays
         the engine's set-up, the points themselves are cheap)."""
         rk = ",".join(map(str, self.R))
+        self._load_existing()
         jobs = []
         for i, (p, pts) in enumerate(by_prime.items()):
             todo = sorted({(a, q) for a, q in pts if (p, a, q) not in self.table})
@@ -80,13 +101,14 @@ class Engine:
             jobs += [(p, todo[i:i + size]) for i in range(0, len(todo), size)]
         procs = []
         for k, (p, chunk) in enumerate(jobs):
-            tag = "b%03d_%d" % (self.n_batch, k)
+            # named by content: a resumed run may chunk differently
+            tag = "c_" + hashlib.sha1(("%d:" % p + "".join("%d %d," % x for x in chunk)).encode()).hexdigest()[:16]
             pf = os.path.join(self.work, tag + ".txt")
             out = os.path.join(self.work, tag + ".pkl")
             with open(pf, "w") as f:
                 f.write("".join("%d %d\n" % x for x in chunk))
             if not os.path.exists(out):          # resumable
-                while sum(pr is not None and pr.poll() is None for _, _, pr in procs) >= self.jobs:
+                while sum(pr is not None and pr.poll() is None for _, _, pr, _, _ in procs) >= self.jobs:
                     time.sleep(10)
                 env = dict(os.environ, RACAH_P=str(p), RACAH_P31=str(p), OMP_NUM_THREADS="1")
                 cmd = ([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "fast_mix_pts.py"),
@@ -95,11 +117,17 @@ class Engine:
                                       stdout=open(out + ".log", "w"), stderr=subprocess.STDOUT)
             else:
                 pr = None
-            procs.append((p, out, pr))
+            procs.append((p, out, pr, cmd if pr is not None else None, env if pr is not None else None))
         self.n_batch += 1
-        for p, out, pr in procs:
-            if pr is not None and pr.wait() != 0:
-                raise RuntimeError("engine failed: see %s.log" % out)
+        for p, out, pr, cmd, env in procs:
+            tries = 0
+            while pr is not None and pr.wait() != 0:
+                tries += 1               # killed (memory guard / OOM): run it again
+                if tries > 3:
+                    raise RuntimeError("engine failed: see %s.log" % out)
+                print("engine: rerunning %s" % os.path.basename(out), flush=True)
+                pr = subprocess.Popen(cmd, cwd=self.dir, env=env,
+                                      stdout=open(out + ".log", "w"), stderr=subprocess.STDOUT)
             d = pickle.load(open(out, "rb"))
             assert d["P"] == p
             if self.labels is None and p == P1:
