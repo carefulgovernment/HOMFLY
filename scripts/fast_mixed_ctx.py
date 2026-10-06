@@ -210,6 +210,7 @@ class FastCtx:
         self._gen = {}        # (paths key) -> generator tables
         self._xc = {}         # local cross_r results -> ((mp, coef row id), ...)
         self._carr, self._cn = np.zeros((1024, self.K), dtype=np.int64), 0
+        self._cap = int(float(__import__("os").environ.get("FAST_COEF_MB", "400")) * 2 ** 20) // (8 * self.K)
         self.stats = {"bases": 0, "fcross": 0}
 
     # ------------------------------------------------------------------
@@ -275,6 +276,10 @@ class FastCtx:
         """cross_r memoised; coefficients as row ids of the table _coef."""
         key = (a, b, c, k1, k2, inv)
         r = self._xc.get(key)
+        if r is None and self._cn >= self._cap:
+            # tables built from the coefficients hold copies: the cache can be dropped
+            self._xc.clear()
+            self._cn = 0
         if r is None:
             r = []
             for mp, x in cross_r(self.M, a, b, c, k1, k2, inv).items():

@@ -135,6 +135,8 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
         Un = U
         ev = np.stack([eig[Y][a] for (Y, a, b) in labels])
         sink(Q, labels, Un, ev)
+        for Y in blocks[Q]:                                 # per-Q basis dicts are not needed again
+            ctx.fb.pop(("dicts", Y, Q, 'V'), None)
         if log:
             log("Q %d/%d %s dim %d  bases %d fcross %d" % (qi + 1, len(blocks), Q, m, ctx.stats["bases"],
                                                            ctx.stats["fcross"]))
