@@ -742,8 +742,8 @@ class FastCtx:
                 if len(kks):
                     labs[k].extend((mp, int(kk)) for kk in kks)
                     blks[k].append(cs[kks, k])
-        z = np.zeros((0, self.K), dtype=np.int64)
-        return [(tuple(labs[k]), np.concatenate(blks[k]) if blks[k] else z) for k in range(m)]
+        z = np.zeros((0, self.K), dtype=np.uint32)
+        return [(tuple(labs[k]), np.concatenate(blks[k]).astype(np.uint32) if blks[k] else z) for k in range(m)]
 
     def fcross_arr(self, side, lam, mu, nu, K, k, inv=False):
         """((mu', k'), ...), coefficient rows (len, K) of moving a V step past
@@ -763,11 +763,11 @@ class FastCtx:
 
     def fcross_left(self, lam, mu, nu, K, k, inv=False):
         labs, C = self.fcross_arr("L", lam, mu, nu, K, k, inv)
-        return {l: FN(C[r].copy()) for r, l in enumerate(labs)}
+        return {l: FN(C[r].astype(np.int64)) for r, l in enumerate(labs)}
 
     def fcross_right(self, lam, mu, nu, K, k, inv=False):
         labs, C = self.fcross_arr("R", lam, mu, nu, K, k, inv)
-        return {l: FN(C[r].copy()) for r, l in enumerate(labs)}
+        return {l: FN(C[r].astype(np.int64)) for r, l in enumerate(labs)}
 
 
 # ----------------------------------------------------------------------
