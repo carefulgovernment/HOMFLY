@@ -206,6 +206,7 @@ class FastCtx:
         self._ubudget = int(float(_os.environ.get("FAST_UMEMO_GB", "1.0")) * 2 ** 30)
         self._rng = np.random.default_rng(12345)
         self._paths_cache = {}
+        self._paths_cap = int(float(__import__("os").environ.get("FAST_PATHS_M", "1.0")) * 1e6)
         self._vec_cache = _BasisStore(budget=int(float(__import__("os").environ.get("FAST_CACHE_GB", "1.5")) * 2 ** 30))
         self._gen = {}        # (paths key) -> generator tables
         self._xc = {}         # local cross_r results -> ((mp, coef row id), ...)
@@ -241,8 +242,10 @@ class FastCtx:
         if ck in self._paths_cache:
             return self._paths_cache[ck]
         res = self._paths_uncached(start, end, kind, n)
-        if len(self._paths_cache) > 20000:
+        self._npaths = getattr(self, "_npaths", 0) + len(res)
+        if len(self._paths_cache) > 20000 or self._npaths > self._paths_cap:
             self._paths_cache.clear()
+            self._npaths = len(res)
         self._paths_cache[ck] = res
         return res
 
