@@ -46,6 +46,11 @@ mult = {}
 for X, a in lr_prod(R, R).items():
     for Q, b in lr_prod(X, R).items():
         mult[Q] = mult.get(Q, 0) + a * b
+# optional channel filter: a file with one Q (repr of the partition tuple) per line
+if os.environ.get("BORR_QFILTER"):
+    import ast
+    keepQ = {tuple(ast.literal_eval(L)) for L in open(os.environ["BORR_QFILTER"]) if L.strip()}
+    mult = {Q: m for Q, m in mult.items() if Q in keepQ}
 load = [0.0] * nparts
 owner = {}
 for Q in sorted(mult, key=lambda Q: -mult[Q]):
