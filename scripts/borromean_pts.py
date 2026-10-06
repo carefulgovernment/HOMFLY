@@ -56,14 +56,28 @@ t0 = time.time()
 M = Model(A=FN(np.full(K, 3, dtype=np.int64)), q=FN(np.array(qs, dtype=np.int64)))
 ctx = FastCtx(M, R)
 res = {}
+# per-channel checkpoint: a killed run resumes after its last finished Q
+ckpt = out + ".partial"
+if os.path.exists(ckpt):
+    with open(ckpt, "rb") as fh:
+        while True:
+            try:
+                Q0, val = pickle.load(fh)
+            except Exception:
+                break
+            res[Q0] = val
+ck = open(ckpt, "ab")
 log = (lambda s: print("%6.0f %s" % (time.time() - t0, s), flush=True)) if os.environ.get("FAST_LOG") else None
 
 
 def sink(Q, labels, U, ev):
     res[Q[0]] = (len(labels), borromean_trace(U, ev))
+    pickle.dump((Q[0], res[Q[0]]), ck)
+    ck.flush()
+    os.fsync(ck.fileno())
 
 
-fast_build_inclusive(M, R, ctx, sink, log=log, Qsel=lambda Q: owner.get(Q[0]) == part)
+fast_build_inclusive(M, R, ctx, sink, log=log, Qsel=lambda Q: owner.get(Q[0]) == part and Q[0] not in res)
 assert set(res) == {Q for Q, i in owner.items() if i == part}
 pickle.dump({"P": P, "R": R, "qs": qs, "part": part, "nparts": nparts, "T": res}, open(out + ".tmp", "wb"))
 os.replace(out + ".tmp", out)
