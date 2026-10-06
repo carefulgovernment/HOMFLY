@@ -57,6 +57,11 @@ for Q in sorted(mult, key=lambda Q: -mult[Q]):
     i = min(range(nparts), key=lambda j: load[j])
     owner[Q] = i
     load[i] += mult[Q] ** 1.6 + 30.0
+# optional size window (BORR_DIMRANGE=lo,hi), applied after the balanced assignment
+# so that a part keeps its channels; channels done elsewhere: BORR_SKIP=glob of .partial
+if os.environ.get("BORR_DIMRANGE"):
+    lo, hi = (int(x) for x in os.environ["BORR_DIMRANGE"].split(","))
+    owner = {Q: i for Q, i in owner.items() if lo <= mult[Q] < hi}
 t0 = time.time()
 M = Model(A=FN(np.full(K, 3, dtype=np.int64)), q=FN(np.array(qs, dtype=np.int64)))
 ctx = FastCtx(M, R)
@@ -84,6 +89,12 @@ def read_partial(path):
     return recs
 
 
+if os.environ.get("BORR_SKIP"):
+    import glob
+    for g in glob.glob(os.environ["BORR_SKIP"]):
+        if os.path.abspath(g) != os.path.abspath(ckpt):
+            for Q0 in read_partial(g):
+                owner.pop(Q0, None)
 if os.path.exists(ckpt):
     res.update(read_partial(ckpt))
     with open(ckpt + ".tmp", "wb") as fh:          # rewrite clean
@@ -102,7 +113,7 @@ def sink(Q, labels, U, ev):
 
 
 fast_build_inclusive(M, R, ctx, sink, log=log, Qsel=lambda Q: owner.get(Q[0]) == part and Q[0] not in res)
-assert set(res) == {Q for Q, i in owner.items() if i == part}
+assert set(res) >= {Q for Q, i in owner.items() if i == part}
 pickle.dump({"P": P, "R": R, "qs": qs, "part": part, "nparts": nparts, "T": res}, open(out + ".tmp", "wb"))
 os.replace(out + ".tmp", out)
 print("R=%s K=%d part %d/%d: %d channels in %.0fs" % (R, K, part, nparts, len(res), time.time() - t0), flush=True)
