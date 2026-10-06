@@ -39,8 +39,11 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
             blocks.setdefault(Q, []).append(Y)
     # columns per batch: the moved arrays are (keys, columns, K)
     budget = int(float(os.environ.get("FAST_BATCH_GB", "0.5")) * 2 ** 30)
-    for qi, Q in enumerate(sorted(blocks)):
-        if Qsel is not None and not Qsel(Q):
+    from collections import deque
+    queue = deque((qi, Q, False) for qi, Q in enumerate(sorted(blocks)))
+    while queue:
+        qi, Q, deferred = queue.popleft()
+        if Qsel is not None and not deferred and not Qsel(Q):
             continue
         labels = []
         for Y in blocks[Q]:
@@ -54,7 +57,15 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
         if os.environ.get("FAST_BIGQ_LOCK") and m >= int(os.environ.get("FAST_BIGQ_DIM", "400")):
             import fcntl
             lockf = open(os.environ["FAST_BIGQ_LOCK"], "w")
-            fcntl.flock(lockf, fcntl.LOCK_EX)
+            if deferred:
+                fcntl.flock(lockf, fcntl.LOCK_EX)
+            else:
+                try:
+                    fcntl.flock(lockf, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except OSError:                              # busy: do the small channels first
+                    lockf.close()
+                    queue.append((qi, Q, True))
+                    continue
         # initial keys (union over the columns) and the column entries
         k0, entries = {}, []
         for c, (Y, a, b) in enumerate(labels):
