@@ -59,6 +59,7 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
             lockf = open(os.environ["FAST_BIGQ_LOCK"], "w")
             if deferred:
                 fcntl.flock(lockf, fcntl.LOCK_EX)
+                ctx.clear_caches()
             else:
                 try:
                     fcntl.flock(lockf, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -66,6 +67,7 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
                     lockf.close()
                     queue.append((qi, Q, True))
                     continue
+                ctx.clear_caches()                           # room for the big channel
         # initial keys (union over the columns) and the column entries
         k0, entries = {}, []
         for c, (Y, a, b) in enumerate(labels):

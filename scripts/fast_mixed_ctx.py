@@ -214,6 +214,21 @@ class FastCtx:
         self._cap = int(float(__import__("os").environ.get("FAST_COEF_MB", "400")) * 2 ** 20) // (8 * self.K)
         self.stats = {"bases": 0, "fcross": 0}
 
+    def clear_caches(self):
+        """drop every rebuildable cache (bases, recursion memo, fcross, paths, coefficients)"""
+        import gc
+        self._vec_cache = _BasisStore(budget=self._vec_cache.budget)
+        self._umemo.clear()
+        self._ubytes = 0
+        self.fc.clear()
+        self._fcbytes = 0
+        self._paths_cache.clear()
+        self._npaths = 0
+        self._xc.clear()
+        self._cn = 0
+        self.fb = {k: v for k, v in self.fb.items() if k[0] == "mult"}
+        gc.collect()
+
     # ------------------------------------------------------------------
     # skew paths
     # ------------------------------------------------------------------
