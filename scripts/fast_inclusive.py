@@ -60,12 +60,35 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
                     r = k0[key] = len(k0)
                 entries.append((r, c, x.v))
         keys = list(k0)
-        # the 2n moves, structure only
+        er = np.array([e[0] for e in entries], dtype=np.int64)
+        ec = np.array([e[1] for e in entries], dtype=np.int64)
+        ev_ = np.stack([e[2] for e in entries])
+        # the 2n moves, structure only; keys that vanish on a random combination
+        # of all columns vanish on every column (w.h.p.) and are dropped
+        rng = np.random.default_rng(len(keys) + 7 * m)
+        rc = rng.integers(1, P, size=m)
+        Ar = np.zeros((len(keys), 1, K), dtype=np.int64)
+        np.add.at(Ar, (er, 0), ev_ * rc[ec][:, None] % P)
+        Ar %= P
         plans, sizes = [], []
         kinds = ('FV', 'FV') + ('V',) * n
         for t in range(n):
             for pos in (t + 1, t):
                 keys, plan, kinds = fapply_plan(ctx, keys, kinds, pos)
+                Ar = apply_plan(plan, Ar, len(keys))
+                keep = np.flatnonzero(Ar.any(axis=(1, 2)))
+                if len(keep) < len(keys) and plan is not None:
+                    src, starts, udst, C = plan
+                    cnt = np.diff(np.r_[starts, len(src)])
+                    dst = np.repeat(udst, cnt)
+                    newi = np.full(len(keys), -1, dtype=np.int64)
+                    newi[keep] = np.arange(len(keep))
+                    sel = newi[dst] >= 0
+                    src, dst, C = src[sel], newi[dst[sel]], C[sel]
+                    starts = np.flatnonzero(np.r_[True, dst[1:] != dst[:-1]]) if len(dst) else dst
+                    plan = (src, starts, dst[starts], C) if len(dst) else None
+                    keys = [keys[r] for r in keep]
+                    Ar = Ar[keep]
                 plans.append(plan)
                 sizes.append(len(keys))
         rows = np.full(len(keys), -1, dtype=np.int64)
@@ -76,9 +99,6 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
         dead = np.flatnonzero(rows < 0)
         width = max(1, min(m, budget // (8 * K * max(sizes + [len(k0)]))))
         U = np.zeros((m, m, K), dtype=np.int64)
-        er = np.array([e[0] for e in entries], dtype=np.int64)
-        ec = np.array([e[1] for e in entries], dtype=np.int64)
-        ev_ = np.stack([e[2] for e in entries])
         for c0 in range(0, m, width):
             c1 = min(m, c0 + width)
             sel = (ec >= c0) & (ec < c1)
