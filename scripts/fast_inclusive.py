@@ -138,8 +138,12 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
         for Y in blocks[Q]:                                 # per-Q basis dicts are not needed again
             ctx.fb.pop(("dicts", Y, Q, 'V'), None)
         if log:
-            log("Q %d/%d %s dim %d  bases %d fcross %d" % (qi + 1, len(blocks), Q, m, ctx.stats["bases"],
-                                                           ctx.stats["fcross"]))
+            vs = ctx._vec_cache
+            small_b = sum(v[2].nbytes for v in vs.small.values() if hasattr(v[2], "nbytes"))
+            log("Q %d/%d %s dim %d  bases %d fcross %d | paths %d vec %dMB small %d/%dMB umemo %dMB fc %dMB coef %d fb %d gen %d"
+                % (qi + 1, len(blocks), Q, m, ctx.stats["bases"], ctx.stats["fcross"], len(ctx._paths_cache),
+                   vs.bytes >> 20, len(vs.small), small_b >> 20, ctx._ubytes >> 20, ctx._fcbytes >> 20, ctx._cn,
+                   len(ctx.fb), len(ctx._gen)))
 
 
 # ----------------------------------------------------------------------
