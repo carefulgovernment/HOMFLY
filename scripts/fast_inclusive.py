@@ -15,7 +15,7 @@ import os
 import numpy as np
 
 from fvn import P
-from fast_mixed_ctx import FastCtx, fapply_arr, _inv_mod
+from fast_mixed_ctx import FastCtx, fapply_plan, apply_plan, _inv_mod
 
 
 def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
@@ -26,17 +26,19 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
     E0, RR = ((), ()), (tuple(R), ())
     TRp = tableau_path(E0, R, 'V')
     Ys = [Y for (Y, m) in ctx.targets(RR, 'V')]
-    G, eig = {}, {}
+    G, Ginv, eig = {}, {}, {}
     for Y in Ys:
         g, signs, lam = r1_eigenbasis(ctx, R, Y)
         m = len(g)
-        G[Y] = np.array([[g[i][k].v for k in range(m)] for i in range(m)], dtype=np.int64)  # new a_k = sum_i G[i][k] a_i
+        G[Y] = np.array([[g[i][k].v for k in range(m)] for i in range(m)], dtype=np.int64)  # (m, m, K): new a_k = sum_i G[i][k] a_i
         eig[Y] = np.stack([(s * lam).v for s in signs])
+        Ginv[Y] = FastCtx._matinv(G[Y])
     blocks = {}
     for Y in Ys:
         for (Q, mq) in ctx.targets(Y, 'V'):
             blocks.setdefault(Q, []).append(Y)
-    width = max(1, int(os.environ.get("FAST_COL_ELEMS", "480")) // K)
+    # columns per batch: the moved arrays are (keys, columns, K)
+    budget = int(float(os.environ.get("FAST_BATCH_GB", "0.5")) * 2 ** 30)
     for qi, Q in enumerate(sorted(blocks)):
         if Qsel is not None and not Qsel(Q):
             continue
@@ -47,35 +49,69 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
             labels += [(Y, a, b) for a in range(ma) for b in range(mb)]
         idx = {l: k for k, l in enumerate(labels)}
         m = len(labels)
+        # initial keys (union over the columns) and the column entries
+        k0, entries = {}, []
+        for c, (Y, a, b) in enumerate(labels):
+            bvec = ctx.basis(Y, Q, 'V')[0][b]
+            for p, x in bvec.items():
+                key = ((E0, RR, Y) + p[1:], (0, a) + (None,) * n)
+                r = k0.get(key)
+                if r is None:
+                    r = k0[key] = len(k0)
+                entries.append((r, c, x.v))
+        keys = list(k0)
+        # the 2n moves, structure only
+        plans, sizes = [], []
+        kinds = ('FV', 'FV') + ('V',) * n
+        for t in range(n):
+            for pos in (t + 1, t):
+                keys, plan, kinds = fapply_plan(ctx, keys, kinds, pos)
+                plans.append(plan)
+                sizes.append(len(keys))
+        rows = np.full(len(keys), -1, dtype=np.int64)
+        for r, (st, lb) in enumerate(keys):
+            if st[:n + 1] == TRp and st[n + 2] == Q:      # other keys carry zero (no pruning)
+                rows[r] = idx[(st[n + 1], lb[n], lb[n + 1])]
+        live = np.flatnonzero(rows >= 0)
+        dead = np.flatnonzero(rows < 0)
+        width = max(1, min(m, budget // (8 * K * max(sizes + [len(k0)]))))
         U = np.zeros((m, m, K), dtype=np.int64)
+        er = np.array([e[0] for e in entries], dtype=np.int64)
+        ec = np.array([e[1] for e in entries], dtype=np.int64)
+        ev_ = np.stack([e[2] for e in entries])
         for c0 in range(0, m, width):
-            cols = labels[c0:c0 + width]
-            w = {}
-            for g, (Y, a, b) in enumerate(cols):
-                bvec = ctx.basis(Y, Q, 'V')[0][b]
-                for p, x in bvec.items():
-                    key = ((E0, RR, Y) + p[1:], (0, a) + (None,) * n)
-                    arr = w.get(key)
-                    if arr is None:
-                        arr = w[key] = np.zeros((len(cols), K), dtype=np.int64)
-                    arr[g] = (arr[g] + x.v) % P
-            keys = list(w)
-            A = np.stack([w[k] for k in keys])
-            del w
-            kinds = ('FV', 'FV') + ('V',) * n
-            for t in range(n):
-                keys, A, kinds = fapply_arr(ctx, keys, A, kinds, t + 1)
-                keys, A, kinds = fapply_arr(ctx, keys, A, kinds, t)
-            for (st, lb), arr in zip(keys, A):
-                assert st[:n + 1] == TRp and st[n + 2] == Q
-                r = idx[(st[n + 1], lb[n], lb[n + 1])]
-                U[r, c0:c0 + len(cols)] = (U[r, c0:c0 + len(cols)] + arr) % P
-        # R1 eigenbasis on both sides: U_new = Gt^-1 U Gt (Gt block diagonal in Y, acts on a)
-        Gt = np.zeros((m, m, K), dtype=np.int64)
+            c1 = min(m, c0 + width)
+            sel = (ec >= c0) & (ec < c1)
+            A = np.zeros((len(k0), c1 - c0, K), dtype=np.int64)
+            np.add.at(A, (er[sel], ec[sel] - c0), ev_[sel])
+            A %= P
+            for plan, sz in zip(plans, sizes):
+                A = apply_plan(plan, A, sz)
+            assert not A[dead].any(), "nonzero outside the tableau path"
+            Ub = np.zeros((m, c1 - c0, K), dtype=np.int64)
+            np.add.at(Ub, rows[live], A[live])
+            U[:, c0:c1] = Ub % P
+        del plans
+        # R1 eigenbasis on both sides: U_new = Gt^-1 U Gt, Gt block diagonal (acts on a for fixed Y, b)
+        groups = {}
         for (Y, a, b), r in idx.items():
-            for a2 in range(G[Y].shape[0]):
-                Gt[idx[(Y, a2, b)], r] = G[Y][a2, a]
-        Un = matmul(matinv(Gt), matmul(U, Gt))
+            groups.setdefault((Y, b), []).append(r)        # rows in order a = 0, 1, ...
+        Un = U.copy()
+        for (Y, b), rs in groups.items():                  # right: columns
+            g = G[Y]
+            for a, r in enumerate(rs):
+                acc = np.zeros((m, K), dtype=np.int64)
+                for a2, r2 in enumerate(rs):
+                    acc = (acc + U[:, r2] * g[a2, a] % P) % P
+                Un[:, r] = acc
+        U = Un.copy()
+        for (Y, b), rs in groups.items():                  # left: rows, with G^-1
+            gi = Ginv[Y]
+            for a, r in enumerate(rs):
+                acc = np.zeros((m, K), dtype=np.int64)
+                for a2, r2 in enumerate(rs):
+                    acc = (acc + U[r2] * gi[a, a2][None, :] % P) % P
+                Un[r] = acc
         ev = np.stack([eig[Y][a] for (Y, a, b) in labels])
         sink(Q, labels, Un, ev)
         if log:
@@ -93,7 +129,7 @@ def _limbs(X):
     return [(X >> (11 * i)) & 0x7FF for i in range(3)]
 
 
-def matmul(A, B):
+def matmul(A, B):  # noqa (kept for tests)
     """(m, l, K) x (l, n, K) -> (m, n, K) mod P"""
     K = A.shape[2]
     out = np.empty((A.shape[0], B.shape[1], K), dtype=np.int64)
@@ -137,20 +173,49 @@ def matinv1(A):
 
 
 def word_trace(U, ev, word):
-    """Tr of prod over word (1, 2, -1, -2) of R1^{+-1}, R2^{+-1}; U (m,m,K), ev (m,K) -> (K,)"""
+    """Tr of the product over word (1, 2, -1, -2) of R1^{+-1}, R2^{+-1}, R1 = diag(ev),
+    R2 = U R1 U^-1; U (m,m,K), ev (m,K) -> (K,).  Conjugated by U: R2 -> D,
+    R1 -> W = U^-1 D U (FLINT nmod_mat)."""
+    import flint
     m, _, K = U.shape
     out = np.empty(K, dtype=np.int64)
     for k in range(K):
-        u = U[:, :, k]
-        ui = matinv1(u)
         e = ev[:, k] % P
         ei = _inv_mod(e)
-        X = np.eye(m, dtype=np.int64)
+        u = flint.nmod_mat(m, m, (U[:, :, k] % P).ravel().tolist(), P)
+        need = {g for g in word if abs(g) == 1}
+        W = {}
+        for g in need:
+            d = e if g > 0 else ei
+            W[g] = u.solve(flint.nmod_mat(m, m, ((U[:, :, k] % P) * d[:, None] % P).ravel().tolist(), P))
+        X = None
         for g in word:
             if abs(g) == 1:
-                X = X * (e if g > 0 else ei)[None, :] % P                       # X . R1^{+-1}
+                X = W[g] if X is None else X * W[g]
             else:
                 d = e if g > 0 else ei
-                X = matmul1(matmul1(X, u) * d[None, :] % P, ui)                # X . U D U^-1
-        out[k] = int(np.trace(X) % P) if m < 1000 else int(sum(int(x) for x in np.diag(X)) % P)
+                if X is None:
+                    X = flint.nmod_mat(m, m, np.diag(d).ravel().tolist(), P)
+                else:
+                    Xa = np.array([int(x) for x in X.entries()], dtype=np.int64).reshape(m, m)
+                    X = flint.nmod_mat(m, m, (Xa * d[None, :] % P).ravel().tolist(), P)
+        out[k] = int(sum(int(X[i, i]) for i in range(m)) % P)
+    return out
+
+
+def borromean_trace(U, ev):
+    """Tr((R1 R2^-1)^3) = Tr((W D^-1)^3), W = U^-1 D U: one solve, one product."""
+    import flint
+    m, _, K = U.shape
+    out = np.empty(K, dtype=np.int64)
+    for k in range(K):
+        e = ev[:, k] % P
+        ei = _inv_mod(e)
+        Uk = U[:, :, k] % P
+        W = flint.nmod_mat(m, m, Uk.ravel().tolist(), P).solve(
+            flint.nmod_mat(m, m, (Uk * e[:, None] % P).ravel().tolist(), P))
+        Y = np.array([int(x) for x in W.entries()], dtype=np.int64).reshape(m, m) * ei[None, :] % P
+        Yf = flint.nmod_mat(m, m, Y.ravel().tolist(), P)
+        Y2 = np.array([int(x) for x in (Yf * Yf).entries()], dtype=np.int64).reshape(m, m)
+        out[k] = int((Y2 * Y.T % P).sum() % P)
     return out

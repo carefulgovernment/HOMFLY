@@ -832,6 +832,55 @@ def fapply_arr(ctx, keys, A, kinds, i):
     return [nkeys[r] for r in keep], out[keep], nk
 
 
+def fapply_plan(ctx, keys, kinds, i):
+    """the structure of fapply_arr without values: (new keys, (src, starts, udst, C uint32), new kinds);
+    apply it to any A over `keys` with apply_plan (no pruning of zero rows)."""
+    k1, k2 = kinds[i], kinds[i + 1]
+    src, dst, coef = [], [], []
+    nidx, nkeys = {}, []
+    for r, (st, lb) in enumerate(keys):
+        lam, mu, nu = st[i], st[i + 1], st[i + 2]
+        if k1 != 'V' and k2 == 'V':
+            labs, Cr = ctx.fcross_arr("L", lam, mu, nu, k1[1], lb[i])
+            left = True
+        elif k1 == 'V' and k2 != 'V':
+            labs, Cr = ctx.fcross_arr("R", lam, mu, nu, k2[1], lb[i + 1])
+            left = False
+        else:
+            raise ValueError(kinds)
+        if not labs:
+            continue
+        pre_s, post_s = st[:i + 1], st[i + 2:]
+        pre_l, post_l = lb[:i], lb[i + 2:]
+        for mp, kk in labs:
+            key = (pre_s + (mp,) + post_s, pre_l + ((None, kk) if left else (kk, None)) + post_l)
+            j = nidx.get(key)
+            if j is None:
+                j = nidx[key] = len(nkeys)
+                nkeys.append(key)
+            dst.append(j)
+        src.extend([r] * len(labs))
+        coef.append(Cr)
+    nk = kinds[:i] + (k2, k1) + kinds[i + 2:]
+    if not src:
+        return nkeys, None, nk
+    src = np.array(src, dtype=np.int64)
+    dst = np.array(dst, dtype=np.int64)
+    C = np.concatenate(coef)
+    order = np.argsort(dst, kind="stable")
+    src, dst, C = src[order], dst[order], C[order]
+    starts = np.flatnonzero(np.r_[True, dst[1:] != dst[:-1]])
+    return nkeys, (src, starts, dst[starts], C.astype(np.uint32)), nk
+
+
+def apply_plan(plan, A, nnew):
+    out = np.zeros((nnew,) + A.shape[1:], dtype=np.int64)
+    if plan is not None:
+        src, starts, udst, C = plan
+        gather_mul_acc(A, src, starts, udst, C, out)
+    return out
+
+
 def fast_build_mixed(M, R, ctx, log=None):
     from racah_num import tableau_path
     from mixedS import r1_eigenbasis
