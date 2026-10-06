@@ -58,7 +58,11 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
             import fcntl
             lockf = open(os.environ["FAST_BIGQ_LOCK"], "w")
             if deferred:
-                fcntl.flock(lockf, fcntl.LOCK_EX)
+                try:
+                    fcntl.flock(lockf, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except OSError:
+                    ctx.clear_caches()                       # wait with as little memory as possible
+                    fcntl.flock(lockf, fcntl.LOCK_EX)
                 ctx.clear_caches()
             else:
                 try:
