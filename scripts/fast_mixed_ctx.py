@@ -231,7 +231,7 @@ class FastCtx:
         ends = sorted(self._layers(start, kind, self.n)[-1])
         out = []
         for e in ends:
-            m = self._basis_arrays(start, e, kind)[2].shape[1]
+            m = self._expected(start, e, kind)      # multiplicity (LR), no basis needed
             if m:
                 out.append((e, m))
         return out
