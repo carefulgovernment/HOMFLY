@@ -49,6 +49,12 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
             labels += [(Y, a, b) for a in range(ma) for b in range(mb)]
         idx = {l: k for k, l in enumerate(labels)}
         m = len(labels)
+        # big channels need several GB: one at a time across cooperating processes
+        lockf = None
+        if os.environ.get("FAST_BIGQ_LOCK") and m >= int(os.environ.get("FAST_BIGQ_DIM", "400")):
+            import fcntl
+            lockf = open(os.environ["FAST_BIGQ_LOCK"], "w")
+            fcntl.flock(lockf, fcntl.LOCK_EX)
         # initial keys (union over the columns) and the column entries
         k0, entries = {}, []
         for c, (Y, a, b) in enumerate(labels):
@@ -135,6 +141,9 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
         Un = U
         ev = np.stack([eig[Y][a] for (Y, a, b) in labels])
         sink(Q, labels, Un, ev)
+        del U, Un
+        if lockf is not None:
+            lockf.close()                                   # releases the lock
         for Y in blocks[Q]:                                 # per-Q basis dicts are not needed again
             ctx.fb.pop(("dicts", Y, Q, 'V'), None)
         if log:

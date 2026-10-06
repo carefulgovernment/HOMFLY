@@ -58,14 +58,33 @@ ctx = FastCtx(M, R)
 res = {}
 # per-channel checkpoint: a killed run resumes after its last finished Q
 ckpt = out + ".partial"
-if os.path.exists(ckpt):
-    with open(ckpt, "rb") as fh:
-        while True:
-            try:
-                Q0, val = pickle.load(fh)
-            except Exception:
+
+
+def read_partial(path):
+    """all intact (Q, value) records, also those after a record cut by a kill"""
+    import io
+    data = open(path, "rb").read()
+    recs, pos = {}, 0
+    while pos < len(data):
+        try:
+            bio = io.BytesIO(data[pos:])
+            Q0, val = pickle.load(bio)
+            recs[Q0] = val
+            pos += bio.tell()
+        except Exception:
+            nxt = data.find(b"\x80", pos + 1)
+            if nxt < 0:
                 break
-            res[Q0] = val
+            pos = nxt
+    return recs
+
+
+if os.path.exists(ckpt):
+    res.update(read_partial(ckpt))
+    with open(ckpt + ".tmp", "wb") as fh:          # rewrite clean
+        for item in res.items():
+            pickle.dump(item, fh)
+    os.replace(ckpt + ".tmp", ckpt)
 ck = open(ckpt, "ab")
 log = (lambda s: print("%6.0f %s" % (time.time() - t0, s), flush=True)) if os.environ.get("FAST_LOG") else None
 
