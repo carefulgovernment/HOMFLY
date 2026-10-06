@@ -116,22 +116,23 @@ def fast_build_inclusive(M, R, ctx, sink, log=None, Qsel=None):
         groups = {}
         for (Y, a, b), r in idx.items():
             groups.setdefault((Y, b), []).append(r)        # rows in order a = 0, 1, ...
-        Un = U.copy()
-        for (Y, b), rs in groups.items():                  # right: columns
+        for (Y, b), rs in groups.items():                  # right: columns (in place per group)
             g = G[Y]
+            old = U[:, rs].copy()                          # (m, len, K)
             for a, r in enumerate(rs):
                 acc = np.zeros((m, K), dtype=np.int64)
-                for a2, r2 in enumerate(rs):
-                    acc = (acc + U[:, r2] * g[a2, a] % P) % P
-                Un[:, r] = acc
-        U = Un.copy()
+                for a2 in range(len(rs)):
+                    acc = (acc + old[:, a2] * g[a2, a] % P) % P
+                U[:, r] = acc
         for (Y, b), rs in groups.items():                  # left: rows, with G^-1
             gi = Ginv[Y]
+            old = U[rs].copy()                             # (len, m, K)
             for a, r in enumerate(rs):
                 acc = np.zeros((m, K), dtype=np.int64)
-                for a2, r2 in enumerate(rs):
-                    acc = (acc + U[r2] * gi[a, a2][None, :] % P) % P
-                Un[r] = acc
+                for a2 in range(len(rs)):
+                    acc = (acc + old[a2] * gi[a, a2][None, :] % P) % P
+                U[r] = acc
+        Un = U
         ev = np.stack([eig[Y][a] for (Y, a, b) in labels])
         sink(Q, labels, Un, ev)
         if log:
