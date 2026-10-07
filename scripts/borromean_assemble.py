@@ -7,8 +7,9 @@ traces T_Q(q) = Tr_Q (R1 R2^-1)^3 at many q (borromean_pts.py output).
 2. H_R(A, q) = sum_Q dim_q(Q) T_Q(q) / dim_q(R) (invariant under (A, q) ->
    (1/A, 1/q) term by term, so natural and standard conventions agree).
    H * den(q), den = prod_{boxes of R} (q^h - q^-h)^2, is reconstructed as a
-   Laurent polynomial by dense interpolation modulo two primes (the exact T_Q
-   reduce mod any prime) and CRT, then checked at fresh points.
+   Laurent polynomial by dense interpolation modulo several primes (the exact T_Q
+   reduce mod any prime; EXACT_T=pkl from borromean_exact.py) and CRT, checked at
+   fresh points and for stability of the CRT lift without the last prime.
 
 usage: python3 borromean_assemble.py R out.json T_*.pkl ...
 """
@@ -105,26 +106,38 @@ def main():
     R = tuple(int(x) for x in sys.argv[1].split(","))
     out = sys.argv[2]
     files = [f for a in sys.argv[3:] for f in sorted(glob.glob(a))]
-    R2, p, vals = load(files)
-    assert R2 == R
-    spare = int(os.environ.get("SPARE", "4"))
-    T, maxdeg, maxc = {}, 0, 0
-    for Q, d in vals.items():
-        byw = {}
-        for q, y in d.items():
-            w = (q * q + pow(q * q, p - 2, p)) % p
-            if w in byw:
-                assert byw[w] == y, ("symmetry T(q) = T(1/q) violated", Q)
-            byw[w] = y
-        mono = recon_w(sorted(byw.items()), p, spare)
-        if mono is None:
-            raise SystemExit("not enough points for Q=%s (%d values)" % (Q, len(byw)))
-        T[Q] = w_to_q(mono, p)
-        maxdeg = max(maxdeg, len(mono) - 1)
-        maxc = max([maxc] + [abs(c) for c in T[Q].values()])
-    print("T_Q reconstructed: %d channels, max degree in w %d (points %d), max |coeff| %d"
-          % (len(T), maxdeg, min(len(v) for v in vals.values()), maxc), flush=True)
-    assert maxc < p // 2 ** 8 or os.environ.get("NOLIFTCHECK"), "coefficients too close to p/2 for a safe lift"
+    if os.environ.get("EXACT_T"):
+        # exact integer traces (borromean_exact.py): the T_Q reduce modulo any prime
+        d = pickle.load(open(os.environ["EXACT_T"], "rb"))
+        assert tuple(d["R"]) == R
+        T, p, modp = d["T"], None, False
+        print("exact T_Q: %d channels, max |coeff| %d" % (len(T), max(abs(c) for t in T.values() for c in t.values())))
+    else:
+        R2, p, vals = load(files)
+        assert R2 == R
+        spare = int(os.environ.get("SPARE", "4"))
+        T, maxdeg, maxc = {}, 0, 0
+        for Q, d in vals.items():
+            byw = {}
+            for q, y in d.items():
+                w = (q * q + pow(q * q, p - 2, p)) % p
+                if w in byw:
+                    assert byw[w] == y, ("symmetry T(q) = T(1/q) violated", Q)
+                byw[w] = y
+            mono = recon_w(sorted(byw.items()), p, spare)
+            if mono is None:
+                raise SystemExit("not enough points for Q=%s (%d values)" % (Q, len(byw)))
+            T[Q] = w_to_q(mono, p)
+            maxdeg = max(maxdeg, len(mono) - 1)
+            maxc = max([maxc] + [abs(c) for c in T[Q].values()])
+        print("T_Q reconstructed: %d channels, max degree in w %d (points %d), max |coeff| %d"
+              % (len(T), maxdeg, min(len(v) for v in vals.values()), maxc), flush=True)
+        # MODP_ONLY=1: the T_Q are only used modulo the prime they were computed with (their
+        # residues are exact even when a coefficient exceeds p/2); H is then reconstructed
+        # modulo that prime alone and its coefficients must stay below p/2.
+        modp = bool(os.environ.get("MODP_ONLY"))
+        assert modp or maxc < p // 2 ** 8 or os.environ.get("NOLIFTCHECK"), "coefficients too close to p/2 for a safe lift"
+    den_pow = int(os.environ.get("DEN_POW", "2"))
     den_boxes = [h for c, h in boxes(R)]
     Qdata = [(sorted(Tq.items()), boxes(Q)) for Q, Tq in T.items() if Tq]
 
@@ -149,7 +162,7 @@ def main():
                 dR = dR * (pow(q, h, pp) - pow(iq, h, pp)) % pp
             den = 1
             for h in den_boxes:
-                den = den * (pow(q, h, pp) - pow(iq, h, pp)) ** 2 % pp
+                den = den * pow(pow(q, h, pp) - pow(iq, h, pp), den_pow, pp) % pp
             cache.clear()
             cache[q] = (terms, dR, den, q, iq)
             return cache[q]
@@ -177,7 +190,8 @@ def main():
 
     from pointwise_montesinos import line_exponents
     res = {}
-    for prime in (P1, P2):
+    primes = [p] if modp else [int(x) for x in os.environ.get("PRIMES", "%d,%d" % (P1, P2)).split(",")]
+    for prime in primes:
         F = GF(prime)
         f2 = make_f(F)
         rng = random.Random(7)
@@ -197,18 +211,26 @@ def main():
             a, q = F(rng.randrange(2, prime - 1)), F(rng.randrange(2, prime - 1))
             v = sum((F(c) * a ** i * q ** j for (i, j), c in res[prime].items()), F.zero)
             assert v == f2(a, q), "fresh point check failed mod %d" % prime
-    terms = {}
-    M = P1 * P2
-    for k in set(res[P1]) | set(res[P2]):
-        x = res[P1].get(k, 0)
-        y = res[P2].get(k, 0)
-        c = (x + P1 * ((y - x) * pow(P1, -1, P2) % P2)) % M
-        c = c if c <= M // 2 else c - M
-        if c:
-            terms[k] = c
+
+    def crt(ps):
+        M, terms = 1, {}
+        for pr in ps:
+            for k in set(terms) | set(res[pr]):
+                x, y = terms.get(k, 0), res[pr].get(k, 0)
+                terms[k] = x + M * ((y - x) * pow(M, -1, pr) % pr)
+            M *= pr
+        return {k: (c if c <= M // 2 else c - M) for k, c in terms.items() if c % M}, M
+    terms, M = crt(primes)
+    if not modp:
+        # the lift must already be stable without the last prime (a margin of one prime)
+        sub, M1 = crt(primes[:-1])
+        assert len(primes) > 1 and sub == terms, "CRT not stable: add primes (PRIMES=...)"
+        print("CRT over %d primes stable; max |c| / (M/2) without the last prime: %.3g"
+              % (len(primes), 2.0 * max(abs(c) for c in terms.values()) / M1))
     H = Laurent({k: c for k, c in terms.items()}, ("A", "q"))
-    den = "*".join("(q^%d - q^-%d)^2" % (h, h) for h in den_boxes)
+    den = "*".join("(q^%d - q^-%d)^%d" % (h, h, den_pow) for h in den_boxes)
     json.dump({"link": "L6a4 (Borromean rings)", "R": list(R), "normalisation": "H * %s" % den,
+               "primes": primes,
                "numerator": to_json(H), "terms": len(terms),
                "max_coeff": max(abs(c) for c in terms.values())}, open(out, "w"))
     print("numerator: %d terms, max |c| %d; wrote %s" % (len(terms), max(abs(c) for c in terms.values()), out))
