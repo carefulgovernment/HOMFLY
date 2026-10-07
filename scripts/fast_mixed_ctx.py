@@ -200,6 +200,14 @@ class FastCtx:
         self.fc = _OD()       # fcross results, LRU by bytes (recomputation is deterministic)
         self._fcbytes = 0
         self._fcbudget = int(float(__import__("os").environ.get("FAST_FC_GB", "1.0")) * 2 ** 30)
+        # optional persistent second level for fcross results (survives restarts; same points only)
+        self._fcdb, self._fcdb_n = None, 0
+        dbp = __import__("os").environ.get("FAST_FC_DB")
+        if dbp:
+            import sqlite3
+            self._fcdb = sqlite3.connect(dbp)
+            self._fcdb.execute("CREATE TABLE IF NOT EXISTS fc (k TEXT PRIMARY KEY, v BLOB)")
+            self._fcdb.commit()
         from collections import OrderedDict
         import os as _os
         self._umemo, self._ubytes = OrderedDict(), 0
@@ -765,9 +773,21 @@ class FastCtx:
         basis vector k of a fused block (side L: block first)."""
         key = (side, lam, mu, nu, K, inv)
         res = self.fc.get(key)
+        if res is None and self._fcdb is not None:
+            row = self._fcdb.execute("SELECT v FROM fc WHERE k=?", (repr(key),)).fetchone()
+            if row is not None:
+                import pickle
+                res = self.fc[key] = pickle.loads(row[0])
+                self._fcbytes += sum(C.nbytes + 100 * len(l) for l, C in res)
         if res is None:
             self.stats["fcross"] += 1
             res = self.fc[key] = self._fcross(side, lam, mu, nu, K, inv)
+            if self._fcdb is not None:
+                import pickle
+                self._fcdb.execute("INSERT OR REPLACE INTO fc VALUES (?, ?)", (repr(key), pickle.dumps(res, 4)))
+                self._fcdb_n += 1
+                if self._fcdb_n % 50 == 0:
+                    self._fcdb.commit()
             self._fcbytes += sum(C.nbytes + 100 * len(l) for l, C in res)
             while self._fcbytes > self._fcbudget and len(self.fc) > 1:
                 _, old = self.fc.popitem(last=False)
