@@ -95,3 +95,31 @@ void modpow(const int64_t *a, int64_t n, uint64_t e, int64_t *out)
         out[i] = (int64_t)r;
     }
 }
+
+/* gather_mul_acc with the coefficients stored as uint32 */
+void gather_mul_acc_u32(const int64_t *V, int64_t B, int64_t K,
+                        const int64_t *src, const int64_t *starts, int64_t ngroups, int64_t nnz,
+                        const int64_t *udst, const uint32_t *C, int64_t *out)
+{
+    const int64_t BK = B * K;
+    uint64_t *acc = (uint64_t *)malloc(sizeof(uint64_t) * (size_t)BK);
+    for (int64_t g = 0; g < ngroups; g++) {
+        const int64_t e0 = starts[g], e1 = (g + 1 < ngroups) ? starts[g + 1] : nnz;
+        for (int64_t t = 0; t < BK; t++) acc[t] = 0;
+        for (int64_t e = e0; e < e1; e++) {
+            const int64_t *v = V + src[e] * BK;
+            const uint32_t *c = C + e * K;
+            for (int64_t b = 0; b < B; b++) {
+                const int64_t *vb = v + b * K;
+                uint64_t *ab = acc + b * K;
+                for (int64_t k = 0; k < K; k++) {
+                    uint64_t x = ab[k] + (uint64_t)(uint32_t)vb[k] * (uint64_t)c[k];
+                    ab[k] = x >= LIM ? x - LIM : x;
+                }
+            }
+        }
+        int64_t *o = out + udst[g] * BK;
+        for (int64_t t = 0; t < BK; t++) o[t] = (int64_t)(acc[t] % (uint64_t)PMOD);
+    }
+    free(acc);
+}

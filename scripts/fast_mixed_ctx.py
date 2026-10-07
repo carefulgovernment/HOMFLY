@@ -50,6 +50,7 @@ def _load_kernels():
     p = ctypes.c_void_p
     i = ctypes.c_int64
     lib.gather_mul_acc.argtypes = [p, i, i, p, p, i, i, p, p, p]
+    lib.gather_mul_acc_u32.argtypes = [p, i, i, p, p, i, i, p, p, p]
     lib.small_matmul.argtypes = [p, p, i, i, i, p]
     lib.mix_cols.argtypes = [p, p, i, i, i, i, p]
     lib.modpow.argtypes = [p, i, ctypes.c_uint64, p]
@@ -101,15 +102,16 @@ def gather_mul_acc(V, src, starts, udst, C, out):
         out[udst] = np.add.reduceat(V[src] * Cb % P, starts, axis=0) % P
         return out
     V = np.ascontiguousarray(V, dtype=np.int64)
-    C = np.ascontiguousarray(C, dtype=np.int64)
+    u32 = C.dtype == np.uint32
+    C = np.ascontiguousarray(C) if u32 else np.ascontiguousarray(C, dtype=np.int64)
     src = np.ascontiguousarray(src, dtype=np.int64)
     starts = np.ascontiguousarray(starts, dtype=np.int64)
     udst = np.ascontiguousarray(udst, dtype=np.int64)
     assert out.flags.c_contiguous and out.dtype == np.int64
     K = V.shape[-1]
     B = V[0].size // K if V.shape[0] else 0
-    _K.gather_mul_acc(_ptr(V), B, K, _ptr(src), _ptr(starts), len(starts), len(src),
-                      _ptr(udst), _ptr(C), _ptr(out))
+    (_K.gather_mul_acc_u32 if u32 else _K.gather_mul_acc)(
+        _ptr(V), B, K, _ptr(src), _ptr(starts), len(starts), len(src), _ptr(udst), _ptr(C), _ptr(out))
     return out
 
 
