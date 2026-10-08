@@ -6,7 +6,8 @@ with N_R a Laurent polynomial with integer coefficients.  Checks per R: H_R(A, q
 invariant under (A, q) -> (1/A, 1/q) (the link is amphichiral), the numerator is not
 divisible by any cyclotomic factor of den_R (the fraction is reduced), and for R = [1]
 the sl_2 specialisation A = q^2 is the Jones polynomial -t^3+3t^2-2t+4-2/t+3/t^2-1/t^3,
-t = q^2; transposed pairs satisfy H_{R^T}(A, q) = H_R(A, -1/q).
+t = q^2; transposed pairs satisfy H_{R^T}(A, q) = H_R(A, -1/q); at q = 1,
+H_R / H_[1]^|R| = (dim R / |R|!)^2 = prod h^-2, i.e. N_R(A, 1) = N_[1](A, 1)^|R|.
 
 usage: python3 borromean_datafile.py out.txt h_R1.json h_R2.json ...
 """
@@ -77,6 +78,15 @@ def main():
         H1 = sum(c * A ** i * q ** j for (i, j), c in byR[(1,)].terms.items()) / (q - 1 / q) ** 2
         t = q ** 2
         assert sp.simplify(H1.subs(A, q ** 2) - (-t ** 3 + 3 * t ** 2 - 2 * t + 4 - 2 / t + 3 / t ** 2 - 1 / t ** 3)) == 0
+        # q = 1: H_R / H_[1]^|R| -> (dim R / |R|!)^2 = 1 / prod h^2, i.e. N_R(A, 1) = N_[1](A, 1)^|R|
+        def at_q1(N):
+            out = {}
+            for (i, j), c in N.terms.items():
+                out[i] = out.get(i, 0) + c
+            return Laurent({(i,): c for i, c in out.items() if c}, ("A",))
+        n1 = at_q1(byR[(1,)])
+        for R, N in byR.items():
+            assert at_q1(N) == n1 ** sum(R), ("q = 1 check", R)
     for R, N in byR.items():
         if conj(R) in byR and conj(R) != R:
             # N_{R^T}(A, q) = N_R(A, -1/q) * (-1)^{deg den} ... den(-1/q) = den(q) (even powers)
@@ -89,7 +99,8 @@ def main():
                  "#   unnormalised invariant / dim_q R); no framing factor needed (all linking numbers 0).\n"
                  "# H_R = N / den with den = prod over boxes of R of (q^h - q^-h)^2, h = hook length;\n"
                  "#   the fraction is reduced.  Checks: (A, q) -> (1/A, 1/q) symmetry; R = [1] at A = q^2\n"
-                 "#   gives the Jones polynomial with t = q^2; H_{R^T}(A, q) = H_R(A, -1/q).\n"
+                 "#   gives the Jones polynomial with t = q^2; H_{R^T}(A, q) = H_R(A, -1/q); at q = 1\n"
+                 "#   H_R / H_[1]^|R| = (dim R / |R|!)^2, i.e. N_R(A, 1) = N_[1](A, 1)^|R|.\n"
                  "# Method: H_R = sum_Q dim_q(Q) Tr_Q (R1 R2^-1)^3 / dim_q(R) over R x R x R -> Q, inclusive\n"
                  "#   Racah matrices numerically at each q (scripts/borromean_pts.py); exact integer traces\n"
                  "#   from two primes (scripts/borromean_exact.py), H by dense interpolation modulo several\n"
