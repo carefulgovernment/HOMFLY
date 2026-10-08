@@ -56,7 +56,10 @@ def main():
     if os.environ.get("WBOUND"):                     # {"wbound": {Q: deg_w}, "mult": {Q: dim}}
         W = pickle.load(open(os.environ["WBOUND"], "rb"))
         assert W["mult"] == mult, "channels or multiplicities differ from the expected ones"
-    assert set(v1) == set(mult) == set(v2), "channels missing"
+    if os.environ.get("PARTIAL"):                    # check only the channels already done mod P2
+        mult = {Q: m for Q, m in mult.items() if Q in v2}
+    assert set(mult) <= set(v1) and set(mult) <= set(v2), "channels missing"
+    assert os.environ.get("PARTIAL") or set(v1) == set(mult) == set(v2), "channels missing"
     exact, stats = {}, [0, 0, 0]
     inv1 = pow(p1, p2 - 2, p2)
     for Q in sorted(mult):
