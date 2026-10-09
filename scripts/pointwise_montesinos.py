@@ -1,4 +1,5 @@
-"""Colored HOMFLY of a Montesinos knot in a representation beyond the stored
+"""Colored HOMFLY of a Montesinos (or arborescent: Conway-notation tangle tree,
+methods.algebraic) knot in a representation beyond the stored
 Racah data (|R| > 6), e.g.
 
     python scripts/pointwise_montesinos.py 9_46 4,3,1 \\
@@ -175,7 +176,12 @@ class PointData(MO.HData):
 
 
 def H_at(data, fracs, p, A, q):
-    return MO.natural_value_np(fracs, data.evaluate_np(p, int(A), int(q)), p)
+    """fracs: Montesinos fractions, or ("tree", key) of an algebraic (arborescent) knot"""
+    D = data.evaluate_np(p, int(A), int(q))
+    if isinstance(fracs, tuple) and len(fracs) == 2 and fracs[0] == "tree":
+        from homfly.methods import algebraic
+        return algebraic.natural_value_np(fracs[1], D, p)
+    return MO.natural_value_np(fracs, D, p)
 
 
 # ---------------------------------------------------------------------------
@@ -224,9 +230,14 @@ def main():
     a = ap.parse_args()
     R = tuple(int(x) for x in a.R.split(","))
     os.makedirs(a.work, exist_ok=True)
-    mk = next(K for K in presentations(a.knot) if isinstance(K, MontesinosKnot))
-    fracs = mk.fractions()
-    print("%s = N(%s), R = %s" % (a.knot, ", ".join(map(str, fracs)), R), flush=True)
+    from homfly.methods.algebraic import AlgebraicKnot
+    mk = next(K for K in presentations(a.knot) if isinstance(K, (MontesinosKnot, AlgebraicKnot)))
+    if isinstance(mk, MontesinosKnot):
+        fracs = mk.fractions()
+        print("%s = N(%s), R = %s" % (a.knot, ", ".join(map(str, fracs)), R), flush=True)
+    else:
+        fracs = ("tree", mk.key())
+        print("%s = %r, R = %s" % (a.knot, mk, R), flush=True)
     eng = Engine(R, a.engine, a.work, a.jobs, a.chunk, fast=a.fast)
     F = GF(P1)
     rng = random.Random(1)
@@ -281,7 +292,7 @@ def main():
     q1 = specialise_q1(H) == specialise_q1(H1) ** sum(R)
     print("q=1 check H_R(A,1) = H_[1](A,1)^|R|: %s" % q1, flush=True)
     out = a.out or os.path.join(a.work, "%s_%s.json" % (a.knot, "".join(map(str, R))))
-    json.dump({"knot": a.knot, "R": list(R), "method": "montesinos-pointwise (mixed_S_gtpath)",
+    json.dump({"knot": a.knot, "R": list(R), "method": ("montesinos" if isinstance(mk, MontesinosKnot) else "algebraic") + "-pointwise (mixed_S_gtpath)",
                "seconds": round(time.time() - t0, 1), "primes": 1, "verified": ok, "q1_check": q1,
                "poly": to_json(H)}, open(out, "w"))
     print("wrote %s" % out, flush=True)
