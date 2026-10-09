@@ -224,6 +224,7 @@ def main():
     ap.add_argument("--qlower", type=int, default=-400)
     ap.add_argument("--alower", type=int, default=-160)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--primes", type=int, default=1, help="interpolate modulo this many primes (CRT)")
     ap.add_argument("--fast", action="store_true", help="fast_mix_pts.py (fast_mixed_ctx) instead of mix_pts.py")
     ap.add_argument("--check-transposed", type=int, default=0, metavar="N",
                     help="also evaluate R^T at N points: H_{R^T}(A,q) = H_R(A,-1/q)")
@@ -264,28 +265,47 @@ def main():
     print("box A %s q %s  (%.0fs)" % (Abox, qbox, time.time() - t0), flush=True)
 
     # 2. grid: record the points dense_bivariate will ask for, evaluate, interpolate
-    seen = []
+    primes = [P1, P2, 2147483587, 2147483579][:a.primes]
+    PCHK = [P2, 2147483587, 2147483579, 2147483563][a.primes - 1]    # fresh points: an unused prime
+    imgs = {}
+    for pr in primes:
+        Fp = GF(pr)
+        seen = []
 
-    def dry(x, y):
-        seen.append((int(x), int(y)))
-        return F.zero
-    dense_bivariate(dry, F, Abox, qbox, steps=steps, rng=random.Random(2))
-    eng.evaluate(P1, seen)
-    img = dense_bivariate(lambda x, y: F(H_at(data, fracs, P1, x, y)), F, Abox, qbox, steps=steps,
-                          rng=random.Random(2))
-    terms = {}
-    for k, v in img.items():
-        c = int(v)
-        c = c - P1 if c > P1 // 2 else c
-        if c:
-            terms[k] = c
+        def dry(x, y):
+            seen.append((int(x), int(y)))
+            return Fp.zero
+        dense_bivariate(dry, Fp, Abox, qbox, steps=steps, rng=random.Random(2))
+        eng.evaluate(pr, seen)
+        dataP = PointData(R, eng)
+        imgs[pr] = dense_bivariate(lambda x, y: Fp(H_at(dataP, fracs, pr, x, y)), Fp, Abox, qbox, steps=steps,
+                                   rng=random.Random(2))
+    M, terms = 1, {}
+    for pr in primes:
+        for k in set(terms) | set(imgs[pr]):
+            x, y = terms.get(k, 0), int(imgs[pr].get(k, 0))
+            terms[k] = x + M * ((y - x) * pow(M, -1, pr) % pr)
+        M *= pr
+    terms = {k: (c - M if c > M // 2 else c) for k, c in terms.items()}
+    terms = {k: c for k, c in terms.items() if c}
     H = Laurent(terms, AQ)
     big = max(abs(c) for c in terms.values())
-    print("interpolated: %d terms, max |c| = %d  (%.0fs)" % (len(terms), big, time.time() - t0), flush=True)
-
+    print("interpolated mod %d prime(s): %d terms, max |c| = %d  (%.0fs)" % (len(primes), len(terms), big, time.time() - t0),
+          flush=True)
+    if 2 * big > M // 2 ** 8:
+        print("WARNING: coefficients close to the CRT modulus: add primes", flush=True)
+    if PCHK != P2:
+        F2 = GF(PCHK)
+        r2 = random.Random(3)
+        pts2 = [(F2.random_element(r2), F2.random_element(r2)) for _ in range(6)]
+        eng.evaluate(PCHK, [(int(x), int(y)) for x, y in pts2])
+        P2chk = PCHK
+    else:
+        P2chk = P2
     # 3. checks
-    ok = all(H.evaluate([x, y], one=F2.one) == F2(H_at(data, fracs, P2, x, y)) for x, y in pts2)
-    print("fresh points mod %d: %s" % (P2, ok), flush=True)
+    data = PointData(R, eng)
+    ok = all(H.evaluate([x, y], one=F2.one) == F2(H_at(data, fracs, P2chk, x, y)) for x, y in pts2)
+    print("fresh points mod %d: %s" % (P2chk, ok), flush=True)
     from homfly.checks.structural import specialise_q1
     from homfly.knots.table import load_table
     H1 = load_table()[a.knot].homfly_reference()
@@ -293,7 +313,7 @@ def main():
     print("q=1 check H_R(A,1) = H_[1](A,1)^|R|: %s" % q1, flush=True)
     out = a.out or os.path.join(a.work, "%s_%s.json" % (a.knot, "".join(map(str, R))))
     json.dump({"knot": a.knot, "R": list(R), "method": ("montesinos" if isinstance(mk, MontesinosKnot) else "algebraic") + "-pointwise (mixed_S_gtpath)",
-               "seconds": round(time.time() - t0, 1), "primes": 1, "verified": ok, "q1_check": q1,
+               "seconds": round(time.time() - t0, 1), "primes": len(primes), "verified": ok, "q1_check": q1,
                "poly": to_json(H)}, open(out, "w"))
     print("wrote %s" % out, flush=True)
     tr = None
