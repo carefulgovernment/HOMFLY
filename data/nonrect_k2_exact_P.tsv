@@ -1,0 +1,4 @@
+# exact P_d(q,lam)=H_{(r+d,r)}(A=1,q)|_{q^r=lam} for gl(2|2) (scripts/nonrect_k2_exact.py 0011 3_1 0 9 30 101 25 60): N=101 roots of unity, q-window [-30,30], lam-window |j|<=9
+# 3_1 d=0 m=0 N=101 J=9 W=30: max fit resid 1.9e-08 cond 2.4e+05 round_err 6.1e-07 resid 2.5e-05 edge_coef 0
+knot	d	data_exact_match	P(1,lam)/Delta(lam^2)^4	symmetries	lam_support	top_coef	P
+3_1	0	[2,2]:True,[3,3]:True	1	lam->1/lam; q->1/q	-8..8	1	lam**8 - lam**6*q**2 - 2*lam**6 - lam**6/q**2 + 3*lam**4*q**2 + 4*lam**4 + 3*lam**4/q**2 - lam**2*q**4 - 4*lam**2*q**2 - 6*lam**2 - 4*lam**2/q**2 - lam**2/q**4 + 2*q**4 + 4*q**2 + 7 + 4/q**2 + 2/q**4 - q**4/lam**2 - 4*q**2/lam**2 - 6/lam**2 - 4/(lam**2*q**2) - 1/(lam**2*q**4) + 3*q**2/lam**4 + 4/lam**4 + 3/(lam**4*q**2) - q**2/lam**6 - 2/lam**6 - 1/(lam**6*q**2) + lam**(-8)
