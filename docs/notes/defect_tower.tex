@@ -1,0 +1,221 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{observation}{Observation}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\newcommand{\D}{\mathrm{D}}
+\newcommand{\qbin}[2]{\left[\begin{smallmatrix}#1\\#2\end{smallmatrix}\right]}
+
+\title{The defect of the differential expansion beyond the Alexander polynomial:\\
+an experimental study on the Rolfsen--Hoste--Thistlethwaite table\\[2mm]
+\large\emph{(draft)}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Using colored HOMFLY polynomials $H_R(A,q)$ of all $2893$ knots with at most 12 crossings
+and all representations $|R|\le 6$ (and symmetric representations up to $[10]$ for selected
+arborescent knots) we study the factorization structure of the differential expansion.
+We find that the defect is \emph{not} determined by the Alexander polynomial in general:
+19 knots violate the rule $\delta=\deg\Delta-1$, and for some of them the defect is
+fractional.  We propose to describe the defect by a tower of integers $e_m$, the $\lambda$-degrees
+of the specialisations $P_m(q,\lambda)=H_{[r]}(A=q^{-m})|_{q^r=\lambda}$, whose $q\to1$ limit is
+$\Delta(\lambda^2)^{m+1}$.  The tower is superadditive, bounded by $(m+1)\deg\Delta\le e_m\le
+(m+1)g$, and the defect is its slope.  The former ``$\delta=-1$'' knots ($\Delta=1$) fit
+naturally.  For non-rectangular representations we find a complete set of universal
+reductions of $H_R$ on the lines $A=q^{-n}$, which replace the factorization of $H_R-1$.
+\end{abstract}
+
+\section{Conventions and data}
+
+$H_R(A,q)$ is the reduced colored HOMFLY polynomial,
+$A^{-1}H(L_+)-AH(L_-)=(q-q^{-1})H(L_0)$, $H_R(\text{unknot})=1$, topological framing.
+We use
+\[
+  \D_n=Aq^n-A^{-1}q^{-n},\qquad [n]=\frac{q^n-q^{-n}}{q-q^{-1}},\qquad
+  \qbin{r}{k}=\frac{[r]!}{[k]![r-k]!}.
+\]
+The data: all $R$ with $|R|\le 6$ for knots up to 11 crossings, $|R|\le 4$ (part of them $\le6$)
+for 12 crossings; symmetric $[r]$, $r\le 10$, for the arborescent knots
+$11n_{67},11n_{97},12n_{51},12n_{268},12n_{293},12n_{457}$ and $r\le 9$ for several
+$\deg\Delta=2$ knots.  Methods: Hecke algebra (fundamental), tangle calculus with inclusive/exclusive
+Racah matrices (arborescent knots; for $r\ge7$ the Racah matrices are evaluated numerically at the
+interpolation points), cabling in the space of paths.  Every polynomial is reconstructed by dense
+interpolation modulo one or two 31-bit primes and checked at fresh points modulo an independent prime
+and at $q=1$; all anomalous cases below were cross-checked by an independent method (cabling of the
+KnotInfo braid word), with exact agreement.
+
+\section{Symmetric representations: the tower $e_m$}
+
+\subsection{Extraction of $G_k$}
+For symmetric representations we write
+\begin{equation}\label{DE}
+  H_{[r]}=1+\sum_{k=1}^{r}\qbin{r}{k}\;\D_{r+k-1}\cdots\D_{r}\;G_k(A,q)
+\end{equation}
+with $r$-independent $G_k$, extracted recursively from $H_{[k]}$.
+\begin{observation}
+For all 2893 knots and $k\le4$ (and $k\le 10$ where available) the division in (\ref{DE}) is exact,
+i.e.\ all $G_k$ are Laurent polynomials (the ``plus'' structure is universal).
+\end{observation}
+The conventional defect-$\delta$ ansatz states
+$G_k=F_k\,\D_{-1}\D_0\cdots\D_{m_k-2}$ with $m_k=\lfloor\frac{k-1}{\delta+1}\rfloor+1$ and
+$\delta=\deg\Delta-1$.
+
+\subsection{The tower}
+\begin{observation}\label{obs:pers}
+For all knots in the table:
+(i) if $\D_n\,|\,G_k$ then $\D_n\,|\,G_{k'}$ for all $k'>k$ (persistence);
+(ii) if $\D_n\,|\,G_k$ then $\D_{n-1}\,|\,G_k$ (consecutiveness);
+(iii) every $\D_n$ divides $G_k$ at most once.
+\end{observation}
+Hence the whole structure is encoded in the integers
+\[
+  e_m+1:=\min\{k:\ \D_m\,|\,G_k\},\qquad m=-1,0,1,\dots
+\]
+Equivalently, on the line $A=q^{-m}$ the sum (\ref{DE}) terminates at $k=e_m$, and
+\begin{definition}
+$P_m(q,\lambda):=H_{[r]}(A=q^{-m},q)\big|_{q^r=\lambda}$ is a Laurent polynomial in $(q,\lambda)$
+and $e_m=\tfrac12\deg_\lambda P_m$.
+\end{definition}
+\begin{itemize}
+\item $m=-1$: $A=q$, $H_{[r]}=1$, so $e_{-1}=0$;
+\item $m=0$: $A=1$, $P_0=\Delta(\lambda^2)$, so $e_0=\deg\Delta=:d$;
+\item $m\ge1$: new invariants.  By $H_R(A,q)=H_{R^T}(A,-q^{-1})$ the line $A=q^{-m}$ corresponds to
+$\mathfrak{sl}_m$ with the antisymmetric representations $[1^r]$, analytically continued in $r$
+(equivalently, a supergroup $\mathfrak{gl}(1|m+1)$-type invariant with a continuous weight $\lambda$).
+For $m=1$ we expect a relation to the Links--Gould invariant.
+\end{itemize}
+
+\begin{observation}[Melvin--Morton--Rozansky type limit]\label{obs:mmr}
+$P_m(q=1,\lambda)=\Delta(\lambda^2)^{m+1}$
+(checked for $4_1$ ($m=1,2$), $6_2$, $11n_{42}$, $11n_{67}$ ($m=1,2$), $12n_{293}$ ($m=1,2$)).
+\end{observation}
+Consequently $e_m\ge(m+1)d$.  For ``regular'' knots the leading $\lambda$-coefficient of $P_m$ is
+$\pm1$, the leading coefficient of $\Delta^{m+1}$.  For anomalous knots $P_m$ has higher
+$\lambda$-powers whose coefficients vanish at $q=1$, e.g.
+\[
+ 11n_{67},\,m=1:\ (q^2-1)(q^2+1);\qquad
+ 11n_{42},\,m=1:\ -(q^2-1)(q^2+1)(q^4+q^2-1);\qquad
+ 12n_{293},\,m=2:\ \propto (q-q^{-1})^2[2][3].
+\]
+The Alexander polynomial is the $\hbar^0$ term of $P_m(e^\hbar,\lambda)$; anomalies come from
+$O(\hbar)$ corrections of higher $\lambda$-degree.
+
+\begin{observation}\label{obs:bounds}
+For all knots, with $g$ the Seifert genus,
+\[
+  (m+1)\,d\ \le\ e_m\ \le\ (m+1)\,g ,
+\]
+and $f(n):=e_{n-1}$ is superadditive, $f(a)+f(b)\le f(a+b)$ (tested on 2217 knots with enough data).
+\end{observation}
+By Fekete's lemma the limit below exists, which we take as the definition of the defect:
+\begin{equation}
+  1+\delta:=\lim_{n\to\infty}\frac{f(n)}{n}=\sup_n\frac{f(n)}{n}\ \in[d,g].
+\end{equation}
+For $d=g$ (2857 of 2893 knots) $e_m=(m+1)d$ and $\delta=d-1$, the conventional defect.
+
+\subsection{Anomalies}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llcc l}
+\toprule
+knots & type & $d$ & $g$ & $e_{-1},e_0,e_1,e_2,\dots$\\
+\midrule
+$4_1$ (and all $d=g$) & regular & $1$ & $1$ & $0,1,2,3,4,5$\\
+$6_2,\ 10_{129}$ & regular & $2$ & $2$ & $0,2,4,6,8$\\
+$11n_{67},11n_{97},12n_{51},12n_{268}$ & I & $1$ & $2$ & $0,1,3,4,6,7,9$ \quad $(e_m=\lfloor\frac{3(m+1)}2\rfloor)$\\
+$12n_{293},12n_{457}$ ($12n_{321}$, \dots) & II & $1$ & $2$ & $0,\mathbf 1,4,6,8$ \quad ($=2(m+1)$ for $m\ge1$)\\
+$11n_{34},11n_{42},12n_{313},12n_{430}$ & $\Delta=1$ & $0$ & $3,2,2,2$ & $0,\mathbf 0,3,\ge5$\\
+$12n_{750},12n_{830}$ & & $2$ & $3$ & $0,2,\ge6$\\
+$11n_{73}$ & & $2$ & $3$ & $0,2,4,6,8$\\
+$12n_{132}$ & & $2$ & $3$ & $0,2,4,\ge8$\\
+\bottomrule
+\end{tabular}
+\caption{Towers $e_m$ (bold: the Alexander member falls below the slope of the tower).}
+\end{table}
+
+\begin{itemize}
+\item All 19 knots violating $\delta=\deg\Delta-1$ have $g>\deg\Delta$, i.e.\ cancellations in knot
+Floer homology; the converse fails ($11n_{73}$: $g=3$, regular slope 2).
+\item Type II: only the Alexander member is degenerate ($e_0=1$ instead of 2); for $m\ge1$ the tower
+saturates the genus bound, $e_m=(m+1)g$.
+\item Type I: the slope is $3/2$, $\delta=\tfrac12$; on even $m$ one unit is lost (the sign
+$(-1)^m$ of $A=(-1)^m q'^{\,m}$ after transposition).
+\item $\Delta=1$ (former $\delta=-1$): $P_m(1,\lambda)=1$ for all $m$, all $\lambda$-dependence is in the
+$\hbar$-corrections; $e_1=3$, so the old extrapolation of $e_0=0$ to the whole tower ($H\equiv1$) was
+bound to fail.  The tower has slope $\ge 5/3$ and, since $11n_{34}$ and $11n_{42}$ are mutants
+(identical symmetric colored HOMFLY, genera 3 and 2), the controlling invariant is
+mutation-invariant: $1+\delta\le 2$.
+\item $12n_{132}$: $e=0,2,4,\ge 8$ is not of the form $\lceil\cdot\rceil$ of a single slope at small
+$m$; only the tower (and its asymptotic slope) is meaningful.
+\end{itemize}
+
+\begin{conjecture}
+$e_m$ is the $\lambda$-degree of a $\mathfrak{gl}(1|m+1)$ (Links--Gould type) invariant $P_m(q,\lambda)$
+with $P_m(1,\lambda)=\Delta(\lambda^2)^{m+1}$; $(m+1)\deg\Delta\le e_m\le (m+1)\,g$, and the defect
+$1+\delta=\lim e_m/(m+1)$ can be fractional.  The integer rule $\delta=\deg\Delta-1$ holds exactly when the
+$\hbar$-corrections to $P_m$ do not raise its $\lambda$-degree.
+\end{conjecture}
+
+\section{Non-rectangular representations}
+
+For rectangular $R=[r^s]$, $H_R-1$ is divisible exactly by $\D_r\D_{-s}$
+($R$ is trivial for $\mathfrak{sl}_s$, and for $\mathfrak{sl}_r$ after transposition).
+For non-rectangular $R$, $H_R-1$ is divisible by no $\D_n$ for every knot.
+The role of these factors is taken over by universal reductions.
+
+\begin{observation}[universal reductions]\label{obs:red}
+On the line $A=q^{-n}$, $n\ge0$ (for $n<0$ apply the rule to $R^T$ and $-n$):
+\begin{enumerate}
+\item[(a)] if $n\ge R_1$: $H_R=H_{R^*}$, $R^*=\big(\text{complement of }R^T\text{ in the }n\times\ell(R)
+\text{ box}\big)^T$ (conjugation in $\mathfrak{sl}_n$);
+\item[(b)] if $0\le n<R_1$ and $R_2=n+1$: $H_R=H_{(R_1+1,R_3,R_4,\dots)}$;
+\item[(c)] otherwise there is no universal relation.
+\end{enumerate}
+Two representations coincide on the line iff their normal forms (minimal elements of the reduction
+orbits) coincide.  Rule (b) for $n=0$ is the hook property $H_R(A=1)=\Delta(q^{2|R|})$; for $n\ge1$ it
+gives e.g.\ $[2,2]\equiv[3]$, $[3,2]\equiv[4]$, $[3,2,1]\equiv[4,1]$ at $A=q^{-1}$,
+$[3,3]\equiv[4]$ at $A=q^{-2}$, and chains $[2,2,2]\to[3,2]\to[4]$.
+\end{observation}
+Verification: all knots, $|R|\le6$, $|n|\le8$, $9.5\cdot10^6$ pairs $(R,R')$: no predicted identity fails,
+and no further pairwise identity holds except at $A=1$ for the four knots with $\Delta=1$.
+No multi-term linear relation $H_R=\sum_{R'}c_{R'}(q)H_{R'}$ with knot-independent coefficients exists
+beyond these (apart from consequences of the Alexander property at $A=1$).
+
+\paragraph{Knot-dependent structure.}
+On the lines where (c) applies, linear relations with knot-independent coefficients appear only within
+classes of knots.  For $d=g=1$ (defect 0) at $A=q^{-1}$:
+\[
+  H_{[4]}\in\mathrm{span}\{1,H_{[2]},H_{[3]}\},\qquad
+  H_{[4,1]}\in\mathrm{span}\{1,H_{[2,1]},H_{[3,1]}\},
+\]
+while $H_{[3,1]}\notin\mathrm{span}\{1,H_{[2,1]}\}$: the hook family $[r,1]$ has the same tower member
+$e_1=2$ as the symmetric family, with different coefficient functions.  This suggests the general
+formulation: the differential expansion of an arbitrary $R$ is organised by families $R(\lambda)$
+(e.g.\ $[r]$, $[r,1]$, $[r,2]$, $[r,r-1]$) on the lines not covered by (a), (b), with towers $e_m$ per
+family.
+
+\section{Open questions}
+\begin{enumerate}
+\item Identify $P_1(q,\lambda)$ with the Links--Gould invariant $LG^{2,1}$ (and $P_m$ with $LG^{m+1,1}$);
+the genus bounds of Kohli and Patureau-Mirand would then explain $e_m\le (m+1)g$.
+\item What selects the slope inside $[d,g]$?  Types I and II have equal $d,g$ and similar knot Floer
+homology, but slopes $3/2$ and $2$.
+\item Towers of the hook and two-row families for $|R|\le 10$ (arborescent knots).
+\item A conceptual derivation of rule (b) (supergroup / Kazhdan--Lusztig type).
+\end{enumerate}
+
+\end{document}
