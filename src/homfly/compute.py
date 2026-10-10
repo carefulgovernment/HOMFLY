@@ -36,11 +36,13 @@ def default_methods(racah_store=None):
     from .methods.racah3 import Racah3Strand, Racah3StrandU
     from .methods.two_bridge import TwoBridgeMethod
     from .methods.interpolation import DoubleBraidInterpolation
+    from .methods.formula2 import DoubleBraidStrong
     from .methods.montesinos import MontesinosMethod
     from .methods.cabling_paths import CablingPaths
     from .methods.algebraic import AlgebraicMethod
     ms = [RossoJones(), HeckeFundamental(), TwoBridgeMethod(), MontesinosMethod(), AlgebraicMethod(),
-          Racah3Strand(), Racah3StrandU(), DoubleBraidInterpolation(), CablingPaths()]
+          Racah3Strand(), Racah3StrandU(), DoubleBraidInterpolation(), DoubleBraidStrong(),
+          CablingPaths()]
     if racah_store is not None:
         from .methods.rt_braid import RTBraid
         from .methods.arborescent import Arborescent
