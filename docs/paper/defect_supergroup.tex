@@ -1,0 +1,395 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{observation}[theorem]{Observation}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\D}{\mathrm{D}}
+\newcommand{\qbin}[2]{\left[\begin{smallmatrix}#1\\#2\end{smallmatrix}\right]}
+\newcommand{\gl}{\mathfrak{gl}}
+\newcommand{\Sym}{\mathrm{Sym}}
+
+\title{The defect of the differential expansion is a supergroup genus bound}
+\author{\emph{(draft; authors to be added)}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The differential expansion of the colored HOMFLY polynomial $H_{[r]}(A,q)$ of a knot in symmetric
+representations was conjectured to factorise with a defect $\delta=\deg\Delta-1$ determined by the Alexander
+polynomial.  Using colored HOMFLY polynomials of all $2893$ knots with at most $12$ crossings and all
+representations with at most six boxes, we find $19$ knots for which this fails, some of them with fractional
+defect.  We describe the defect by the tower $e_m$ of $\lambda$-degrees of the specialisations
+$P_m(q,\lambda)=H_{[r]}(q^{-m},q)|_{q^r=\lambda}$ and show that $P_m$ is the Links--Gould invariant
+$LG^{m+1,1}$ of $U_q\gl(m+1|1)$, with continuous weight $\alpha=r$.  The genus bounds of Kohli--Tahar and of
+L\'opez Neumann--Garoufalidis then give $(m+1)\deg\Delta\le e_m\le(m+1)g$ for every knot, so the conjecture holds
+whenever the Alexander polynomial detects the genus (alternating and fibered knots), and the defect lies in
+$[\deg\Delta-1,\,g-1]$ in general.  For arbitrary Young diagrams $R$ we show experimentally that $H_R$ on the line
+$A=q^{-m}$ is the invariant of the covariant $U_q\gl(k|m+k)$-module $V_R$; this explains the universal reductions of
+$H_R$ on these lines as atypicality and Berezinian twists, predicts new ones, and identifies the hook families
+$[r,1^n]$ with the $\mathfrak{sl}(2|1)$-modules $V(n,a)$.  On every anomalous knot we could test, the hook family
+$[r,1]$ attains the genus bound where the symmetric family does not: the anomalous defect is a property of the
+Links--Gould member, not of the knot.
+\end{abstract}
+
+\tableofcontents
+
+%======================================================================
+\section{Introduction}
+
+For a knot $K$ and a Young diagram $R$ let $H_R(A,q)$ be the reduced colored HOMFLY polynomial.  For symmetric
+$R=[r]$ the \emph{differential expansion}
+\begin{equation}\label{DE}
+  H_{[r]}=1+\sum_{k=1}^{r}\qbin{r}{k}\,\D_{r+k-1}\cdots\D_{r}\;G_k(A,q),\qquad \D_n=Aq^n-A^{-1}q^{-n},
+\end{equation}
+has $r$-independent coefficients $G_k$.  In \cite{KM-defect} it was observed that the $G_k$ contain further
+factors $\D_{-1}\D_0\cdots\D_{m_k-2}$ with $m_k=\lfloor\frac{k-1}{\delta+1}\rfloor+1$, and conjectured that the
+\emph{defect} $\delta$ is $\deg\Delta-1$, where $\deg\Delta$ is half the span of the Alexander polynomial.
+
+\paragraph{Results.}
+\begin{enumerate}
+\item (Section~\ref{sec:tower}, experimental.) On the whole table the factor structure of the $G_k$ is encoded in
+integers $e_m$, $m\ge-1$, with $e_m+1$ the first $k$ for which $\D_m\mid G_k$; equivalently $e_m$ is a quarter of
+the $\lambda$-span of $P_m(q,\lambda)=H_{[r]}(A=q^{-m},q)|_{q^r=\lambda}$.  The tower is superadditive, and its
+slope $1+\delta=\lim e_m/(m+1)$ is the defect.  For $19$ knots $\delta\neq\deg\Delta-1$ (Table~\ref{tab:anom}),
+including fractional slopes $3/2$.
+\item (Theorem~\ref{thm:lg}.) $P_m$ is the Links--Gould invariant $LG^{m+1,1}$ at $\alpha=r$.  The proof is
+super Schur--Weyl duality; we also verify it with an independent vertex model.
+\item (Corollary~\ref{cor:bounds}.) Combined with \cite{KT,LNG}: $P_m(1,\lambda)=\Delta(\lambda^2)^{m+1}$ and
+$(m+1)\deg\Delta\le e_m\le(m+1)g$ for every knot.  Hence $\delta=\deg\Delta-1$ for alternating and fibered knots, and
+$\deg\Delta-1\le\delta\le g-1$ always.
+\item (Section~\ref{sec:nonrect}, experimental.) For any $R$, $H_R(q^{-m},q)$ is the $(1,1)$-tangle invariant of
+$V_R$ over $U_q\gl(k|m+k)$.  The universal reductions of $H_R$ on these lines are atypicality and
+Berezinian twists, including new rules $(b_k)$.  Hook families $(r,\mu)$ give ``coloured Links--Gould''
+polynomials $P^\mu_m$, and $P^{[1]}_1$ attains the genus bound on all anomalous knots tested
+(Table~\ref{tab:hooks}).  This is a positive answer, on these examples, to Question~1.4 of \cite{LNG}, and proposes
+a definition of the differential expansion for non-rectangular $R$.
+\end{enumerate}
+
+%======================================================================
+\section{Conventions, data and methods}\label{sec:data}
+
+$H_R$ is normalised by $A^{-1}H(L_+)-AH(L_-)=(q-q^{-1})H(L_0)$, $H_R(\text{unknot})=1$, topological framing;
+$[n]=\frac{q^n-q^{-n}}{q-q^{-1}}$, $\qbin rk=\frac{[r]!}{[k]![r-k]!}$.  Then
+$H_R(A,q)=H_{R^T}(A,-q^{-1})$, and $H_{[1]}(1,q)=\Delta(q^2)$.
+
+\paragraph{Data.}  All $R$ with $|R|\le6$ for knots up to $11$ crossings, $|R|\le4$ (partly $\le6$) for $12$
+crossings; symmetric $[r]$ up to $r=10$ for the arborescent knots $11n_{67},11n_{97},12n_{51},12n_{268},12n_{293},
+12n_{457}$ and $r\le9$ for several knots with $\deg\Delta=2$.  The methods are the following.
+\begin{itemize}
+\item The Hecke algebra in seminormal form, for the fundamental representation.
+\item Tangle calculus with inclusive and exclusive Racah matrices, for arborescent knots.
+\item Cabling in the space of paths.
+\end{itemize}
+Each polynomial is reconstructed by dense interpolation modulo one or two $31$-bit primes.  It is then checked at
+fresh points modulo an independent prime and at $q=1$.  Every anomalous case was cross-checked by cabling the
+KnotInfo braid word.  Code and data are in the accompanying repository: \texttt{data/homfly}; the scripts named
+below are in \texttt{scripts/}.
+
+\paragraph{Independent vertex model.}  To test the supergroup statements we use a separate implementation that
+does not use any of the methods above.
+\begin{itemize}
+\item The Perk--Schultz $R$-matrix of $U_q\gl(k|l)$ on $(\mathbb{C}^{k|l})^{\otimes N}$.
+\item Projection to $V_R$ by Jucys--Murphy spectral projectors (for symmetric $R$, the joint $q$-eigenspace of
+the Hecke generators).
+\item The pivotal element and the partial trace.
+\end{itemize}
+It runs in floating point at random $q$ (\texttt{supergroup\_vertex\_check.py}, \texttt{nonrect\_supergroup.py}).
+It reproduces $H_R(A=q^{l-k},q)$ in the mirror convention $q\mapsto q^{-1}$.
+
+%======================================================================
+\section{The tower $e_m$}\label{sec:tower}
+
+\begin{observation}\label{obs:plus}
+For all $2893$ knots and $k\le4$, and for $k\le10$ where data exist, the $G_k$ in (\ref{DE}) are Laurent
+polynomials.
+\end{observation}
+
+\begin{observation}\label{obs:pers}
+For all knots in the table:
+\begin{itemize}
+\item[(i)] if $\D_n\mid G_k$ then $\D_n\mid G_{k'}$ for $k'>k$;
+\item[(ii)] if $\D_n\mid G_k$ then $\D_{n-1}\mid G_k$;
+\item[(iii)] $\D_n^2\nmid G_k$.
+\end{itemize}
+\end{observation}
+
+So the factor structure is encoded in $e_m+1:=\min\{k:\D_m\mid G_k\}$.  Equivalently, on the line $A=q^{-m}$ the
+sum (\ref{DE}) stops at $k=e_m$, and
+\[
+  P_m(q,\lambda):=H_{[r]}(q^{-m},q)\big|_{q^r=\lambda}
+  =1+\sum_{k=1}^{e_m}\qbin rk\prod_{i=0}^{k-1}\big(\lambda q^{i-m}-\lambda^{-1}q^{m-i}\big)\,G_k(q^{-m},q)\Big|_{q^r=\lambda}
+\]
+is a Laurent polynomial with $e_m=\frac14\mathrm{span}_\lambda P_m$.  Here $e_{-1}=0$ ($H_{[r]}(q,q)=1$) and
+$P_0=\Delta(\lambda^2)$, so $e_0=\deg\Delta=:d$.
+
+\begin{observation}\label{obs:superadd}
+$f(n):=e_{n-1}$ is superadditive (tested on $2217$ knots with enough data).  By Fekete's lemma
+$1+\delta:=\lim f(n)/n=\sup f(n)/n$ exists; we take it as the definition of the defect.
+\end{observation}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llcc l}
+\toprule
+knots & type & $d$ & $g$ & $e_{-1},e_0,e_1,e_2,\dots$\\
+\midrule
+$4_1$ (and all $d=g=1$) & regular & $1$ & $1$ & $0,1,2,3,4,5$\\
+$6_2,\ 10_{129}$ & regular & $2$ & $2$ & $0,2,4,6,8$\\
+$11n_{67},11n_{97},12n_{51},12n_{268}$ & I & $1$ & $2$ & $0,1,3,4,6,7,9$ \quad $(e_m=\lfloor\frac{3(m+1)}2\rfloor)$\\
+$12n_{293},12n_{457}$ ($12n_{321}$, \dots) & II & $1$ & $2$ & $0,\mathbf 1,4,6,8$ \quad ($=2(m+1)$ for $m\ge1$)\\
+$11n_{34},11n_{42},12n_{313},12n_{430}$ & $\Delta=1$ & $0$ & $3,2,2,2$ & $0,\mathbf 0,3,\ge5$\\
+$12n_{750},12n_{830}$ & & $2$ & $3$ & $0,2,6,9$\\
+$11n_{73}$ & & $2$ & $3$ & $0,2,4,6,8$\\
+$12n_{132}$ & & $2$ & $3$ & $0,2,4,\ge8$\\
+\bottomrule
+\end{tabular}
+\caption{Towers $e_m$ of the anomalous knots (bold: the Alexander member lies below the slope).  The values
+$e_1=6$, $e_2=9$ for $12n_{750},12n_{830}$ come from the vertex model (Section~\ref{sec:nonrect}); the
+$\deg\Delta$-data alone only give $e_1\ge6$.}\label{tab:anom}
+\end{table}
+
+\paragraph{Remarks on Table~\ref{tab:anom}.}
+\begin{itemize}
+\item All anomalous knots have $g>d$; the converse fails ($11n_{73}$).
+\item Type II: only the Alexander member is degenerate, and for $m\ge1$ the tower saturates $e_m=(m+1)g$.
+\item Type I: slope $3/2$, so $\delta=\frac12$.
+\item $\Delta=1$ (formerly ``$\delta=-1$''): $e_1=3$.  The mutants $11n_{34}$ ($g=3$) and $11n_{42}$ ($g=2$) have
+identical symmetric HOMFLY, so the symmetric tower cannot see $g$.
+\item The slope is not determined by $(\tau,\sigma)$: for $g=2$, $d=1$, the Type I knots have $\tau=\sigma=0$,
+but so does $12n_{23}$, which has $e_1=4$; and $12n_{63}$ ($\tau=-1,\sigma=2$, $g=3$) has $e_1=4<2g$.
+\end{itemize}
+
+%======================================================================
+\section{$P_m$ is the Links--Gould invariant}\label{sec:lg}
+
+Let $LG^{n,1}$ denote the invariant of $U_q\gl(n|1)$ on its $2^n$-dimensional typical modules $V_\alpha$
+\cite{DKL,MW}.  For $n=2$ we use the variables $t_0^{1/2}=q^{-\alpha}$, $t_1^{1/2}=q^{\alpha+1}$ of \cite{KT}.
+
+\begin{theorem}\label{thm:lg}
+For every knot, $m\ge1$ and integer $r\ge m+1$, $H_{[r]}(q^{-m},q)$ is the scalar by which the $(1,1)$-tangle
+of the knot acts on $\Sym^r\mathbb{C}^{1|m+1}$ (mirror convention).  This module is typical of dimension
+$2^{m+1}$.  Hence $P_m=LG^{m+1,1}$ with $\lambda=q^\alpha$; in particular
+\[
+  P_1(q,\lambda)=LG^{2,1}\big(t_0=\lambda^{-2},\ t_1=q^2\lambda^2\big)\quad\text{(up to mirror image).}
+\]
+\end{theorem}
+
+\begin{proof}
+\emph{Step 1 (reduced HOMFLY as a Hecke scalar).}  Let $\beta\in B_n$ close to $K$ and let $\beta_R$ be its
+$R$-cable, an element of the Hecke algebra $H_{n|R|}(q)$ after the substitution $\sigma_i\mapsto A\,T_i$ (framing
+corrected).  Let $E:H_{N+1}\to H_N$ be Ocneanu's conditional expectation.  It is
+$H_N$-bilinear, with $E(T_N)=1$ up to normalisation and $E(1)=\frac{A-A^{-1}}{q-q^{-1}}$.  Then
+$E^{(n-1)|R|}(e_R\beta_Re_R)\in e_RH_{|R|}e_R=\mathbb{C}e_R$, for the primitive idempotent $e_R$, and the scalar is
+$H_R(A,q)$.  The coefficients of $E$ are polynomial in $A^{\pm1}$ and $\frac{A-A^{-1}}{q-q^{-1}}$, so this identity
+can be specialised to $A=q^{-m}$.  Note that $\dim_q[r]$ vanishes there for $r\ge2$, so the closed invariant is
+$0$ and only the reduced one carries information.
+
+\emph{Step 2 (super Schur--Weyl duality).}  On $V^{\otimes N}$, $V=\mathbb{C}^{1|m+1}$, the Perk--Schultz matrix gives a
+representation of $H_N(q)$ commuting with $U_q\gl(1|m+1)$.  Under it, $e_{[r]}$ projects onto $\Sym^rV$.  The partial
+quantum supertrace with the pivotal element is a Markov conditional expectation with the parameters of $E$ at
+$A=q^{-m}$, since the quantum superdimension of $V$ is $\frac{q^{-m}-q^m}{q-q^{-1}}$.  A Markov expectation is
+determined by these parameters, so it agrees with $E$ on the image.  Hence the $(1,1)$-tangle acts on $\Sym^rV$
+by $H_{[r]}(q^{-m},q)$.
+
+\emph{Step 3 (the module).}  $\Sym^rV$ has basis $e_0^{r-|S|}\prod_{i\in S}e_i$, $S\subseteq\{1,\dots,m+1\}$.  So
+for $r\ge m+1$ its dimension is $2^{m+1}$, and its highest weight is $(r\,|\,0,\dots,0)$, which is atypical
+exactly for $r\le m$.  The parity change $\gl(1|m+1)\cong\gl(m+1|1)$ mirrors the invariant.  Under it,
+$\Sym^rV$ becomes the typical module $V_\alpha$ with $\alpha=r$, up to tensoring with a one-dimensional module, which
+changes only the framing factor.
+
+\emph{Step 4 (continuation).}  Both $P_m$ and $LG^{m+1,1}$ are Laurent polynomials in $\lambda=q^\alpha$ (and $q$)
+that agree at $\lambda=q^r$ for all $r\ge m+1$, hence they are equal.
+\end{proof}
+
+\begin{remark}
+Steps 1--2 are standard, but the details (normalisations, the framing twist in Step 3) should be written out in
+full; we have not done so here.  They are confirmed numerically by the independent vertex model.  For
+$\gl(1|2)$ with $r=2,3$ it matches $H_{[r]}(q^{-1},q)$ on $255$ knots: all knots up to $10$ crossings of braid
+index $\le5$, together with the anomalous knots of braid index $\le5$.  It also matches for $r=4$ on
+$3_1,4_1,5_1,5_2,7_1$, and for $\gl(1|3)$, $r=3$ (dimension $8$) on $62$ knots.  The relative error is below
+$10^{-10}$.  We have not compared with an independent evaluation of $LG^{2,1}$; the trefoil gives
+$1-t_0-t_1+t_0^2+2t_0t_1+t_1^2-t_0^2t_1-t_0t_1^2$.
+\end{remark}
+
+\begin{observation}\label{obs:lgchecks}
+On all $1068$ knots whose data determine $P_1$ (completely for $302$ of them; \texttt{links\_gould\_check.py}):
+\begin{itemize}
+\item[(i)] $P_1(q,\lambda)=P_1(q,q/\lambda)$, the $t_0\leftrightarrow t_1$ symmetry;
+\item[(ii)] $P_1(1,\lambda)=\Delta(\lambda^2)^2$;
+\item[(iii)] $P_1(i,\lambda)=\pm\Delta(\lambda^4)$, matching $LG(t_0,-t_0^{-1})=\Delta(t_0^2)$;
+\item[(iv)] $P_1(11n_{34})=P_1(11n_{42})$, as for $LG$ of the Conway and Kinoshita--Terasaka knots.
+\end{itemize}
+\end{observation}
+
+\begin{corollary}\label{cor:bounds}
+For every knot and $m\ge0$:
+\[
+ P_m(1,\lambda)=\Delta(\lambda^2)^{m+1},\qquad (m+1)\,d\le e_m\le(m+1)\,g,\qquad d-1\le\delta\le g-1 .
+\]
+If $\Delta$ detects the genus ($d=g$; e.g.\ alternating, in particular two-bridge, or fibered knots), then
+$e_m=(m+1)g$ for all $m$ and $\delta=\deg\Delta-1$.
+\end{corollary}
+\begin{proof}
+By Theorem~\ref{thm:lg}, $P_m$ is the invariant of a typical module of $\mathfrak{sl}(1|m+1)$, which has $m+1$
+positive odd roots, with $t=q^{2\alpha}=\lambda^2$.  The specialisation $J(t,1)=\Delta(t)^{m+1}$ and the bounds
+$(m+1)\deg_t\Delta\le\deg_tJ\le2(m+1)g$ are \cite[Thms.~1.1, 1.2, Cor.~1.3]{LNG}.  Since
+$\deg_tJ=\frac12\mathrm{span}_\lambda P_m=2e_m$, this gives the bounds on $e_m$.  For $m=1$ it is \cite{KT}
+($\mathrm{span}\,LG^{2,1}\le4g$, with equality for alternating knots).
+\end{proof}
+
+The data agree: on the $362$ two-bridge knots up to $12$ crossings, $e_m=(m+1)g$ wherever $P_m$ is complete
+($124$ knots for $m=1$, $18$ for $m=2$, $18$ for $m=3$), and no incomplete case exceeds it.  The original conjecture
+can fail only for $d<g$, and need not fail there ($11n_{73}$).
+
+\begin{observation}[roots of unity]\label{obs:roots}
+Let $q$ be a primitive $2k$-th root of unity, $2\le k\le m+1$, and write $m+1=a+kb$ with $b=\lfloor\frac{m+1}k\rfloor$.
+Then $P_m(q,\lambda)=\pm\Delta(\lambda^2)^a\Delta(\lambda^{2k})^b$.  This was checked for $m=1$ on all $302$
+knots with complete $P_1$, for $m=2$ on the $27$ with complete $P_2$, and for $m=3$ on $3_1$.  It fails for
+$k=m+2$.
+\end{observation}
+This should follow from $H_{[r+k]}=H_{[r]}H_{[k]}$ at $q^{2k}=1$ and the duality of \cite{KM-roots}.  It forces
+the coefficients of $\lambda^j$, $j>2(m+1)d$, to be divisible by $\Phi_1\prod_{k=1}^{m+1}\Phi_{2k}(q)$: e.g.\
+$(q^2-1)(q^2+1)$ for $11n_{67}$, $m=1$.
+
+%======================================================================
+\section{Non-rectangular representations}\label{sec:nonrect}
+
+For rectangular $R$, $H_R-1$ is divisible by $\D_{R_1}\D_{-\ell(R)}$; for non-rectangular $R$ by no $\D_n$.  On the
+lines $A=q^{-n}$ there are instead universal reductions.
+\begin{observation}[\texttt{line\_reductions.py}]\label{obs:red}
+On $A=q^{-n}$, $n\ge0$ (for $n<0$ apply the rule to $R^T$):
+\begin{itemize}
+\item[(a)] if $n\ge R_1$, then $H_R=H_{R^*}$, with $R^*$ the transpose of the complement of $R^T$ in the
+$n\times\ell(R)$ box;
+\item[(b)] if $n<R_1$ and $R_2=n+1$, then $H_R=H_{(R_1+1,R_3,\dots)}$.
+\end{itemize}
+For $|R|\le6$, $|n|\le8$ and all knots, these are all pairwise coincidences, apart from (b$_2$) below and the
+$\Delta=1$ knots at $A=1$.
+\end{observation}
+
+\subsection{The supergroup picture}
+Let $V_R\subset(\mathbb{C}^{k|m+k})^{\otimes|R|}$ be the covariant $U_q\gl(k|m+k)$-module of $R$.  It is nonzero iff
+$R_{k+1}\le m+k$.
+\begin{observation}\label{obs:h1}
+On $A=q^{-m}$, $H_R$ is the $(1,1)$-tangle invariant of $V_R$ for $\gl(k|m+k)$, for every $k$ with $V_R\neq0$.
+With $V_{R^T}$ instead it fails.  This was checked by the vertex model on $4982$ pairs $(R,K)$:
+\begin{itemize}
+\item all $|R|\le6$ with $V_R\ne0$, up to the module sizes the code can handle;
+\item $K$ ranging over all knots up to $9$ crossings and $14$ anomalous knots;
+\item the algebras $\gl(1|1),\gl(1|2),\gl(1|3),\gl(2|2),\gl(2|3)$;
+\item relative tolerance $10^{-7}$.
+\end{itemize}
+\end{observation}
+The proof of Theorem~\ref{thm:lg} applies verbatim once Step 3 is replaced by the corresponding statement for
+$V_R$.  For $k=1$, $V_R$ has highest weight $(R_1\,|\,\mu^T)$ with $\mu=(R_2,R_3,\dots)$.  It is atypical iff
+$R_1\le m$; when typical, its dimension is $2^{m+1}\dim L_{\gl(m+1)}(\mu^T)$.  Hence:
+\begin{itemize}
+\item[(a)] is the atypical region, where $V_R$ already lives over $\gl(0|m)$, i.e.\ $\mathfrak{sl}_m$ duality;
+\item[(b)] is $V_R=V_{R'}\otimes\mathrm{Ber}$, a twist by the one-dimensional Berezinian;
+\item[(c)] for $R_2>m+1$, $V_R=0$ over $\gl(1|m+1)$, and the first algebra that sees $R$ is $\gl(2|m+2)$.
+\end{itemize}
+The Berezinian of $\gl(k|m+k)$ gives the rules
+\[
+  (b_k):\qquad R_{k+1}=m+k\ \Rightarrow\ H_R=H_{(R_1+1,\dots,R_k+1,R_{k+2},\dots)}\quad\text{on }A=q^{-m}.
+\]
+All $24$ instances with $|R|,|R'|\le6$ hold on every knot with data, checked modulo $2^{61}-1$
+(\texttt{data/nonrect\_rule\_bk.tsv}).  The single instance with $k=2$ is $[2,2,2]\equiv[3,3]$ at $A=1$.
+
+\subsection{Coloured Links--Gould polynomials and genus detection}
+For $R(r)=(r,\mu)$ and $r>m$, $V_{R(r)}$ is the typical module of highest weight $(r\,|\,\mu^T)$.  For $m=1$ and
+$\mu=(1^n)$ it is the $4(n+1)$-dimensional $\mathfrak{sl}(2|1)$-module $V(n,a)$ of \cite{LNG}, and $V(0,a)$ is
+Links--Gould.  Define $P^\mu_m=H_{(r,\mu)}(q^{-m},q)|_{q^r=\lambda}$ and $e^\mu_m=\frac14\mathrm{span}_\lambda P^\mu_m$.
+By \cite{LNG}, $(m+1)d\le e^\mu_m\le(m+1)g$.
+\begin{observation}\label{obs:hooks}
+\begin{itemize}
+\item[(i)] $P^\mu_m$ is a Laurent polynomial in $(q,\lambda^2)$ with $P^\mu_m(1,\lambda)=\Delta(\lambda^2)^{m+1}$.
+It is exact, by discrete Fourier reconstruction, in $12$ cases on $3_1,4_1,6_2,12n_{750}$ with $m\le2$.
+It satisfies $P^\mu_m(q,\lambda)=P^{\mu^*}_m(q,q^{m-\ell(\mu)}/\lambda)$, where $\mu^*$ is the complement of $\mu$ in
+the $\ell(\mu)\times(m+1)$ box.
+\item[(ii)] $e^{[1]}_1=e^{[1,1]}_1=2g$ on all $60$ knots up to $10$ crossings of braid index $\le3$.
+\item[(iii)] On the anomalous knots, see Table~\ref{tab:hooks}.  These values come from the vertex model up to
+$r=22$--$42$ with a least-squares fit in $\lambda$; $11n_{97}$ was re-fitted at a second $q$ with a fit window wider
+than the span.
+\end{itemize}
+\end{observation}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccccc}
+\toprule
+knot & $g$ & $d$ & $e_1$ & $e^{[1]}_1$ & $e^{[1,1]}_1$\\
+\midrule
+$11n_{34}$ & 3 & 0 & 3 & 6 & 6\\
+$11n_{42}$ & 2 & 0 & 3 & 4 & 4\\
+$12n_{313},\ 12n_{430}$ & 2 & 0 & 3 & 4 & --\\
+$11n_{67},\ 11n_{97}$ (Type I) & 2 & 1 & 3 & 4 & --\\
+$11n_{73}$ & 3 & 2 & 4 & 6 & 6\\
+$12n_{293},\ 12n_{321}$ (Type II) & 2 & 1 & 4 & 4 & 4\\
+$12n_{457}$ (Type II) & 2 & 1 & 4 & 4 & --\\
+$12n_{750},\ 12n_{830}$ & 3 & 2 & 6 & 6 & 6\\
+\bottomrule
+\end{tabular}
+\caption{Symmetric (Links--Gould) versus hook towers at $m=1$.}\label{tab:hooks}
+\end{table}
+
+\paragraph{Interpretation.}  The first hook family attains the genus bound on every knot tested, including all
+those where the Links--Gould member does not.  So the anomalous defect is a property of the member
+$\mu=\emptyset$, not of the knot.  This is the positive answer to \cite[Question~1.4]{LNG} on these examples.
+Moreover $e^{[1]}_1$ distinguishes the mutants $11n_{34}$ and $11n_{42}$.  In the hook families the extra
+$\lambda$-powers, whose coefficients vanish at $q=1$, appear already where the symmetric family has none.
+
+\subsection{A definition of the differential expansion for arbitrary $R$}
+On $A=q^{-m}$ let $k(R,m)=\min\{k\ge0:R_{k+1}\le m+k\}$.  Then $H_R$ is the invariant of the typical
+$\gl(k|m+k)$-module $V_R$ with $k=k(R,m)$:
+\begin{itemize}
+\item $k=0$ is rule (a);
+\item $k=1$ is the Links--Gould line;
+\item $k\ge2$ is the region with no universal reduction.
+\end{itemize}
+We propose that the differential expansion of $R$ is the expansion of these multivariable invariants in
+$\lambda_i=q^{R_i}$, $i\le k$.  It is organised by families $(r_1,\dots,r_k,\mu)$, each with its own tower
+$e^\mu_m\in[(m+1)d,(m+1)g]$.  The universal coincidences are, conjecturally, exactly (a) and $(b_k)$.
+
+%======================================================================
+\section{Open questions}
+\begin{enumerate}
+\item Write out Steps 1--3 of Theorem~\ref{thm:lg} in full, and compare with an independent evaluation of
+$LG^{2,1}$.
+\item What selects the slope of the Links--Gould tower inside $[d,g]$?  Is $e^{[1]}_m=(m+1)g$ for all knots and
+all $m$?
+\item Polynomiality and towers for $k\ge2$.
+\item Prove that (a) and $(b_k)$ are the only universal coincidences.
+\item Prove Observation~\ref{obs:roots}.
+\end{enumerate}
+
+\begin{thebibliography}{99}
+\bibitem{KM-defect} Ya.~Kononov, A.~Morozov, \emph{On the defect and stability of differential expansion},
+arXiv:1504.07146.
+\bibitem{KM-roots} Ya.~Kononov, A.~Morozov, \emph{Factorization of colored knot polynomials at roots of unity},
+arXiv:1505.06170.
+\bibitem{KT} B.-M.~Kohli, G.~Tahar, \emph{A lower bound for the genus of a knot using the Links--Gould invariant},
+arXiv:2310.15617.
+\bibitem{LNG} D.~L\'opez Neumann, S.~Garoufalidis, \emph{Genus bounds for knot polynomials of Lie superalgebras},
+arXiv:2607.11735.
+\bibitem{DKL} D.~De Wit, L.~H.~Kauffman, J.~R.~Links, \emph{The Links--Gould invariant of links},
+arXiv:math/9811128.
+\bibitem{MW} I.~Marin, E.~Wagner, \emph{A cubic defining algebra for the Links--Gould polynomial},
+arXiv:1203.5981.
+\end{thebibliography}
+
+\end{document}
