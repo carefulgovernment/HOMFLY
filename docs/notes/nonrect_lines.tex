@@ -31,8 +31,8 @@ Berezinian twists of $\mathfrak{gl}(k|k+m)$; this explains the rule found earlie
 ($|R|\le10$).  (ii) Along every family $R=[r,\mu]$ with $\mu_1\le m$ the restriction is a Laurent polynomial in
 $\lambda=q^r$ (a typical $\mathfrak{gl}(1|m+1)$ module of dimension $2^{m+1}\dim\mu$), whose $\lambda$-degree
 $e^\mu_m$ generalises the tower $e_m$ of the symmetric DE.  (iii) The hook family $[r,1]$ detects the Seifert genus where the
-symmetric family does not: $e^{[1]}_1=2g$ for every knot we tested (214 knots), including 34 of the 36 knots with
-$\deg\Delta<g$ up to 12 crossings, 25 of which have $e_1<2g$, and the mutant pairs with different genera
+symmetric family does not: $e^{[1]}_1=2g$ for every knot we tested (216 knots), including all 36 knots with
+$\deg\Delta<g$ up to 12 crossings, 27 of which have $e_1<2g$, and the mutant pairs with different genera
 (Conway / Kinoshita--Terasaka: $6$ vs $4$); for $m=2$, $e^{[1]}_2=3g$ where computed.  The exact symmetric $e_1$
 also splits the undecided genus-3 knots: $e_1=5$ (slope $5/2$ if it persists) for $12n_{256},12n_{257},12n_{264},
 12n_{267},12n_{665},12n_{812}$ and $e_1=4$ for the others.  Hence the defect of the DE for generic $R$ is governed by the
@@ -144,8 +144,7 @@ all hooks give $\Delta(q^{2|R|})$, so $e^\mu_0=\deg\Delta$ for every hook family
 \section{The hook family detects the genus}
 
 \begin{observation}\label{obs:hook}
-$e^{[1]}_1=2g$ for every knot computed: the 34 knots with $\deg\Delta<g$ up to 12 crossings of braid index $\le5$
-(all 36 except the 6-braids $12n_{51}$, $12n_{268}$), the 7 mutant partners of genus 2 below, and a control set of
+$e^{[1]}_1=2g$ for every knot computed: all 36 knots with $\deg\Delta<g$ up to 12 crossings, the 7 mutant partners of genus 2 below, and a control set of
 173 knots with at most 10 crossings and braid index $\le4$.  Where $m=2$ was computed, $e^{[1]}_2=3g$.
 \begin{center}
 \begin{tabular}{lcc|cc|cc}
@@ -155,21 +154,21 @@ knot & $\deg\Delta$ & $g$ & $e_1$ & $e^{[1]}_1$ & $e_2$ & $e^{[1]}_2$\\
 $11n_{42}$ & 0 & 2 & 3 & 4 & 5 & 6\\
 $11n_{67}$ & 1 & 2 & 3 & 4 &  & \\
 $11n_{97}$ & 1 & 2 & 3 & 4 &  & \\
-$12n_{268}$ & 1 & 2 & 3 & -- &  & \\
+$12n_{268}$ & 1 & 2 & 3 & 4 &  & \\
 $12n_{313}$ & 0 & 2 & 3 & 4 &  & \\
 $12n_{430}$ & 0 & 2 & 3 & 4 &  & \\
-$12n_{51}$ & 1 & 2 & 3 & -- &  & \\
+$12n_{51}$ & 1 & 2 & 3 & 4 &  & \\
 $12n_{124}$ & 1 & 2 & 4 & 4 &  & \\
 $12n_{23}$ & 1 & 2 & 4 & 4 &  & \\
-$12n_{293}$ & 1 & 2 & 4 & 4 & 6 & \\
+$12n_{293}$ & 1 & 2 & 4 & 4 & 6 & 6\\
 $12n_{321}$ & 1 & 2 & 4 & 4 &  & \\
 $12n_{411}$ & 1 & 2 & 4 & 4 &  & \\
 $12n_{457}$ & 1 & 2 & 4 & 4 &  & \\
 $12n_{519}$ & 1 & 2 & 4 & 4 &  & \\
-$11n_{34}$ & 0 & 3 & 3 & 6 & 5 & \\
+$11n_{34}$ & 0 & 3 & 3 & 6 & 5 & 9\\
 $11n_{152}$ & 2 & 3 & 4 & 6 &  & \\
 $11n_{45}$ & 2 & 3 & 4 & 6 &  & \\
-$11n_{73}$ & 2 & 3 & 4 & 6 & 6 & \\
+$11n_{73}$ & 2 & 3 & 4 & 6 & 6 & 9\\
 $12n_{129}$ & 1 & 3 & 4 & 6 &  & \\
 $12n_{132}$ & 2 & 3 & 4 & 6 &  & \\
 $12n_{221}$ & 2 & 3 & 4 & 6 &  & \\
@@ -200,8 +199,7 @@ $12n_{57}$$^*$ & 2 & 2 & 4 & 4 &  & \\
 \end{center}
 $e_m=e^\emptyset_m$ is the symmetric tower, now computed exactly by the vertex model for all these knots
 ($r\le30$; the table of \texttt{defect\_tower.tex} had only lower bounds for most of them).  $^*$: genus-2 mutant partners
-of $11n_{45},11n_{73},11n_{152},12n_{28},12n_{63},12n_{231},12n_{56}$ with identical symmetric $H_{[r]}$.  --: not
-computed (6-braids).
+of $11n_{45},11n_{73},11n_{152},12n_{28},12n_{63},12n_{231},12n_{56}$ with identical symmetric $H_{[r]}$.
 \end{observation}
 
 
@@ -233,7 +231,7 @@ while the symmetric defect $1+\delta=\lim e_m/(m+1)\in[\deg\Delta,g]$ is its low
 
 \section{Open questions}
 \begin{enumerate}
-\item Is $e^{[1]}_m=(m+1)g$ for all $m$ (checked for $m=1$; $m=2$ in progress), or does one need larger $\mu$ for larger
+\item Is $e^{[1]}_m=(m+1)g$ for all $m$ (checked for $m=1$, and for $m=2$ on $11n_{34},11n_{42},11n_{73},12n_{293},12n_{750},12n_{830}$), or does one need larger $\mu$ for larger
 $m$?
 \item Families with $k\ge2$ (two growing rows): the even part $\mathfrak{gl}(k)$ is then finite-dimensional with
 $r$-dependent dimension, so polynomiality in $q^{R_i}$ is not expected; what replaces it?
