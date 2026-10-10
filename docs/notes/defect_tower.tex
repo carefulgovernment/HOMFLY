@@ -212,6 +212,17 @@ The value of $LG^{2,1}$ itself was not computed independently; the dictionary $\
 specialisations below and, for the trefoil, (\ref{LG}) gives $1-t_0-t_1+t_0^2+2t_0t_1+t_1^2-t_0^2t_1-t_0t_1^2$.
 The properties of $LG^{2,1}$ were also checked on $P_1$ over the table
 (\texttt{scripts/links\_gould\_check.py}, \texttt{data/links\_gould\_p1\_scan.tsv}).
+\begin{corollary}\label{cor:alt}
+Given Proposition~\ref{prop:lg}, the theorem of Kohli and Tahar ($\mathrm{span}\,LG^{2,1}\le4g$, with equality for
+alternating knots) gives $e_1\le 2g$ for every knot and $e_1=2g$ for every alternating knot, in particular for all
+two-bridge knots.
+\end{corollary}
+For $m\ge2$ the lower bound $e_m\ge(m+1)d=(m+1)g$ for alternating knots follows from $P_m(1,\lambda)=\Delta^{m+1}$,
+and the missing upper bound is a genus bound for $LG^{m+1,1}$ (open question~1).  On the $362$ two-bridge knots
+with at most $12$ crossings the data agree: $e_m=(m+1)g$ wherever $P_m$ is complete
+($124$ knots for $m=1$, $18$ for $m=2$, $18$ for $m=3$), and wherever $P_m$ is incomplete the lower bound never
+exceeds $(m+1)g$.
+
 \begin{observation}\label{obs:lg}
 For all $1068$ knots whose data determine $P_1$ or its top part (302 of them completely):
 (i) $P_1(q,\lambda)=P_1(q,q/\lambda)$ ($t_0\leftrightarrow t_1$ symmetry);
