@@ -19,6 +19,7 @@ homfly("4_1", R=(2,))               # 3-strand Racah blocks (family P)
 homfly("7_4", R=(3, 2))             # two-bridge, exclusive Racah data
 homfly(TorusKnot(3, 4), R=(2, 1))   # Rosso–Jones
 homfly(DoubleBraid(1, -1), R=(4, 2, 1))  # 4_1 in [4,2,1]: interpolation formula
+homfly(DoubleBraid(2, 1), R=(4, 3, 1))   # 5_2 in [4,3,1]: strengthened Formula II (|R| <= 10)
 ```
 
 ```
@@ -51,6 +52,7 @@ $ python scripts/validate_fundamental.py 12   # all 2977 knots vs KnotInfo
 | **Two-bridge [4,2], [2,2,1,1], [3,2,1]** (family G S̄, alternating chain) | ✅ = G/F 3-strand data on all 30 overlap knots |
 | **Montesinos knots K(p₁/q₁;…;p_k/q_k)**, tangle calculus with S̄ and the mixed S (families P, H, G; mixed S of [2,1,1] and the non-rectangular 5-box reps generated with the release's G engine, `scripts/make_mixed_S_gtpath.sh`) | ✅ fundamental = KnotInfo on all 721 Montesinos knots ≤ 12 crossings; colored = 3-strand data and two-bridge data for every R; independent R/Rᵀ data agree by transposition |
 | **Interpolation formula for antiparallel double braids H_R(m,n)**, any R, no Racah matrices (Hopf-link characters + interpolation matrix E) | ✅ = Racah two-bridge data for all 29 R with \|R\| ≤ 6 × 12 (m,n) (348/348); \|R\| = 7: trefoil = Rosso–Jones, 4_1 amphichiral, transposition |
+| **Strengthened Formula II** (`homfly.formula2`): one symmetric cubic tensor T for double braids H_R(m,n) = T(Λ^m, Λ^n, χ̂(R)) and Borromean rings b = T(χ̂(R1), χ̂(R2), χ̂(R3)); zero/consistency rules for the rows, channel splitting, kernel cubes, deferred terms and the closed 15×15 block of [4,3,2,1], all closed (no Racah data, no calibration) | ✅ \|R\| ≤ 10: twist knots 3_1 … 8_1 and Borromean rings L6a4 = stored tables (\|R\| ≤ 6 and [4,3,1]), all 8 twist knots in [4,3,2,1] = Formula I at three primes; 11-box diagrams over [4,3,2,1] not closed yet |
 | Racah data model, JSON store, checks | ✅ |
 | Eigenvalue hypothesis | 2×2 ✅, 3×3–5×5 ⏳ M4 |
 | Highest-weight Racah matrices | ⏳ M5 |
@@ -66,7 +68,9 @@ $ python scripts/validate_fundamental.py 12   # all 2977 knots vs KnotInfo
 | 185 with braid index ≤ 3 | every R with \|R\| ≤ 6 (all 29) | `racah-3strand`, `racah-3strand-U` |
 | 362 two-bridge | every R with \|R\| ≤ 6 (all 29) | `two-bridge` |
 | 715 Montesinos (≥ 3 tangles, chirality fixed by H_[1], or by H_[2] via cabling when H_[1] is mirror-symmetric; not 10_71, 12a_453, 12a_669, 12n_250, 12n_278, 12n_562 — 5-strand braids, tie unresolved) | every R with \|R\| ≤ 6 (all 29) | `montesinos` |
-| double braids H(m,n) (4_1, 3_1, twist knots, all two-bridge knots with a 2-term even cf) | any R | `double-braid-interpolation` |
+| double braids H(m,n) (4_1, 3_1, twist knots, all two-bridge knots with a 2-term even cf) | \|R\| ≤ 7 | `double-braid-interpolation` (naive Formula II, exact up to 7 boxes) |
+| double braids H(m,n) | \|R\| ≤ 10 | `double-braid-strong` (strengthened Formula II, `homfly.formula2`) |
+| Borromean rings, colours (R1, R2, R3) | \|Ri\| ≤ 10 | `homfly.formula2.borromean` (point values mod p < 2³¹) |
 | torus knots T[m,n] | any R | `rosso-jones` |
 | any braid (e.g. polyhedral knots) | band space ≤ 4·10⁶ skew tableaux: 4-strand braids up to \|R\| = 4 and [5], [1⁵] | `cabling-paths` (cabling in the multiplicity spaces W_Q, path basis; from the colored-homfly-cabling skill) |
 | any braid (small) | m·\|R\| ≲ 10 | `cabling` (reference) |
@@ -100,6 +104,8 @@ src/homfly/
   knots/           braid.py  families.py  table.py  data/knotinfo_upto12.csv
   methods/         base.py  hecke_fundamental.py  cabling.py  rosso_jones.py
                    rt_braid.py  racah3.py  two_bridge.py  arborescent.py*  double_braid.py*
+                   interpolation.py  formula2.py
+  formula2/        strengthened Formula II engine (_core, _strong, _block4321, data/*.json)
   checks/          structural.py (special polynomial, transposition, DE)
   io/              export.py  database.py
   compute.py       cli.py  conventions.py

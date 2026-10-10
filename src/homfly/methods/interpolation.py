@@ -161,10 +161,17 @@ def support(c):
     return tuple(out)
 
 
+NODES_MIN_BOUND = 9   # PATCHED (racah_homfly_all): was 7.  With max(7, |R_min|+1) the vanishing system for some
+                      # channels of |R| = 7 (e.g. several channels of R = [4,2,1]) is rank deficient, and the free
+                      # unknowns silently set to 0 give wrong rows E_c (the bridge w = E^T G then disagrees with the
+                      # Racah/tableau weights).  Nodes up to |nu| <= 9 remove every deficiency for |R| <= 7;
+                      # for |R| = 8 the bound max(9, |R_min|+2) = 10 is used.  See probes/formula1_fast2_L7.py.
+
+
 @lru_cache(maxsize=None)
 def nodes(c, extra_size=None):
-    """Partitions nu with m_c(nu) = 0, |nu| <= max(7, |R_min|+1), small first."""
-    bound = max(7, max(sum(r) for r in rmin(c)) + 1) if extra_size is None else extra_size
+    """Partitions nu with m_c(nu) = 0, |nu| <= max(NODES_MIN_BOUND, |R_min|+2), small first."""
+    bound = max(NODES_MIN_BOUND, max(sum(r) for r in rmin(c)) + 2) if extra_size is None else extra_size
     out = []
     for k in range(0, bound + 1):
         for nu in partitions(k):
@@ -345,12 +352,15 @@ def PAPER_POINT(A, q):
 
 
 class DoubleBraidInterpolation(Method):
-    """Antiparallel double braids DoubleBraid(m, n) in any R (no Racah data)."""
+    """Antiparallel double braids DoubleBraid(m, n), |R| <= 7 (no Racah data)."""
 
     name = "double-braid-interpolation"
+    #: the naive formula is exact up to this size; beyond it methods.formula2.DoubleBraidStrong (|R| <= 10)
+    max_boxes = 7
 
     def supports(self, knot, R):
-        return isinstance(knot, DoubleBraid) and knot.antiparallel == (True, True)
+        return (isinstance(knot, DoubleBraid) and knot.antiparallel == (True, True)
+                and sum(R) <= self.max_boxes)
 
     def evaluate(self, knot, R, F, A, q):
         a, b = PAPER_POINT(A, q)
