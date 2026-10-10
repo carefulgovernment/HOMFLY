@@ -7,6 +7,8 @@
 
 \newtheorem{conjecture}{Conjecture}
 \newtheorem{observation}{Observation}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 \theoremstyle{remark}
@@ -170,16 +172,45 @@ $1+\delta=\lim e_m/(m+1)$ can be fractional.  The integer rule $\delta=\deg\Delt
 $\hbar$-corrections to $P_m$ do not raise its $\lambda$-degree.
 \end{conjecture}
 
-\subsection{$P_1$ and the Links--Gould invariant}
-With $t_0^{1/2}=q^{-\alpha}$, $t_1^{1/2}=q^{\alpha+1}$ (so $t_0t_1=q^2$) the natural guess is
-$\lambda=q^{-\alpha}$, i.e.
+\subsection{$P_m$ and the Links--Gould invariants}
+Let $LG^{n,1}(t_0,t_1)$ be the Links--Gould invariant of $U_q\mathfrak{gl}(n|1)$ on the $2^n$-dimensional
+typical module $V_\alpha$, with $t_0^{1/2}=q^{-\alpha}$, $t_1^{1/2}=q^{\alpha+1}$ for $n=2$ (Kohli--Tahar).
+\begin{proposition}\label{prop:lg}
+For every knot and $m\ge1$, $P_m(q,q^r)$ is, for each integer $r\ge m+1$, the $(1,1)$-tangle invariant of
+$U_q\mathfrak{gl}(1|m+1)$ on $\mathrm{Sym}^r\mathbb{C}^{1|m+1}$, a $2^{m+1}$-dimensional typical module.  Hence
+$P_m$ is $LG^{m+1,1}$ with the continuous weight $\alpha=r$, i.e.\ $q^r=\lambda$; for $m=1$
 \begin{equation}\label{LG}
-  P_1(q,\lambda)\;=\;LG^{2,1}\big(t_0=\lambda^{-2},\,t_1=q^2\lambda^{2}\big)\qquad(\text{up to mirror}),
+  P_1(q,\lambda)\;=\;LG^{2,1}\big(t_0=\lambda^{-2},\,t_1=q^2\lambda^{2}\big)\qquad(\text{up to mirror}).
 \end{equation}
-as expected from $\mathrm{Sym}^r\mathbb{C}^{1|2}$ being a $4$-dimensional typical module of
-$U_q\mathfrak{gl}(1|2)$ for $r\ge2$.  For the trefoil (\ref{LG}) gives
-$1-t_0-t_1+t_0^2+2t_0t_1+t_1^2-t_0^2t_1-t_0t_1^2$.  We have not evaluated $LG^{2,1}$ independently;
-instead we checked the known properties of $LG^{2,1}$ on $P_1$
+\end{proposition}
+\begin{proof}[Proof (sketch)]
+(1) \emph{Hecke algebra.}  Write the $R$-cabled $(1,1)$-tangle of $K$ as an element of $H_{n|R|}(q)$ and apply
+Ocneanu's conditional expectation to the last $(n-1)|R|$ strands and the idempotent $e_R$; since $e_RH_{|R|}e_R=
+\mathbb{C}e_R$ the result is $H_R(A,q)\,e_R$.  The expectation is a polynomial in $A^{\pm1}$ and
+$\frac{A-A^{-1}}{q-q^{-1}}$, so this holds at $A=q^{-m}$, where $\dim_qR$ vanishes for $r\ge2$ and the closed
+(unreduced) invariant carries no information.
+(2) \emph{Super Schur--Weyl.}  For $V=\mathbb{C}^{1|m+1}$ the graded flip deformed to the Perk--Schultz matrix gives
+a representation of $H_N(q)$ on $V^{\otimes N}$, the $U_q\mathfrak{gl}(1|m+1)$ braiding, under which the Markov
+expectation with $A=q^{-m}$ becomes the partial quantum supertrace (both are the unique Markov expectations
+with these parameters) and $e_{[r]}$ projects onto $\mathrm{Sym}^r V$.  So $H_{[r]}(q^{-m},q)$ is the scalar by
+which the $(1,1)$-tangle acts on $\mathrm{Sym}^rV$.
+(3) \emph{The module.}  $\mathrm{Sym}^rV$ has basis $e_0^{r-|S|}\prod_{i\in S}e_i$, $S\subseteq\{1,\dots,m+1\}$,
+so it has dimension $2^{m+1}$ for $r\ge m+1$, highest weight $(r\,|\,0,\dots,0)$, and it is typical.  Under
+$\mathfrak{gl}(1|m+1)\cong\mathfrak{gl}(m+1|1)$ (parity change, which mirrors the invariant) it is the module
+$V_\alpha$ with $\alpha=r$, up to a one-dimensional twist which only changes the framing factor.
+(4) Both sides are Laurent polynomials in $q^\alpha$ (resp.\ $\lambda$) and agree at $\lambda=q^r$ for all
+$r\ge m+1$, hence identically.
+\end{proof}
+Steps (1)--(2) were checked independently of the Hecke/Racah methods that produced the data: a vertex model
+built from the Perk--Schultz matrix, fused with the $q$-symmetrizer and closed with the pivotal element
+(\texttt{scripts/supergroup\_vertex\_check.py}) reproduces $H_{[r]}(q^{-m},q)$ (in the mirror convention) at
+random real $q$: for $\mathfrak{gl}(1|2)$, $r=2,3$, on $255$ knots (all knots up to $10$ crossings of braid index
+$\le5$, and those of $11n_{34},11n_{42},11n_{67},11n_{73},11n_{97},12n_{23},12n_{51},12n_{63},12n_{268},12n_{293},
+12n_{313},12n_{430},12n_{457}$ with braid index $\le5$), for $r=4$ on $3_1,4_1,5_1,5_2,7_1$, and for
+$\mathfrak{gl}(1|3)$, $r=3$ (dimension $8$, i.e.\ $P_2$), on the $62$ knots above of braid index $\le3$.
+The value of $LG^{2,1}$ itself was not computed independently; the dictionary $\alpha=r$ agrees with the
+specialisations below and, for the trefoil, (\ref{LG}) gives $1-t_0-t_1+t_0^2+2t_0t_1+t_1^2-t_0^2t_1-t_0t_1^2$.
+The properties of $LG^{2,1}$ were also checked on $P_1$ over the table
 (\texttt{scripts/links\_gould\_check.py}, \texttt{data/links\_gould\_p1\_scan.tsv}).
 \begin{observation}\label{obs:lg}
 For all $1068$ knots whose data determine $P_1$ or its top part (302 of them completely):
@@ -255,9 +286,11 @@ family.
 
 \section{Open questions}
 \begin{enumerate}
-\item Prove (\ref{LG}) (or check it against an independent evaluation of $LG^{2,1}$), and identify $P_m$
-with $LG^{m+1,1}$: $P_m(q,\lambda)=P_m(q,q^m/\lambda)$ holds in the examples, matching a $t_0\leftrightarrow t_1$
-symmetry with $t_0t_1=q^{2m}$.  A genus bound for $LG^{m+1,1}$ would give $e_m\le(m+1)g$.
+\item Fill in the proof of Proposition~\ref{prop:lg} (the Markov-expectation argument in (2), and the
+one-dimensional twist in (3)), and compare (\ref{LG}) with an independent evaluation of $LG^{2,1}$.
+Extend the Kohli--Tahar bound to $LG^{n,1}$: by Proposition~\ref{prop:lg} a bound
+$\mathrm{span}\,LG^{n,1}\le 2ng$ (span in $q^{2\alpha}$, the normalisation in which their theorem reads
+$\mathrm{span}\,LG^{2,1}\le4g$) is exactly $e_{n-1}\le ng$.
 \item What selects the slope inside $[d,g]$?  Types I and II have equal $d,g$ and similar knot Floer
 homology, but slopes $3/2$ and $2$.
 \item Towers of the hook and two-row families for $|R|\le 10$ (arborescent knots).
