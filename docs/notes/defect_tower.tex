@@ -213,15 +213,25 @@ specialisations below and, for the trefoil, (\ref{LG}) gives $1-t_0-t_1+t_0^2+2t
 The properties of $LG^{2,1}$ were also checked on $P_1$ over the table
 (\texttt{scripts/links\_gould\_check.py}, \texttt{data/links\_gould\_p1\_scan.tsv}).
 \begin{corollary}\label{cor:alt}
-Given Proposition~\ref{prop:lg}, the theorem of Kohli and Tahar ($\mathrm{span}\,LG^{2,1}\le4g$, with equality for
-alternating knots) gives $e_1\le 2g$ for every knot and $e_1=2g$ for every alternating knot, in particular for all
-two-bridge knots.
+Given Proposition~\ref{prop:lg}, the theorems of L\'opez Neumann and Garoufalidis (arXiv:2607.11735) for
+typical modules of type I superalgebras, applied to $\mathfrak{sl}(1|m+1)$ ($m+1$ positive odd roots,
+$t=q^{2\alpha}=\lambda^2$), give for every knot and every $m\ge0$
+\[
+  P_m(1,\lambda)=\Delta(\lambda^2)^{m+1},\qquad (m+1)\,d\;\le\;e_m\;\le\;(m+1)\,g ,
+\]
+i.e.\ Observations~\ref{obs:mmr} and~\ref{obs:bounds} hold in general, and the defect satisfies
+$d-1\le\delta\le g-1$.  If $d=g$ (in particular for alternating knots, hence all two-bridge knots, and for fibered
+knots) then $e_m=(m+1)g$ for all $m$ and $\delta=\deg\Delta-1$: the original conjecture holds whenever the
+Alexander polynomial detects the genus, and can only fail when $d<g$ (it need not fail then: $11n_{73}$ has
+$d=2<g=3$ and slope $2$).  For $m=1$ this is
+already the Kohli--Tahar theorem ($\mathrm{span}\,LG^{2,1}\le4g$, equality for alternating knots).
 \end{corollary}
-For $m\ge2$ the lower bound $e_m\ge(m+1)d=(m+1)g$ for alternating knots follows from $P_m(1,\lambda)=\Delta^{m+1}$,
-and the missing upper bound is a genus bound for $LG^{m+1,1}$ (open question~1).  On the $362$ two-bridge knots
-with at most $12$ crossings the data agree: $e_m=(m+1)g$ wherever $P_m$ is complete
+On the $362$ two-bridge knots with at most $12$ crossings the data agree: $e_m=(m+1)g$ wherever $P_m$ is complete
 ($124$ knots for $m=1$, $18$ for $m=2$, $18$ for $m=3$), and wherever $P_m$ is incomplete the lower bound never
-exceeds $(m+1)g$.
+exceeds $(m+1)g$.  In their language the anomalous knots are those for which the family $\mathrm{Sym}^r$ (their
+$V(0,a)$ for $\mathfrak{sl}(1|m+1)$) does not attain the genus bound; their Question~1.4 asks whether the maximum over
+all typical modules does.  For the Type~I knots the symmetric towers stay at $e_m=\lfloor\frac{3(m+1)}2\rfloor<(m+1)g$
+for every $m$ computed, so the answer, if positive, must come from non-symmetric $R$ (Section~\ref{sec:nonrect}).
 
 \begin{observation}\label{obs:lg}
 For all $1068$ knots whose data determine $P_1$ or its top part (302 of them completely):
@@ -257,7 +267,7 @@ $(q-q^{-1})^2[2][3]\ni\Phi_1\Phi_2\Phi_4\Phi_6$ for $m=2$.
 $12n_{63}$ ($\tau=-1,\sigma=2$) has $e_1=4<2g$.  In the examples we compared, the top two Alexander gradings of $\widehat{HFK}$ do not
 separate the two types either.
 
-\section{Non-rectangular representations}
+\section{Non-rectangular representations}\label{sec:nonrect}
 
 For rectangular $R=[r^s]$, $H_R-1$ is divisible exactly by $\D_r\D_{-s}$
 ($R$ is trivial for $\mathfrak{sl}_s$, and for $\mathfrak{sl}_r$ after transposition).
@@ -299,9 +309,7 @@ family.
 \begin{enumerate}
 \item Fill in the proof of Proposition~\ref{prop:lg} (the Markov-expectation argument in (2), and the
 one-dimensional twist in (3)), and compare (\ref{LG}) with an independent evaluation of $LG^{2,1}$.
-Extend the Kohli--Tahar bound to $LG^{n,1}$: by Proposition~\ref{prop:lg} a bound
-$\mathrm{span}\,LG^{n,1}\le 2ng$ (span in $q^{2\alpha}$, the normalisation in which their theorem reads
-$\mathrm{span}\,LG^{2,1}\le4g$) is exactly $e_{n-1}\le ng$.
+(The genus bound for all $m$ is now Corollary~\ref{cor:alt}, from arXiv:2607.11735.)
 \item What selects the slope inside $[d,g]$?  Types I and II have equal $d,g$ and similar knot Floer
 homology, but slopes $3/2$ and $2$.
 \item Towers of the hook and two-row families for $|R|\le 10$ (arborescent knots).
