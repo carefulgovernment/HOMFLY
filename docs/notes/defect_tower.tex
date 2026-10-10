@@ -170,6 +170,51 @@ $1+\delta=\lim e_m/(m+1)$ can be fractional.  The integer rule $\delta=\deg\Delt
 $\hbar$-corrections to $P_m$ do not raise its $\lambda$-degree.
 \end{conjecture}
 
+\subsection{$P_1$ and the Links--Gould invariant}
+With $t_0^{1/2}=q^{-\alpha}$, $t_1^{1/2}=q^{\alpha+1}$ (so $t_0t_1=q^2$) the natural guess is
+$\lambda=q^{-\alpha}$, i.e.
+\begin{equation}\label{LG}
+  P_1(q,\lambda)\;=\;LG^{2,1}\big(t_0=\lambda^{-2},\,t_1=q^2\lambda^{2}\big)\qquad(\text{up to mirror}),
+\end{equation}
+as expected from $\mathrm{Sym}^r\mathbb{C}^{1|2}$ being a $4$-dimensional typical module of
+$U_q\mathfrak{gl}(1|2)$ for $r\ge2$.  For the trefoil (\ref{LG}) gives
+$1-t_0-t_1+t_0^2+2t_0t_1+t_1^2-t_0^2t_1-t_0t_1^2$.  We have not evaluated $LG^{2,1}$ independently;
+instead we checked the known properties of $LG^{2,1}$ on $P_1$
+(\texttt{scripts/links\_gould\_check.py}, \texttt{data/links\_gould\_p1\_scan.tsv}).
+\begin{observation}\label{obs:lg}
+For all $1068$ knots whose data determine $P_1$ or its top part (302 of them completely):
+(i) $P_1(q,\lambda)=P_1(q,q/\lambda)$ ($t_0\leftrightarrow t_1$ symmetry);
+(ii) $P_1(1,\lambda)=\Delta(\lambda^2)^2$ ($LG(t_0,t_0^{-1})=\Delta(t_0)^2$);
+(iii) $P_1(i,\lambda)=\pm\Delta(\lambda^4)$ ($LG(t_0,-t_0^{-1})=\Delta(t_0^2)$);
+(iv) the mutants $11n_{34}$, $11n_{42}$ (Conway, Kinoshita--Terasaka) have equal $P_1$, as they have equal $LG$.
+\end{observation}
+Under (\ref{LG}) the $(t_0,t_1)$-span used by Kohli and Tahar (max minus min of $a-b$ over the monomials
+$t_0^at_1^b$) equals $\tfrac12\,\mathrm{span}_\lambda P_1=2e_1$.  Their theorem
+$\mathrm{span}\,LG\le 4g$, with equality for alternating knots, therefore \emph{is} the bound $e_1\le 2g$ of
+Observation~\ref{obs:bounds}, with $e_1=2g$ for alternating knots; both hold on the whole table.
+Of the 302 knots with complete $P_1$, $288$ have $e_1=2g$; the $14$ with $e_1<2g$ are
+$11n_{34},11n_{42},11n_{67},11n_{73},11n_{97},12n_{51},12n_{56},12n_{63},12n_{87},12n_{132},12n_{221},
+12n_{268},12n_{313},12n_{430}$.
+
+\begin{observation}[roots of unity]\label{obs:roots}
+Let $q$ be a primitive $2k$-th root of unity, $2\le k\le m+1$, and $m+1=a+kb$, $b=\lfloor\frac{m+1}k\rfloor$.  Then
+\[
+  P_m(q,\lambda)=\pm\,\Delta(\lambda^2)^{a}\,\Delta(\lambda^{2k})^{b}
+\]
+(checked for $m\le2$ on 16 knots including the anomalous ones, and $m=3$ for $3_1$; it fails for $k=m+2$).
+\end{observation}
+This should follow from $H_{[r+k]}=H_{[r]}H_{[k]}$ at $q^{2k}=1$ together with the $q$--$A$ duality of the
+Kashaev specialisation (arXiv:1505.06170).  It forces every coefficient of $\lambda^j$, $j>2(m+1)d$, in
+$P_m$ to be divisible by $\prod_{k=1}^{m+1}\Phi_{2k}(q)$ and by $\Phi_1(q)$, which is the origin of the
+factors in the anomalous coefficients above: $(q^2-1)(q^2+1)=\Phi_1\Phi_2\Phi_4$ for $m=1$, and
+$(q-q^{-1})^2[2][3]\ni\Phi_1\Phi_2\Phi_4\Phi_6$ for $m=2$.
+
+\paragraph{The slope is not decided by $\tau$ or $\sigma$.}  For $g=2$, $d=1$ the Type I knots
+($e_1=3$) all have $\tau=\sigma=0$ and $12n_{293},12n_{321},12n_{411},12n_{457},12n_{124},12n_{519}$
+($e_1=4$) have $(\tau,\sigma)\neq(0,0)$, but $12n_{23}$ has $\tau=\sigma=0$ and $e_1=4$, and for $g=3$
+$12n_{63}$ ($\tau=-1,\sigma=2$) has $e_1=4<2g$.  In the examples we compared, the top two Alexander gradings of $\widehat{HFK}$ do not
+separate the two types either.
+
 \section{Non-rectangular representations}
 
 For rectangular $R=[r^s]$, $H_R-1$ is divisible exactly by $\D_r\D_{-s}$
@@ -210,8 +255,9 @@ family.
 
 \section{Open questions}
 \begin{enumerate}
-\item Identify $P_1(q,\lambda)$ with the Links--Gould invariant $LG^{2,1}$ (and $P_m$ with $LG^{m+1,1}$);
-the genus bounds of Kohli and Patureau-Mirand would then explain $e_m\le (m+1)g$.
+\item Prove (\ref{LG}) (or check it against an independent evaluation of $LG^{2,1}$), and identify $P_m$
+with $LG^{m+1,1}$: $P_m(q,\lambda)=P_m(q,q^m/\lambda)$ holds in the examples, matching a $t_0\leftrightarrow t_1$
+symmetry with $t_0t_1=q^{2m}$.  A genus bound for $LG^{m+1,1}$ would give $e_m\le(m+1)g$.
 \item What selects the slope inside $[d,g]$?  Types I and II have equal $d,g$ and similar knot Floer
 homology, but slopes $3/2$ and $2$.
 \item Towers of the hook and two-row families for $|R|\le 10$ (arborescent knots).
