@@ -8,10 +8,10 @@ On the line A = q^{-n}, n >= 0 (negative n: transpose R and use -n):
       for D_n: the second row slides into the first, minus n boxes);
   (c) otherwise no universal reduction: there the knot-dependent (defect) structure lives.
 
-Two representations agree on the line iff their normal forms (minimal element of the
-reduction orbit) agree.  Checked on all 2893 knots of data/homfly (|R| <= 6, -8 <= n <= 8,
-9.5 million pairs): no predicted identity fails and no further identity holds except on
-A = 1 for the four knots with Delta = 1.
+NOTE: (a), (b) are not complete, and normal_form below follows the reductions in one direction
+only.  The complete set of coincidences comes from the Berezinian twists of gl(k|k+m) for all k
+(rule (b) is k = 1; k = 2 gives e.g. [2,2,2] = [3,3] at A = 1): see scripts/super_reductions.py
+and docs/notes/nonrect_lines.tex.
 
 usage: python3 scripts/line_reductions.py KNOT [...]   (prints mismatches, numeric check mod p)
 """

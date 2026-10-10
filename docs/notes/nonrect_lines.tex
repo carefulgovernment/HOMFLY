@@ -1,0 +1,244 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{observation}{Observation}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\newcommand{\D}{\mathrm{D}}
+
+\title{Differential expansion for non-rectangular representations:\\
+lines $A=q^{-m}$, $U_q\mathfrak{gl}(k|k+m)$ and the hook towers\\[2mm]\large\emph{(draft, continues docs/notes/defect\_tower.tex)}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+For rectangular $R=[r^s]$ the knot-independent content of the differential expansion (DE) is the
+factor $\D_r\D_{-s}$ of $H_R-1$; for non-rectangular $R$ no such factor exists.  We show that its role is
+played by the restrictions of $H_R$ to the lines $A=q^{-m}$ ($\D_m=0$), where $H_R$ is a
+$U_q\mathfrak{gl}(k|k+m)$ invariant for every $k\ge0$.  (i) All coincidences $H_R=H_{R'}$ on these lines are
+Berezinian twists of $\mathfrak{gl}(k|k+m)$; this explains the rule found earlier and adds the rules with $k\ge2$
+(e.g.\ $H_{[2,2,2]}=H_{[3,3]}$ and $H_{[3,2,2]}=H_{[4,3]}$ at $A=1$), with no exception on the knot table ($|R|\le6$) and on double braids
+($|R|\le10$).  (ii) Along every family $R=[r,\mu]$ with $\mu_1\le m$ the restriction is a Laurent polynomial in
+$\lambda=q^r$ (a typical $\mathfrak{gl}(1|m+1)$ module of dimension $2^{m+1}\dim\mu$), whose $\lambda$-degree
+$e^\mu_m$ generalises the tower $e_m$ of the symmetric DE.  (iii) The hook family $[r,1]$ detects the Seifert genus where the
+symmetric family does not: $e^{[1]}_1=2g$ for every knot we tested (214 knots), including 34 of the 36 knots with
+$\deg\Delta<g$ up to 12 crossings, 25 of which have $e_1<2g$, and the mutant pairs with different genera
+(Conway / Kinoshita--Terasaka: $6$ vs $4$); for $m=2$, $e^{[1]}_2=3g$ where computed.  The exact symmetric $e_1$
+also splits the undecided genus-3 knots: $e_1=5$ (slope $5/2$ if it persists) for $12n_{256},12n_{257},12n_{264},
+12n_{267},12n_{665},12n_{812}$ and $e_1=4$ for the others.  Hence the defect of the DE for generic $R$ is governed by the
+genus, and the symmetric defect is only its lower envelope.
+\end{abstract}
+
+\section{Lines and supergroups}
+
+Conventions as in \texttt{defect\_tower.tex}: $H_R(A,q)$ reduced, topological framing, $\D_n=Aq^n-A^{-1}q^{-n}$,
+$H_{R^T}(A,q)=H_R(A,-q^{-1})$; the line $A=q^{-m}$ is $\D_m=0$, and $R\to R^T$ maps the line $m$ to $-m$.
+
+\paragraph{Dictionary.} The Hecke algebra acts on $(\mathbb{C}^{k|n})^{\otimes N}$ through the Perk--Schultz
+matrix, and its Markov trace with $A=q^{k-n}$ is the quantum supertrace (super Schur--Weyl duality).  Covariant
+irreducible $\mathfrak{gl}(k|n)$-modules $V_R$ are labelled by the diagrams in the $(k|n)$-hook,
+$R_{k+1}\le n$, with highest weight
+\begin{equation}\label{hw}
+  \big(R_1,\dots,R_k\ \big|\ \langle R^T_1-k\rangle,\dots,\langle R^T_n-k\rangle\big),\qquad \langle x\rangle=\max(x,0).
+\end{equation}
+With $n=k+m$ the $(1,1)$-tangle of the $R$-cabled knot acts on $V_R$ by $H_R(A=q^{-m},q)$ (mirror image;
+the argument of Proposition~1 of \texttt{defect\_tower.tex}, which never used $k=1$).  Every $R$ lies in the
+$(k|k+m)$-hook for all large $k$, so \emph{every} $H_R$ restricted to \emph{every} line is a supergroup invariant.
+
+We checked the dictionary independently for $k=1$ with a vertex model of $U_q\mathfrak{gl}(1|m+1)$ built only from
+the Perk--Schultz matrix: $V_R$ is cut out of $V_{R-\square}\otimes V$ as the eigenspace of the monodromy with
+eigenvalue $q^{2c(\square)}$, and all braidings are fused recursively, exactly modulo a prime
+(\texttt{scripts/super\_vertex.py}).  It reproduces $H_R(q^{-1},q)$ of the table for all $R$ with
+$R_2\le2$, $|R|\le6$, on the knots tested ($3_1,4_1,5_2,6_2,8_{20}$; $11n_{34},11n_{42}$ for $|R|\le4$),
+including the dimensions: $[r]\mapsto4$, $[r,1]\mapsto8$, $[r,1,1]\mapsto12$, and $[r,2]\mapsto4$.
+
+\section{Universal reductions are Berezinian twists}
+
+The Berezinian $\mathrm{Ber}$ of $\mathfrak{gl}(k|k+m)$ has weight $(1,\dots,1|-1,\dots,-1)$, and
+$V_R\otimes\mathrm{Ber}^{\pm1}$ is again covariant whenever the weight stays in the hook.  A one-dimensional twist
+changes only the framing factor, hence:
+
+\begin{proposition}[rule $b_k$]
+On the line $A=q^{-m}$, for every $k\ge1$ with $m+k\ge0$:
+\[
+  R_{k+1}=m+k\quad\Longrightarrow\quad H_R=H_{R'},\qquad R'=(R_1+1,\dots,R_k+1,R_{k+2},R_{k+3},\dots).
+\]
+\end{proposition}
+\begin{itemize}
+\item $k=1$ is rule (b) of \texttt{defect\_tower.tex}: $R_2=m+1\Rightarrow R\equiv(R_1+1,R_3,\dots)$, the second row
+slides into the first.  For $m=0$ it is the hook property $H_R(A=1)=\Delta(q^{2|R|})$ ($\mathfrak{gl}(1|1)$).
+\item $m+k=0$ ($\mathfrak{gl}(k|0)$) is $\mathfrak{sl}_k$: a column of height $k$ can be added.
+\item $k=2$ is new: at $A=1$, $[2,2,2]\equiv[3,3]$ (knot table) and $[3,2,2]\equiv[4,3]$, $[4,2,2]\equiv[5,3]$,
+$[5,2,2]\equiv[6,3]$, $[6,2,2]\equiv[7,3]$ (double braids); predicted further: $[2,2,2,1]\equiv[3,3,1]$,
+$[3,3,2]\equiv[4,4]\equiv[2,2,2,2]$ at $A=1$, $[3,3,3]\equiv[4,4]$ at $A=q^{-1}$.
+\end{itemize}
+Together with the same rules for $R^T$ on the line $-m$ and $\mathfrak{sl}$ duality (rule (a)), these generate an
+equivalence relation on diagrams for every $m$ (\texttt{scripts/super\_reductions.py}).
+
+\begin{observation}
+The Berezinian classes are exactly the coincidence classes of colored HOMFLY on the lines:
+\begin{itemize}
+\item knot table, 60 random knots, all $|R|\le6$, $-8\le m\le8$: 206 predicted identities, all hold, no other
+identity holds;
+\item antiparallel double braids $H(1,\pm1),H(2,\pm1),H(2,\pm2)$ ($3_1,4_1,5_2,6_1,7_4,8_3$) by the strengthened
+Formula II, 57 diagrams up to $|R|=10$, $m\in\{-2,\dots,3\}$: 241 predicted identities, all hold, no other.
+\end{itemize}
+\end{observation}
+\begin{remark}
+\texttt{defect\_tower.tex} states that (a), (b) are complete for $|R|\le6$.  This is not so: $[2,2,2]\equiv[3,3]$ at $A=1$
+holds for every knot.  The check in \texttt{scripts/line\_reductions.py} compared normal forms obtained by
+iterating the reduction in one direction only, so identities reached through a common descendant were counted as
+``predicted'' and $(b_2)$ was never tested.
+\end{remark}
+
+\paragraph{Meaning for the DE.}  For rectangular $R=[r^s]$ the class of $R$ contains $\emptyset$ on the lines
+$\D_r=0$ and $\D_{-s}=0$, which is the factor $\D_r\D_{-s}$ of $H_R-1$.  A non-rectangular $R$ is never
+equivalent to $\emptyset$ (no factor of $H_R-1$), but on every line it is equivalent to other diagrams, so
+$H_R-H_{R'}$ is divisible by $\D_m$ whenever $R\sim R'$ on $\D_m=0$.  This is the knot-independent part of the
+non-rectangular DE.  In the channel form $H_R=1+\sum_cZ_R^cG_c$ it requires
+$\sum_c(Z_R^c-Z_{R'}^c)G_c\equiv0\pmod{\D_m}$ for every knot.  For the factors $Z_R^c=F_c(R)$ of Formula~II this does
+\emph{not} hold channel by channel: for $|R|\le6$, $m=1,2$, $F_c(R)\equiv F_c(R')$ on the line for 25 of the 35
+equivalent pairs, and in the other 10 the difference is confined to blocks formed by a single $\lambda$ and the pairs
+$\{Z,Z'\}$ with $Z\cup Z'\subseteq\lambda$ (e.g.\ $[2,1]$ with $\{[2],[1,1]\}$, $[3,1]$ with $\{[3],[2,1]\}$).
+So on the lines the knot functions of a single and of the pairs below it are tied by linear relations, the
+non-rectangular counterpart of ``$\D_m$ divides $G_j$''.
+
+\section{Families on a line: the towers $e^\mu_m$}
+
+Fix $m\ge1$.  By (\ref{hw}) with $k=1$, $R=[r,\mu]$ with $\mu_1\le m+1$ is the $\mathfrak{gl}(1|m+1)$-module with
+weight $(r\,|\,\nu)$, $\nu=(\mu^T_1,\dots,\mu^T_{m+1})$; modulo $\mathrm{Ber}$ one may take $\mu_1\le m$.  For large $r$
+it is a typical Kac module of dimension $2^{m+1}\dim_{\mathfrak{gl}_{m+1}}\nu$, and $r$ enters only through the
+continuous weight $q^r$.  Hence
+
+\begin{observation}
+For every knot, $m\ge1$ and $\mu$ with $\mu_1\le m$,
+\[
+  P^\mu_m(q,\lambda):=H_{[r,\mu]}(A=q^{-m},q)\big|_{q^r=\lambda}
+\]
+is a Laurent polynomial in $\lambda$ (and $q$), symmetric under $\lambda\to\lambda^{-1}$ in the normalisation of
+\texttt{super\_vertex.py}, with $P^\mu_m(1,\lambda)=\Delta(\lambda^2)^{m+1}$.
+\end{observation}
+Checks: in the vertex model ($r\le30$--$40$) for $\mu=\emptyset,[1]$ at $m=1$ on 214 knots, $\mu=[1,1],[1,1,1]$ on
+$3_1,4_1,6_2$, and $\mu=\emptyset,[1]$ at $m=2$ on the knots of the table below; the exponents of $\lambda$ are read off by
+Berlekamp--Massey from the sequence in $r$, so polynomiality is tested, not assumed (otherwise the recurrence would not
+stabilise), and the exponent sets are always symmetric, $\{-2e,\dots,2e\}$ in steps of 2 (the coefficients were
+compared for $3_1$ and $11n_{34}$);
+the double braids up to $|R|=10$ fit $\lambda$-degree $2(m+1)$ with independent extra points for $m=1$
+($\mu=\emptyset,[1],[1,1],[1,1,1]$) and $m=2$ ($\mu=\emptyset,[1]$), 42 fits, none fails;
+$P^{[1]}_1(1,\lambda)=\Delta(\lambda^2)^2$ exactly for $3_1$ and for $11n_{34}$ (where $\Delta=1$ but the
+$\lambda$-span is 24).  $\mu=\emptyset$ is the tower $P_m$ of \texttt{defect\_tower.tex}.
+
+\noindent Define $e^\mu_m:=\tfrac12\max\deg_\lambda P^\mu_m$, so that $e^\emptyset_m=e_m$.  For $m=0$
+all hooks give $\Delta(q^{2|R|})$, so $e^\mu_0=\deg\Delta$ for every hook family.
+
+\section{The hook family detects the genus}
+
+\begin{observation}\label{obs:hook}
+$e^{[1]}_1=2g$ for every knot computed: the 34 knots with $\deg\Delta<g$ up to 12 crossings of braid index $\le5$
+(all 36 except the 6-braids $12n_{51}$, $12n_{268}$), the 7 mutant partners of genus 2 below, and a control set of
+173 knots with at most 10 crossings and braid index $\le4$.  Where $m=2$ was computed, $e^{[1]}_2=3g$.
+\begin{center}
+\begin{tabular}{lcc|cc|cc}
+\toprule
+knot & $\deg\Delta$ & $g$ & $e_1$ & $e^{[1]}_1$ & $e_2$ & $e^{[1]}_2$\\
+\midrule
+$11n_{42}$ & 0 & 2 & 3 & 4 & 5 & 6\\
+$11n_{67}$ & 1 & 2 & 3 & 4 &  & \\
+$11n_{97}$ & 1 & 2 & 3 & 4 &  & \\
+$12n_{268}$ & 1 & 2 & 3 & -- &  & \\
+$12n_{313}$ & 0 & 2 & 3 & 4 &  & \\
+$12n_{430}$ & 0 & 2 & 3 & 4 &  & \\
+$12n_{51}$ & 1 & 2 & 3 & -- &  & \\
+$12n_{124}$ & 1 & 2 & 4 & 4 &  & \\
+$12n_{23}$ & 1 & 2 & 4 & 4 &  & \\
+$12n_{293}$ & 1 & 2 & 4 & 4 & 6 & \\
+$12n_{321}$ & 1 & 2 & 4 & 4 &  & \\
+$12n_{411}$ & 1 & 2 & 4 & 4 &  & \\
+$12n_{457}$ & 1 & 2 & 4 & 4 &  & \\
+$12n_{519}$ & 1 & 2 & 4 & 4 &  & \\
+$11n_{34}$ & 0 & 3 & 3 & 6 & 5 & \\
+$11n_{152}$ & 2 & 3 & 4 & 6 &  & \\
+$11n_{45}$ & 2 & 3 & 4 & 6 &  & \\
+$11n_{73}$ & 2 & 3 & 4 & 6 & 6 & \\
+$12n_{129}$ & 1 & 3 & 4 & 6 &  & \\
+$12n_{132}$ & 2 & 3 & 4 & 6 &  & \\
+$12n_{221}$ & 2 & 3 & 4 & 6 &  & \\
+$12n_{231}$ & 2 & 3 & 4 & 6 &  & \\
+$12n_{28}$ & 2 & 3 & 4 & 6 &  & \\
+$12n_{31}$ & 1 & 3 & 4 & 6 &  & \\
+$12n_{56}$ & 2 & 3 & 4 & 6 &  & \\
+$12n_{63}$ & 2 & 3 & 4 & 6 &  & \\
+$12n_{808}$ & 2 & 3 & 4 & 6 &  & \\
+$12n_{87}$ & 2 & 3 & 4 & 6 &  & \\
+$12n_{256}$ & 2 & 3 & 5 & 6 &  & \\
+$12n_{257}$ & 2 & 3 & 5 & 6 &  & \\
+$12n_{264}$ & 2 & 3 & 5 & 6 &  & \\
+$12n_{267}$ & 2 & 3 & 5 & 6 &  & \\
+$12n_{665}$ & 2 & 3 & 5 & 6 &  & \\
+$12n_{812}$ & 2 & 3 & 5 & 6 &  & \\
+$12n_{750}$ & 2 & 3 & 6 & 6 & 9 & 9\\
+$12n_{830}$ & 2 & 3 & 6 & 6 & 9 & 9\\
+$11n_{151}$$^*$ & 2 & 2 & 4 & 4 &  & \\
+$11n_{39}$$^*$ & 2 & 2 & 4 & 4 &  & \\
+$11n_{74}$$^*$ & 2 & 2 & 4 & 4 &  & \\
+$12n_{225}$$^*$ & 2 & 2 & 4 & 4 &  & \\
+$12n_{232}$$^*$ & 2 & 2 & 4 & 4 &  & \\
+$12n_{34}$$^*$ & 2 & 2 & 4 & 4 &  & \\
+$12n_{57}$$^*$ & 2 & 2 & 4 & 4 &  & \\
+\bottomrule
+\end{tabular}
+\end{center}
+$e_m=e^\emptyset_m$ is the symmetric tower, now computed exactly by the vertex model for all these knots
+($r\le30$; the table of \texttt{defect\_tower.tex} had only lower bounds for most of them).  $^*$: genus-2 mutant partners
+of $11n_{45},11n_{73},11n_{152},12n_{28},12n_{63},12n_{231},12n_{56}$ with identical symmetric $H_{[r]}$.  --: not
+computed (6-braids).
+\end{observation}
+
+
+For $11n_{34}$ the top coefficient is
+\[
+  [\lambda^{\pm12}]\,P^{[1]}_1=\frac{(q^2-1)^3(q^4+q^2+1)(q^8+q^2-1)(q^8-q^6-1)}{q^{16}}
+  =\{q\}^3\,[3]\,\frac{(q^8+q^2-1)(q^8-q^6-1)}{q^{11}}
+\]
+(vertex-model variable $q$, i.e.\ the mirror; $P^{[1]}_1(1,\lambda)=1=\Delta^2$, every $\lambda^{j}$, $j\neq0$, vanishes at $q=1$),
+it vanishes at $q=1$ to third order, so all the genus information is in the $\hbar$-corrections, as for the
+anomalous symmetric towers.
+
+\paragraph{Consequences.}
+\begin{itemize}
+\item The answer to Question~1.4 of L\'opez Neumann--Garoufalidis (does the maximum over typical modules attain the
+genus bound?) is positive on all examples, and already the 8-dimensional Kac module $(r|1,0)$ of
+$\mathfrak{gl}(1|2)$ suffices where the 4-dimensional $\mathrm{Sym}^r$ fails.
+\item $P^{[1]}_1$ is not a mutation invariant: it distinguishes $11n_{34}$ from $11n_{42}$ by its $\lambda$-degree
+(genus 3 vs 2), and likewise the other mutant pairs with different genera below.  This agrees with the mutant
+analysis of the paper: the difference sits in the pair channels of $R\otimes\bar R$, which first appear for $[2,1]$.
+\item In the DE language: on $\D_1=0$ the symmetric knot functions $G_{[j]}$ vanish for $j>e_1$, but the functions of
+the non-symmetric channels contributing to $[r,1]$ (singles $[j,1]$ and pairs $\{[j],[j-1,1]\}$) survive up to level
+$2g$.  The natural defect of the DE for generic $R$ is therefore
+\[
+  1+\delta_{\rm gen}:=\lim_{m\to\infty}\frac{\max_\mu e^\mu_m}{m+1}\overset{?}{=}g,
+\]
+while the symmetric defect $1+\delta=\lim e_m/(m+1)\in[\deg\Delta,g]$ is its lower envelope.
+\end{itemize}
+
+\section{Open questions}
+\begin{enumerate}
+\item Is $e^{[1]}_m=(m+1)g$ for all $m$ (checked for $m=1$; $m=2$ in progress), or does one need larger $\mu$ for larger
+$m$?
+\item Families with $k\ge2$ (two growing rows): the even part $\mathfrak{gl}(k)$ is then finite-dimensional with
+$r$-dependent dimension, so polynomiality in $q^{R_i}$ is not expected; what replaces it?
+\item A closed form for the knot-independent factors adapted to the lines, i.e.\ a triangular change of the Formula~II
+basis in each block (single $\lambda$, pairs below it) that makes $Z_R^c$ respect the Berezinian classes.
+\end{enumerate}
+
+\end{document}
