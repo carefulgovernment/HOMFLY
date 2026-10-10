@@ -305,15 +305,84 @@ formulation: the differential expansion of an arbitrary $R$ is organised by fami
 (e.g.\ $[r]$, $[r,1]$, $[r,2]$, $[r,r-1]$) on the lines not covered by (a), (b), with towers $e_m$ per
 family.
 
+\subsection{The supergroup picture}\label{sec:super}
+Proposition~\ref{prop:lg} extends to all $R$.  Let $V_R\subset(\mathbb{C}^{k|m+k})^{\otimes|R|}$ be the covariant
+$U_q\mathfrak{gl}(k|m+k)$-module of $R$ (image of a primitive Hecke idempotent; it is $0$ unless $R_{k+1}\le m+k$).
+\begin{observation}[H1]\label{obs:h1}
+On $A=q^{-m}$, $H_R$ is the $(1,1)$-tangle invariant of $V_R$ for $\mathfrak{gl}(k|m+k)$, for every $k$ with
+$V_R\ne0$ (mirror convention; with $V_{R^T}$ it fails).  Checked with a vertex model independent of the data
+(\texttt{scripts/nonrect\_supergroup.py}): $4982$ pairs $(R,K)$, all $|R|\le6$ with $V_R\neq0$ up to module size,
+$K$ all knots $\le9$ crossings and $14$ anomalous ones, for $\mathfrak{gl}(1|1),\mathfrak{gl}(1|2),\mathfrak{gl}(1|3),
+\mathfrak{gl}(2|2),\mathfrak{gl}(2|3)$, relative agreement $10^{-7}$ (\texttt{data/nonrect\_h1\_*.tsv}).
+\end{observation}
+For $k=1$, $V_R\neq0$ iff $R_2\le m+1$; its highest weight is $(R_1\,|\,\mu^T)$, $\mu=(R_2,R_3,\dots)$, it is
+atypical iff $R_1\le m$, and when typical its dimension is $2^{m+1}\dim L_{\mathfrak{gl}(m+1)}(\mu^T)$ (observed in all
+cases).  This explains Observation~\ref{obs:red}:
+(a) $n\ge R_1$ is the atypical region, where $V_R$ already lives over $\mathfrak{gl}(0|m)$ ($\mathfrak{sl}_m$ duality);
+(b) $R_2=m+1$ means $V_R=V_{R'}\otimes\mathrm{Ber}$ with the one-dimensional Berezinian, which does not change the
+reduced invariant; (c) $R_2>m+1$ means $V_R=0$ over $\mathfrak{gl}(1|m+1)$ and the first algebra that sees $R$ is
+$\mathfrak{gl}(2|m+2)$.  The Berezinian argument for $\mathfrak{gl}(k|m+k)$ gives the rules
+\[
+  (b_k):\quad R_{k+1}=m+k\ \Longrightarrow\ H_R=H_{(R_1+1,\dots,R_k+1,R_{k+2},\dots)}\quad\text{on }A=q^{-m},
+\]
+$(b_1)=(b)$.  All $24$ instances with $|R|,|R'|\le6$ hold on every knot with data (modulo $2^{61}-1$ at two random
+points; \texttt{data/nonrect\_rule\_bk.tsv}); the only $k=2$ one is $[2,2,2]\equiv[3,3]$ at $A=1$, which the
+pairwise scan above missed (it is the transposition image of a $k=1$ identity).
+
+\paragraph{Coloured Links--Gould families.}  For $R(r)=(r,\mu)$ on $A=q^{-m}$ the module is, for $r>m$, the typical
+$\mathfrak{gl}(1|m+1)$-module of highest weight $(r\,|\,\mu^T)$; for $m=1$ and $\mu=(1^n)$ it is the
+$4(n+1)$-dimensional $\mathfrak{sl}(2|1)$-module $V(n,a)$ of arXiv:2607.11735, $V(0,a)$ being Links--Gould.  Set
+$P^\mu_m(q,\lambda)=H_{(r,\mu)}(q^{-m},q)|_{q^r=\lambda}$ and $e^\mu_m=\frac14\mathrm{span}_\lambda P^\mu_m$.
+\begin{observation}\label{obs:hooks}
+(i) $P^\mu_m$ is a Laurent polynomial in $(q,\lambda^2)$ with $P^\mu_m(1,\lambda)=\Delta(\lambda^2)^{m+1}$
+(exact, by discrete Fourier reconstruction from the vertex model, for $m=1$: $3_1$ with $\mu=\emptyset,[1],[1,1],[1,1,1]$,
+$4_1$ with $[1],[1,1]$, $6_2$ with $[1]$, $12n_{750}$ with $\emptyset,[1]$; $m=2$: $3_1$ with $\emptyset,[1],[2]$),
+and $P^\mu_m(q,\lambda)=P^{\mu^*}_m(q,q^{m-\ell(\mu)}/\lambda)$, $\mu^*$ the complement of $\mu$ in the
+$\ell(\mu)\times(m+1)$ box.
+(ii) $e^{[1]}_1=e^{[1,1]}_1=2g$ on all $60$ knots up to $10$ crossings of braid index $\le3$, and $e^{[1]}_2=3g$ on
+$3_1,4_1,5_1,5_2,6_2,6_3,12n_{750},12n_{830}$.
+(iii) On the anomalous knots ($m=1$, vertex model up to $r=22$--$42$, least-squares fit in $\lambda$):
+\begin{center}
+\begin{tabular}{lccccc}
+\toprule
+knot & $g$ & $d$ & $e_1$ & $e^{[1]}_1$ & $e^{[1,1]}_1$\\
+\midrule
+$11n_{34}$ & 3 & 0 & 3 & 6 & 6\\
+$11n_{42},\ 12n_{313},\ 12n_{430}$ & 2 & 0 & 3 & 4 & 4,\,--,\,--\\
+$11n_{67},\ 11n_{97}$ (Type I) & 2 & 1 & 3 & 4 & --\\
+$11n_{73}$ & 3 & 2 & 4 & 6 & 6\\
+$12n_{293},\ 12n_{321},\ 12n_{457}$ (Type II) & 2 & 1 & 4 & 4 & 4,\,4,\,--\\
+$12n_{750},\ 12n_{830}$ & 3 & 2 & 6 & 6 & 6\\
+\bottomrule
+\end{tabular}
+\end{center}
+($12n_{51},12n_{268}$ have braid index $6$ and were not run.)
+\end{observation}
+So already the first hook family attains the genus bound $e^{[1]}_1=2g$ on every knot tested, including all those
+where the Links--Gould member does not; this is the positive answer to Question~1.4 of arXiv:2607.11735 on these
+examples, and $e^{[1]}_1$ separates the mutants $11n_{34}$ ($g=3$) and $11n_{42}$ ($g=2$), which $P_1$ cannot.
+The defect of the symmetric representations is therefore a property of the Links--Gould member $\mu=\emptyset$,
+not of the knot: for the hooks the extra $\lambda$-powers, with coefficients vanishing at $q=1$, are present already
+where the symmetric family has none.
+
+\paragraph{Differential expansion for arbitrary $R$ (proposal).}  On the line $A=q^{-m}$ let
+$k(R,m)=\min\{k\ge0:R_{k+1}\le m+k\}$.  Then $H_R$ is the invariant of the typical $\mathfrak{gl}(k|m+k)$-module
+$V_R$ with $k=k(R,m)$: $k=0$ is rule (a), $k=1$ the Links--Gould line, $k\ge2$ the region of rule (c).  The
+differential expansion of $R$ is the expansion of these multivariable invariants in $\lambda_i=q^{R_i}$,
+$i\le k$, organised by the families $(r_1,\dots,r_k,\mu)$, each with its own tower $e^\mu_m\in[(m+1)d,(m+1)g]$.
+Universal coincidences are exactly (a) and $(b_k)$ (conjecturally).  Polynomiality for $k\ge2$ is untested.
+
 \section{Open questions}
 \begin{enumerate}
 \item Fill in the proof of Proposition~\ref{prop:lg} (the Markov-expectation argument in (2), and the
 one-dimensional twist in (3)), and compare (\ref{LG}) with an independent evaluation of $LG^{2,1}$.
 (The genus bound for all $m$ is now Corollary~\ref{cor:alt}, from arXiv:2607.11735.)
-\item What selects the slope inside $[d,g]$?  Types I and II have equal $d,g$ and similar knot Floer
-homology, but slopes $3/2$ and $2$.
-\item Towers of the hook and two-row families for $|R|\le 10$ (arborescent knots).
-\item A conceptual derivation of rule (b) (supergroup / Kazhdan--Lusztig type).
+\item What selects the slope of the Links--Gould tower inside $[d,g]$?  Types I and II have equal $d,g$ and similar
+knot Floer homology, but slopes $3/2$ and $2$, while the hook towers reach $g$ in both (Section~\ref{sec:super}).
+Is $e^{[1]}_m=(m+1)g$ for all $m$ and all knots?  (Not tested for $m\ge2$ on anomalous knots.)
+\item Polynomiality and towers for $k\ge2$ (e.g.\ $(r_1,r_2)$ two-row families over $\mathfrak{gl}(2|m+2)$).
+\item Rules (a), $(b_k)$ have the supergroup explanation of Section~\ref{sec:super}; prove that there are no other
+universal coincidences.
 \end{enumerate}
 
 \end{document}
