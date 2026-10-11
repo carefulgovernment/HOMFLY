@@ -38,10 +38,29 @@ def sym_allow(chans):
     return allow
 
 
+# End(mu): the R-independent factor of F_mu(R), measured from F_mu(mu) of Formula II
+# (prod of D_k, multiset of k), |mu| <= 6.  F_mu(R) = (q-factor) * prod_{b in row 1 of mu} D_{R_1 + c(b)}
+#   * prod_{b in column 1 of mu} D_{c(b) - l(R)} * End(mu)   (checked for R = mu and mu + box, |mu| <= 4).
+# End(mu^T) = -End(mu).
+END_TABLE = {
+    (1,): [], (2,): [0], (3,): [0, 1], (2, 1): [-1, 1], (4,): [0, 1, 2], (3, 1): [-1, 0, 2],
+    (2, 2): [-2, -1, 1, 2], (5,): [0, 1, 2, 3], (4, 1): [-1, 0, 1, 3], (3, 2): [-2, -1, 0, 1, 3],
+    (3, 1, 1): [-2, -1, 1, 2], (6,): [0, 1, 2, 3, 4], (5, 1): [-1, 0, 1, 2, 4],
+    (4, 2): [-2, -1, 0, 1, 1, 4], (4, 1, 1): [-2, -1, 0, 2, 3], (3, 3): [-2, -1, -1, 0, 2, 3, 4],
+    (3, 2, 1): [-3, -1, -1, 1, 1, 3],
+}
+
+
 def end_factor(mu):
-    """R-independent factor of F_mu(R) (single channel mu), as a list of k in D_k:
-    boxes outside the first row give D_{mu_1 + c}, boxes outside the first column D_{c - l(mu)}
-    (c = content).  Checked for |mu| <= 4 against Formula II."""
+    """R-independent factor End(mu) of F_mu(R) as a list of k in D_k (table for |mu| <= 6;
+    otherwise the product rule: boxes outside the first row give D_{mu_1 + c}, outside the
+    first column D_{c - l(mu)}, which is exact for hooks and rectangles)."""
+    mu = tuple(mu)
+    if mu in END_TABLE:
+        return list(END_TABLE[mu])
+    mt = tuple(sum(1 for r in mu if r > j) for j in range(mu[0]))
+    if mt in END_TABLE:
+        return sorted(-k for k in END_TABLE[mt])
     out = []
     for i, row in enumerate(mu):
         for j in range(row):
