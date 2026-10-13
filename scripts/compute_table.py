@@ -28,6 +28,7 @@ from homfly.io.export import from_json, to_json  # noqa: E402
 from homfly.knots.table import knots  # noqa: E402
 from homfly.reconstruction.pipeline import ReconstructionReport  # noqa: E402
 from homfly.reps.partitions import conjugate, partitions  # noqa: E402
+from homfly.racah.portable import rep_key  # noqa: E402
 
 
 def rep_str(R):
@@ -35,7 +36,7 @@ def rep_str(R):
 
 
 def task(name, R, cache, method=None, exclude=(), cache_only=False):
-    path = os.path.join(cache, "%s_%s.json" % (name, "".join(map(str, R))))
+    path = os.path.join(cache, "%s_%s.json" % (name, rep_key(R)))
     if os.path.exists(path):
         return json.load(open(path))
     if cache_only:
@@ -90,7 +91,7 @@ def main():
     def wanted(n, R):
         if not a.derive_transposed or R >= conjugate(R):
             return True
-        return os.path.exists(os.path.join(cache, "%s_%s.json" % (n, "".join(map(str, R)))))
+        return os.path.exists(os.path.join(cache, "%s_%s.json" % (n, rep_key(R))))
     tasks = [(n, R) for n in names for R in sorted(reps, key=lambda R: -sum(R)) if wanted(n, R)]
     print("%d knots x %d representations = %d tasks" % (len(names), len(reps), len(tasks)), flush=True)
     results, failed = {}, []

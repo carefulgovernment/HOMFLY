@@ -27,7 +27,7 @@ from functools import lru_cache
 from ..algebra.fields import GF, BadPoint
 from ..algebra.linalg import matmul
 from ..knots.families import DoubleBraid, TwoBridge
-from ..racah.portable import DEFAULT_DIR, _Poly, matmul_mod, rep_key
+from ..racah.portable import DEFAULT_DIR, _Poly, matmul_mod, rep_key, parse_rep_key
 from ..reps.partitions import P
 from ..reps.qdim import qdim
 from .base import Method
@@ -181,7 +181,42 @@ class SbarData:
 
 @lru_cache(maxsize=None)
 def load_exclusive(R, root=DEFAULT_DIR):
+    if not os.path.exists(os.path.join(root, "exclusive_%s.json.gz" % rep_key(R))):
+        return ExclusiveFromP(tuple(R))
     return Exclusive(tuple(R), root)
+
+
+class ExclusiveFromP:
+    """C = S T^-1 V and D̄² = T̄² evaluated pointwise from the family-P data of
+    methods.montesinos (the same racah_homfly q-6j generator and conventions as
+    the exclusive files; used for [r], r >= 7, whose symbolic C is not stored)."""
+
+    def __init__(self, R):
+        from . import montesinos as MO
+        self.R = tuple(R)
+        self.d = MO.load(self.R)
+        self.vac = self.d.vac
+
+    def evaluate(self, F, A, q):
+        o = self.d.evaluate(F, A, q)
+        S, V, T, Tb = o["S"], o["V"], o["T"], o["Tbar"]
+        n = len(S)
+        C = [[sum((S[i][k] / T[k] * V[k][j] for k in range(n)), F.zero) for j in range(n)] for i in range(n)]
+        return C, [t * t for t in Tb]
+
+    def evaluate_modp(self, p, A, q):
+        if p >= 2 ** 31:
+            F = GF(p)
+            C, D2 = self.evaluate(F, F(A), F(q))
+            return [[int(x) for x in row] for row in C], [int(x) for x in D2]
+        o = self.d.evaluate_np(p, int(A), int(q))        # numpy fast path (family-P flat polynomials)
+        S = [[int(x) for x in row] for row in o["S"]]
+        V = [[int(x) for x in row] for row in o["V"]]
+        Ti = [pow(int(t), -1, p) for t in o["T"]]
+        n = len(S)
+        SV = [[S[i][k] * Ti[k] % p for k in range(n)] for i in range(n)]
+        C = [[sum(SV[i][k] * V[k][j] for k in range(n)) % p for j in range(n)] for i in range(n)]
+        return C, [int(t) * int(t) % p for t in o["Tbar"]]
 
 
 @lru_cache(maxsize=None)
@@ -192,7 +227,7 @@ def load_sbar(R, root=DEFAULT_DIR):
 def available_sbar(root=DEFAULT_DIR):
     if not os.path.isdir(root):
         return []
-    return [tuple(int(c) for c in f[len("sbar_"):-len(".json.gz")])
+    return [parse_rep_key(f[len("sbar_"):-len(".json.gz")])
             for f in sorted(os.listdir(root))
             if f.startswith("sbar_") and f.endswith(".json.gz")]
 
@@ -302,9 +337,12 @@ def value_sbar(R, cf, F, A, q, root=DEFAULT_DIR):
 def available(root=DEFAULT_DIR):
     if not os.path.isdir(root):
         return []
-    return [tuple(int(c) for c in f[len("exclusive_"):-len(".json.gz")])
-            for f in sorted(os.listdir(root))
-            if f.startswith("exclusive_") and f.endswith(".json.gz")]
+    out = [parse_rep_key(f[len("exclusive_"):-len(".json.gz")])
+           for f in sorted(os.listdir(root))
+           if f.startswith("exclusive_") and f.endswith(".json.gz")]
+    from . import montesinos as MO         # symmetric [r] with family-P data only
+    out += [R for R in MO.available() if len(R) == 1 and R not in out]
+    return out
 
 
 def value(R, cf, F, A, q, root=DEFAULT_DIR):

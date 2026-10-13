@@ -24,7 +24,17 @@ DEFAULT_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..
 
 
 def rep_key(R):
-    return "".join(map(str, R))
+    """file-name key of a partition: "321" for parts < 10, "x10-2" otherwise"""
+    R = tuple(R)
+    if all(x < 10 for x in R):
+        return "".join(map(str, R))
+    return "x" + "-".join(map(str, R))
+
+
+def parse_rep_key(s):
+    if s.startswith("x"):
+        return tuple(int(t) for t in s[1:].split("-"))
+    return tuple(int(c) for c in s)
 
 
 class _Poly:

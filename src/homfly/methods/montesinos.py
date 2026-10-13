@@ -47,6 +47,7 @@ from ..knots.families import MontesinosKnot
 from ..reps.partitions import P, conjugate
 from ..reps.qdim import qdim
 from .base import Method
+from ..racah.portable import rep_key, parse_rep_key
 
 DATA_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "..",
                                          "data", "racah", "montesinos"))
@@ -251,7 +252,7 @@ class PData:
     """Family P, multiplicity-free R: S̄, S, V, T, T̄."""
 
     def __init__(self, R, root=DATA_DIR):
-        with gzip.open(os.path.join(root, "P_%s.json.gz" % "".join(map(str, R))), "rt") as f:
+        with gzip.open(os.path.join(root, "P_%s.json.gz" % rep_key(R)), "rt") as f:
             d = json.load(f)
         self.R = tuple(R)
         self.vac = d["vacuum_index"]
@@ -370,7 +371,7 @@ class HData:
     labels -> multiplicity blocks."""
 
     def __init__(self, R, root=DATA_DIR, family="H"):
-        with gzip.open(os.path.join(root, "%s_%s.json.gz" % (family, "".join(map(str, R)))), "rt") as f:
+        with gzip.open(os.path.join(root, "%s_%s.json.gz" % (family, rep_key(R))), "rt") as f:
             d = json.load(f)
         self.R = tuple(R)
         self.family = family
@@ -484,7 +485,7 @@ class HData:
 @lru_cache(maxsize=None)
 def load(R, root=DATA_DIR):
     R = tuple(R)
-    key = "".join(map(str, R))
+    key = rep_key(R)
     if os.path.exists(os.path.join(root, "P_%s.json.gz" % key)):
         return PData(R, root)
     if os.path.exists(os.path.join(root, "H_%s.json.gz" % key)):
@@ -496,7 +497,7 @@ def load(R, root=DATA_DIR):
 def available(root=DATA_DIR):
     if not os.path.isdir(root):
         return []
-    return sorted({tuple(int(c) for c in f[2:-8]) for f in os.listdir(root)
+    return sorted({parse_rep_key(f[2:-8]) for f in os.listdir(root)
                    if f[:2] in ("P_", "H_", "G_") and f.endswith(".json.gz")})
 
 
