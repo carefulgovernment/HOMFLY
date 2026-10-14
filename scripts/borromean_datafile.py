@@ -101,14 +101,16 @@ def main():
                  "#   the fraction is reduced.  Checks: (A, q) -> (1/A, 1/q) symmetry; R = [1] at A = q^2\n"
                  "#   gives the Jones polynomial with t = q^2; H_{R^T}(A, q) = H_R(A, -1/q); at q = 1\n"
                  "#   H_R / H_[1]^|R| = (dim R / |R|!)^2, i.e. N_R(A, 1) = N_[1](A, 1)^|R|.\n"
+                 "# Computed directly: one R of each pair {R, R^T}; the other is derived by transposition.\n"
                  "# Method: H_R = sum_Q dim_q(Q) Tr_Q (R1 R2^-1)^3 / dim_q(R) over R x R x R -> Q, inclusive\n"
                  "#   Racah matrices numerically at each q (scripts/borromean_pts.py); exact integer traces\n"
                  "#   from two primes (scripts/borromean_exact.py), H by dense interpolation modulo several\n"
                  "#   primes with a stable CRT lift (scripts/borromean_assemble.py).\n\n")
         for R, N, d in data:
             fh.write("R = %s\n" % list(R))
-            fh.write("# primes=%d terms=%d max_coeff=%d\n" % (len(d.get("primes", ())), len(N.terms),
-                                                           max(abs(c) for c in N.terms.values())))
+            fh.write("# primes=%d terms=%d max_coeff=%d%s\n" % (len(d.get("primes", ())), len(N.terms),
+                                                             max(abs(c) for c in N.terms.values()),
+                                                             "  (%s)" % d["derived"] if d.get("derived") else ""))
             fh.write("den = %s\n" % " * ".join("(q^%d - q^(-%d))^2" % (h, h) for h in hooks(R)))
             fh.write("N = %s\n\n" % N.to_string(mul="*", pow_="^"))
     print("wrote %s: %s" % (out, [list(R) for R, _, _ in data]))
