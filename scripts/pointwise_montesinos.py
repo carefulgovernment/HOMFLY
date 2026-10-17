@@ -224,6 +224,7 @@ def main():
     ap.add_argument("--qlower", type=int, default=-400)
     ap.add_argument("--alower", type=int, default=-160)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--conway", default=None, help="Conway notation of an arborescent presentation (e.g. 22 for 4_1)")
     ap.add_argument("--primes", type=int, default=1, help="interpolate modulo this many primes (CRT)")
     ap.add_argument("--fast", action="store_true", help="fast_mix_pts.py (fast_mixed_ctx) instead of mix_pts.py")
     ap.add_argument("--check-transposed", type=int, default=0, metavar="N",
@@ -232,7 +233,18 @@ def main():
     R = tuple(int(x) for x in a.R.split(","))
     os.makedirs(a.work, exist_ok=True)
     from homfly.methods.algebraic import AlgebraicKnot
-    mk = next(K for K in presentations(a.knot) if isinstance(K, (MontesinosKnot, AlgebraicKnot)))
+    if a.conway:
+        from homfly.knots.table import load_table
+        from homfly.methods.algebraic import chirality as alg_chirality
+        rec = load_table()[a.knot]
+        ak = AlgebraicKnot.from_conway(a.conway)
+        c = alg_chirality(ak.tree, rec.homfly_reference(), rec.braid,
+                          amphichiral="amphich" in (rec.symmetry or ""))
+        if c is None:
+            raise SystemExit("chirality of %s undecided" % a.conway)
+        mk = AlgebraicKnot.from_conway(a.conway, mirror=(c < 0))
+    else:
+        mk = next(K for K in presentations(a.knot) if isinstance(K, (MontesinosKnot, AlgebraicKnot)))
     if isinstance(mk, MontesinosKnot):
         fracs = mk.fractions()
         print("%s = N(%s), R = %s" % (a.knot, ", ".join(map(str, fracs)), R), flush=True)
