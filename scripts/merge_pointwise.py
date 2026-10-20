@@ -64,7 +64,7 @@ def main():
     full = [n for n in sizes if all(rep_str(tuple(R)) in allR for R in partitions(n))]
     part = [n for n in sizes if n not in full]
     note = ("# Added by scripts/merge_pointwise.py (pointwise mixed Racah engine, arborescent tangle "
-            "calculus, 2 primes, fresh-point and q=1 checks, transposition checked at independent points): "
+            "calculus, 1 or 2 primes as per primes= (max |c| < 1400 << p ~ 2^31), fresh-point check at an extra prime and q=1 checks, transposition checked at independent points): "
             "|R| = %s complete%s.\n" % (",".join(map(str, full)) or "-",
                                         "; |R| = %s partial" % ",".join(map(str, part)) if part else ""))
     lines = [L for L in text.split("\n") if not L.startswith("# Added by scripts/merge_pointwise.py")]
