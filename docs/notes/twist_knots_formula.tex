@@ -1,0 +1,561 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{booktabs,array}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\allowdisplaybreaks
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{observation}{Observation}
+\newtheorem{fact}{Fact}
+\newcommand{\Tw}{\mathrm{Tw}}
+\newcommand{\Lam}{\Lambda}
+\newcommand{\Et}{\widetilde{E}}
+\newcommand{\vac}{\varnothing}
+\newcommand{\one}{\mathbb 1}
+\newcommand{\Chan}{\mathcal C}
+\newcommand{\Rbar}{\bar R}
+\newcommand{\LMPH}[1]{\texttt{#1}}
+
+\title{Twist knots in arbitrary representations:\\ the evolution formula, its universal coefficients,\\ and what is (and is not) closed}
+\author{}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\section{Summary}
+
+We consider the twist knots $K_n$ (Conway notation $[n\,2]$)
+\[
+3_1,\ 4_1,\ 5_2,\ 6_1,\ 7_2,\ 8_1,\ 9_2,\ 10_1,\ 11a_{247},\ 12a_{803}
+\]
+as the family $\Tw_m$ of antiparallel double braids with $m$ full twists (Section~\ref{sec:conv}), and ask for the
+reduced colored HOMFLY polynomial $H_R(\Tw_m)$ in a non-rectangular representation $R$, explicit in the twist
+parameter.  The answer we can state and verify is the following.
+
+\begin{itemize}
+\item \textbf{Explicit in $m$ (evolution form).}  For every $R$,
+\begin{equation}\label{eq:evol}
+H_R(\Tw_m)\;=\;1+\sum_{X\in\Chan(R)} w_X(R)\,\bigl(\Lam_X^{\,m}-1\bigr),\qquad
+\Lam_{[Z,Z']}=A^{2|Z|}q^{\,2(\kappa_Z+\kappa_{Z'})},
+\end{equation}
+where $X$ runs over the channels of $R\otimes\Rbar$ (single channels $[\mu,\mu]$ and pairs $\{Z,Z'\}$).  The
+coefficients $w_X(R)$ are rational functions of $A^2,q^2$.  They are \emph{not} fitted: they come from the universal
+channel formula \eqref{eq:channel} below, and every one of the $319$ stored twist-knot polynomials with $|R|\le 6$
+(29 diagrams $\times$ ten knots, plus the unknot) is a check, as are $H_R(4_1)$ for all $|R|=7$ and $20$ of the $22$
+diagrams with $|R|=8$, and the symmetric data $[7],\dots,[10]$.  All $w_X(R)$ with $|R|\le6$ are tabulated exactly in
+\LMPH{data/twist\_weights/twist\_weights\_le6.json}; the smallest non-rectangular cases are printed in Appendix~A.
+
+\item \textbf{Universal structure (channel form).}  The $R$-dependence and the $m$-dependence separate:
+\begin{equation}\label{eq:channel}
+H_R(\Tw_m)=1+\sum_{c\in\Chan(R)}F_c(R)\,\Phi_c(m),\qquad
+F_c(R)=d_c\sum_X E_{cX}\,\psi_X(R),\qquad
+\Phi_c(m)=\bigl(B^{\,m+1}\one\bigr)_c ,
+\end{equation}
+with an $R$-independent, knot-independent triangular ``twist matrix'' $B$ (Section~\ref{sec:B}).  Here $d_c$ and
+$\psi_X(R)$ are closed (quantum dimensions and Koike characters), and $E$ is the universal matrix of the interpolation
+formula of the repository (vanishing conditions).
+
+\item \textbf{Closed: the single-channel sector.}  The rows of $B$ labelled by single channels $[\lambda,\lambda]$ have
+the closed product form of Kameyama--Nawata--Tao--Zhang (KNTZ), eq.~\eqref{eq:kntz}; the corresponding rows of $E$ follow
+from it by an explicit recursion \eqref{eq:eigrec}, and $\varphi_\lambda(-1)$ is a product of $D$-factors
+\eqref{eq:phiprod}.  Verified exactly (over $\mathbb Q(A^2,q^2)$) for all $29$ diagrams $|\lambda|\le6$ and modulo a
+large prime for all $59$ single channels with $|\lambda|\le 8$ whose vanishing system has full rank.  For rectangular
+$R$ only single channels occur, so there the whole formula is closed (this is the KNTZ result).
+
+\item \textbf{Closed: the top evolution coefficients.}  For every $R$ with $|R|\le 6$, $w_X(R)$ is a product of
+$A^aq^b$, quantum numbers $[n]$ and factors $D_k$ exactly for the \emph{top} channels $X=[Z,Z']$ with $Z\cup Z'=R$
+(Section~\ref{sec:weights}); all other coefficients are such a product times a polynomial in $A^2$ of degree
+$\le |R|-|Z\cup Z'|$ which does not factorise.
+
+\item \textbf{Not closed: the pair-channel sector.}  Pair channels $\{Z,Z'\}$, $Z\ne Z'$, exist precisely for
+non-rectangular $R$.  Their rows of $B$ (equivalently of $E$) are known exactly as rational functions for all $20$ pairs
+present at $|R|\le 6$ (17 one-cell pairs, 3 two-cell pairs) and satisfy the structural identities of
+Section~\ref{sec:pairs} (the vacuum and $[1]$ entries of a one-cell pair $\{Z,Z'\}$ equal the KNTZ entries of the union
+diagram $Z\cup Z'$, the rest is a correction proportional to $\Lam_{Z\cup Z'}-\Lam_c$), but \emph{no closed formula
+for these rows was found}; their entries are not products.  This is exactly where the ``one simple closed formula''
+stops.
+
+\item \textbf{Where it breaks.}  At $|R|=8$ the vanishing conditions no longer determine $E$: for $R=[4,3,1]$ and its
+transpose $[3,2,2,1]$ five channels have a rank deficiency of two and \eqref{eq:channel} with the default gauge (free
+unknowns set to zero) gives the wrong $H_R(4_1)$.  Replacing the single rows by the KNTZ rows does \emph{not} cure
+this: the missing information sits in the pair rows.  (The repository's strengthened Formula II on the other branch
+handles these cases by additional rules; that is outside this note.)
+\end{itemize}
+
+Nothing in this note is proved.  The statements are conjectures checked on the data described in
+Section~\ref{sec:checks}; \LMPH{scripts/twist\_formula\_check.py} re-runs every check from the data files.
+
+\section{Conventions, data, and the twist parameter}\label{sec:conv}
+
+Standard convention of the repository (\LMPH{docs/CONVENTIONS.md}): $H_R$ is reduced ($H_R(\text{unknot})=1$),
+topologically framed, $H_{R^T}(A,q)=H_R(A,-1/q)$, mirror $H_R(K^*;A,q)=H_R(K;1/A,1/q)$; the positive trefoil has
+$H_{[1]}=A^2q^2+A^2q^{-2}-A^4$.  Throughout
+\[
+D_k=Aq^k-A^{-1}q^{-k},\qquad [n]=\frac{q^n-q^{-n}}{q-q^{-1}},\qquad \{x\}=x-x^{-1},\qquad
+\kappa_\lambda=\sum_{(i,j)\in\lambda}(j-i),
+\]
+and for a box $b=(i,j)$ of a diagram, $c(b)=j-i$ is its content, $a(b)$ its arm and $l(b)$ its leg length,
+$h(b)=a(b)+l(b)+1$ its hook length.  We also write $x=A^2$, $y=q^2$; then $A q^k D_k = xy^k-1$, $Aq^kD_{-k}=x-y^k$,
+$q\{q\}=y-1$, $q[2]=y+1$, $q^2[3]=y^2+y+1$.
+
+\paragraph{Twist knots.}  $\Tw_m:=\mathrm{DoubleBraid}(m,1)$ in the notation of \LMPH{homfly.knots.families}: the
+antiparallel double braid with $m$ full twists in one region and one in the other; $\mathrm{DoubleBraid}(1,1)=3_1$,
+$\mathrm{DoubleBraid}(1,-1)=4_1$, $\Tw_0=$ unknot.  The identification with the stored knots (checked on the fundamental
+polynomials against \LMPH{data/homfly}) is
+\begin{center}
+\begin{tabular}{c|cccccccccc}
+$m$ & $1$ & $2$ & $3$ & $4$ & $5$ & $-1$ & $-2$ & $-3$ & $-4$ & $-5$\\ \midrule
+$K$ & $3_1$ & $5_2$ & $7_2$ & $9_2$ & $11a_{247}$ & $4_1$ & $6_1^{*}$ & $8_1^{*}$ & $10_1^{*}$ & $12a_{803}^{*}$\\
+Conway $[n\,2]$, $n$ & 1 & 3 & 5 & 7 & 9 & 2 & 4 & 6 & 8 & 10
+\end{tabular}
+\end{center}
+A star means that the data file stores the mirror image of $\Tw_m$, so $H_R(\Tw_m)(A,q)=H_R^{\rm stored}(1/A,1/q)$
+for $m\le-2$.  In terms of Conway's $n$: $n=2m-1$ for $m>0$ and $n=-2m$ for $m<0$.
+
+\paragraph{Data used.}  \LMPH{data/homfly/<knot>.txt}: all $29$ diagrams with $|R|\le6$ for the ten knots; for $4_1$
+also all $|R|=7$ and $|R|=8$.  \LMPH{data/homfly\_symmetric/<knot>.txt.gz}: $[7],\dots,[10]$ for the ten knots.  None
+of these numbers enter the construction of the formula; they are only compared with it.
+
+\section{The evolution formula}\label{sec:evol}
+
+$\Tw_m$ is obtained from $\Tw_0$ by inserting $m$ full twists into a two-strand antiparallel braid, so by the
+standard eigenvalue argument $H_R(\Tw_m)$ is a linear combination of $m$-th powers of the eigenvalues of the full twist
+on the irreducible composite representations $Q=[Z,Z']\subset R\otimes\Rbar$ ($Z,Z'\subseteq R$, $|Z|=|Z'|$),
+\[
+\lambda_{[Z,Z']}=A^{2|Z|}q^{\,2(\kappa_Z+\kappa_{Z'})}
+\]
+in the normalisation in which the unknot ($m=0$) gives $1$.  The conjugate composites $[Z,Z']$ and $[Z',Z]$ have the
+same eigenvalue and the same dimension and are treated together: a \emph{channel} is either a single $[\mu,\mu]$ or a
+pair $\{Z,Z'\}$ with $Z\ne Z'$.  A channel $c$ is present in $R$ when its multiplicity
+$m_c(R)=\sum_\gamma c^R_{Z\gamma}c^R_{Z'\gamma}$ (Littlewood--Richardson coefficients) is non-zero; $\Chan(R)$ is the set
+of present channels.  Pairs are present only for non-rectangular $R$: for rectangular $R$ the product $R\otimes\Rbar$
+is multiplicity free and contains only $[\mu,\mu]$.  This gives \eqref{eq:evol} with the vacuum contribution written
+as $1-\sum_X w_X(R)$.
+
+Two remarks on what the data alone can do.  (i) With eleven twist knots ($m=-5,\dots,5$) the coefficients of
+\eqref{eq:evol} can be solved from the data only when the number of distinct eigenvalues is at most eleven; this
+holds for all $|R|\le4$ and for $[5],[4,1],[3,2],[2,2,1],[2,1,1,1],[1^5],[6],[3,3],[2,2,2],[1^6]$ but fails for
+$[3,1,1]$ (13 eigenvalues), $[5,1]$ (14), $[2,1^4]$ (14), $[4,2]$ (17), $[2,2,1,1]$ (17), $[4,1,1]$ (18), $[3,1,1,1]$
+(18) and $[3,2,1]$ (20).  Where the data suffice, the solution is unique (Vandermonde), hence equals the tabulated
+$w_X(R)$ since those reproduce all eleven values.  (ii) Resonances: distinct channels can share an eigenvalue.  Up to
+six boxes this happens only in $[3,2,1]$, where
+\[
+\Lam_{[2,1]}=\Lam_{\{[1,1,1],[3]\}}=A^6,\qquad \Lam_{[2,2]}=\Lam_{\{[2,1,1],[3,1]\}}=A^8,\qquad
+\Lam_{[3,1,1]}=\Lam_{\{[2,2,1],[3,2]\}}=A^{10};
+\]
+twist knots then determine only the sum of the two weights, while the channel formula gives each of them.
+
+\section{The channel formula and the twist matrix}\label{sec:B}
+
+The repository's interpolation formula for antiparallel double braids (\LMPH{src/homfly/methods/interpolation.py},
+``An interpolation formula for colored HOMFLY polynomials of the figure-eight knot and of double-braid knots in
+arbitrary representations'') reads
+\begin{equation}\label{eq:F2}
+H_R(m,n)=1+\sum_{c\in\Chan(R)}F_c(R)\,\frac{\varphi_c(m)\varphi_c(n)}{\varphi_c(1)\varphi_c(-1)},\qquad
+F_c(R)=d_c\sum_{X}E_{cX}\,\psi_X(R),\qquad \varphi_c(m)=\sum_X E_{cX}\bigl(\Lam_X^{\,m}-1\bigr),
+\end{equation}
+where $d_c$ is the quantum dimension of the composite(s) of $c$, $\psi_X(R)=\hat\chi_X(R)-1$ is the normalised Koike
+character of $X$ evaluated at $q^{2(R+\rho)}$ (a closed function of $R$: Schur functions of the power sums
+$p_k=(1-A^{-2k})/(1-q^{-2k})+(q^{2k}-1)\sum_{b\in R}q^{2kc(b)}$), and the row $E_c$ is universal: $E_{cc}=1$ and
+$\sum_X E_{cX}\psi_X(\nu)=0$ for every $\nu$ in which $c$ is absent, $X$ running over the channels $X<c$ present in the
+minimal diagrams of $c$.  $E$ depends neither on $R$ nor on the knot.
+
+Twist knots are the case $n=1$, and \eqref{eq:F2} becomes \eqref{eq:channel} with
+\begin{equation}\label{eq:Phi}
+\Phi_c(m)=\frac{\varphi_c(m)}{\varphi_c(-1)}=\sum_{X}\Et_{cX}\bigl(\Lam_X^{\,m}-1\bigr),\qquad
+\Et_{cX}=\frac{E_{cX}}{\varphi_c(-1)},\qquad w_X(R)=\sum_c F_c(R)\,\Et_{cX}.
+\end{equation}
+Append the vacuum: $\Lam_\vac=1$, $\Et_{\vac\vac}=1$, $\Et_{c\vac}=-\sum_{X\ne\vac}\Et_{cX}$, so that
+$\Phi(m)=\Et\,\Lam^m\one$ with $\Phi_\vac\equiv1$ and $\Phi_c(-1)=1$ for all $c$.  Then
+\begin{equation}\label{eq:Bdef}
+\Phi(m+1)=B\,\Phi(m),\qquad B:=\Et\,\Lam\,\Et^{-1},\qquad \Phi(-1)=\one,\qquad\text{so}\quad \Phi_c(m)=(B^{m+1}\one)_c .
+\end{equation}
+$B$ is lower triangular with respect to the order $X<c$ (its diagonal is $\Lam_c$), $B_{\vac X}=\delta_{X\vac}$, and
+every other row sums to zero ($B\one=\Phi(0)=e_\vac$).  The columns of $\Et$ are the eigenvectors of $B$: whenever
+$B$ is known, $\Et$ (hence $E$ and $\varphi_c(-1)$) follows from the recursion
+\begin{equation}\label{eq:eigrec}
+\Et_{cX}=\frac{\sum_{X<Y<c}B_{cY}\,\Et_{YX}}{\Lam_X-\Lam_c}\quad(X\ne c),\qquad
+\Et_{cc}=\frac{1-\sum_{X\ne c,\vac}\Et_{cX}(\Lam_X^{-1}-1)}{\Lam_c^{-1}-1},\qquad
+E_{cX}=\frac{\Et_{cX}}{\Et_{cc}},\quad \varphi_c(-1)=\frac1{\Et_{cc}}.
+\end{equation}
+So the content of the twist-knot formula is the matrix $B$: $\Lam$, $d_c$ and $\psi_X(R)$ are closed, and
+\eqref{eq:channel}--\eqref{eq:Bdef} express $H_R(\Tw_m)$ for all $m$ through $B$.  Explicit in $m$: expanding
+$B^{m+1}\one$ in eigenvalues gives back \eqref{eq:evol}--\eqref{eq:Phi}.
+
+\begin{conjecture}[twist-knot formula]\label{conj:main}
+For every diagram $R$ and every $m\in\mathbb Z$, $H_R(\Tw_m)=1+\sum_{c\in\Chan(R)}F_c(R)\,(B^{m+1}\one)_c$ with
+$F_c(R)$, $B$ as above, the single rows of $B$ given by \eqref{eq:kntz} and the pair rows by the vanishing conditions.
+\end{conjecture}
+
+\section{The single sector is closed}\label{sec:single}
+
+A single row of $B$ has non-zero entries only at single columns $\mu\subseteq\lambda$ (no pair entries; this holds for
+every single channel with $|\lambda|\le 8$ whose vanishing system has full rank, while the engine's gauge rows of the
+seven rank-deficient singles listed below do contain pair entries, one way to see that this gauge is not the right
+one), and
+
+\begin{conjecture}[KNTZ identity]\label{conj:kntz}
+For single channels $\lambda,\mu$ ($\mu\subseteq\lambda$)
+\begin{equation}\label{eq:kntz}
+B_{\lambda\mu}=(-1)^{|\lambda|-|\mu|}\;\Lam_\lambda\;
+\frac{s_{\lambda'/\mu'}(p^\circ)\,s_{\mu}(p^\circ)}{s_{\lambda}(p^\circ)},\qquad
+\Lam_\lambda=A^{2|\lambda|}q^{4\kappa_\lambda},\qquad
+s_\nu(p^\circ)=\frac{q^{\kappa_\nu}\{q\}^{|\nu|}}{\prod_{b\in\nu}\{q^{h(b)}\}},
+\end{equation}
+where $s_{\lambda'/\mu'}$ is the skew Schur function at the principal specialisation $p^\circ_k=\{q\}^k/\{q^k\}$
+($\lambda'$ is the transposed diagram).  This is the twist matrix of Kameyama--Nawata--Tao--Zhang (``Cyclotomic
+expansions of HOMFLY-PT colored by rectangular Young diagrams'', arXiv:1902.02275), rewritten in the conventions of
+Section~\ref{sec:conv}.
+\end{conjecture}
+
+Examples: $B_{\lambda\vac}=(-1)^{|\lambda|}A^{2|\lambda|}q^{2\kappa_\lambda}$ (since $s_{\lambda'}/s_\lambda=q^{-2\kappa_\lambda}$);
+the rows $[2,1]$, $[2,1,1]$, $[3,1]$ are printed in Appendix~A.2.  Consequences:
+
+\begin{fact}\label{fact:phi}
+$\varphi_\lambda(-1)$ is a product:
+\begin{equation}\label{eq:phiprod}
+\varphi_\lambda(-1)=(-A)^{-|\lambda|}\,q^{-\kappa_\lambda}\prod_{b\in\lambda}D_{\,a(b)-l(b)+2c(b)} ,
+\end{equation}
+e.g.\ $\varphi_{[2]}(-1)=A^{-2}q^{-1}D_1D_2$, $\varphi_{[1,1]}(-1)=A^{-2}qD_{-1}D_{-2}$,
+$\varphi_{[2,1]}(-1)=-A^{-3}D_{-2}D_{0}D_{2}$.
+\end{fact}
+
+\begin{fact}\label{fact:E}
+The single rows of $E$ follow from \eqref{eq:kntz} by \eqref{eq:eigrec}.  They are products of $D_k$'s and quantum
+numbers (as in Appendix~B of the interpolation paper, e.g.\ $E_{[2],[1]}=-[2]D_1/D_0$, $E_{[3],[2]}=-[3]D_3/D_1$),
+with one systematic exception: the entry $E_{\lambda,[1]}$ is not a product for the non-hook, non-rectangular
+$\lambda=[2,2,1],[3,2],[2,2,1,1],[3,2,1],[4,2]$ (it is for hooks and rectangles).
+\end{fact}
+
+\paragraph{Status.}  Exact identity of \eqref{eq:kntz} with the vanishing-condition rows for all $29$ singles with
+$|\lambda|\le 6$ (over $\mathbb Q(A^2,q^2)$); identity of the rows derived by \eqref{eq:eigrec} with the engine's rows
+modulo $p=10^9+7$ at random points for all $59$ singles with $|\lambda|\le8$ whose vanishing system has full rank
+(\LMPH{check kntz}).  For the seven singles $[4,2,1]$, $[3,2,1,1]$, $[5,2,1]$, $[4,2,1,1]$, $[3,2,2,1]$, $[4,3,1]$,
+$[3,2,1,1,1]$ the vanishing system is rank-deficient (by one or two); there the engine's gauge row and the KNTZ row
+differ, $\varphi_\lambda(-1)$ nevertheless agrees, and both choices give the same $H_R(4_1)$ wherever the formula
+works at all ($|R|=7$: $15/15$; $|R|=8$: $20/22$ either way).  The KNTZ row is the canonical choice for these
+channels.
+
+\section{The pair sector: what holds and what is missing}\label{sec:pairs}
+
+A pair $c=\{Z,Z'\}$ has $V=Z\cap Z'$, $U=Z\cup Z'$; it is a \emph{one-cell} pair if $|U|=|Z|+1$, i.e.\ $Z=V+b$,
+$Z'=V+b'$ for two addable boxes $b\ne b'$ of $V$.  Put $s=c(b)+c(b')$.  Then $\Lam_c=\Lam_U A^{-2}q^{-2s}$ and
+$\Lam_U-\Lam_c=\Lam_U A^{-1}q^{-s}D_s$.  Up to six boxes there are $17$ one-cell pairs and three two-cell pairs
+($\{[1,1,1],[3]\}$, $\{[1,1,1,1],[2,2]\}$, $\{[2,2],[4]\}$).
+
+\begin{observation}[all pair rows]\label{obs:all}
+$B_{cc}=\Lam_c$, $B_{cU}=0$, $\sum_X B_{cX}=0$, and the row is supported on the channels $X<c$ (singles
+$\subseteq U$ and pairs whose union is a proper subdiagram of $U$).
+\end{observation}
+
+\begin{observation}[one-cell pairs, $17/17$]\label{obs:one}
+The vacuum and the $[1]$ entries coincide with the KNTZ entries of the union diagram,
+\[
+B_{c\vac}=B_{U\vac}=(-1)^{|U|}A^{2|U|}q^{2\kappa_U},\qquad B_{c,[1]}=B_{U,[1]},
+\]
+and the remaining entries are a correction proportional to $\Lam_U-\Lam_c$:
+\begin{equation}\label{eq:corr}
+B_c=B_U-\Lam_U e_U+\Lam_c e_c+(\Lam_U-\Lam_c)\,v_c,\qquad v_{c\vac}=v_{c,[1]}=v_{cU}=v_{cc}=0,\qquad \sum_X v_{cX}=1 .
+\end{equation}
+(The sum rule is forced by the row sums.)  For the three smallest pairs the vectors $v_c$ are listed in
+Appendix~A.3: their entries are of the form $\pm q^a/\{q^n\}$ or $\pm q^a/(AD_k)$ except at one column
+($[2,1]$ for $\{[1,1,1],[2,1]\}$ and $\{[2,1],[3]\}$), where a polynomial of degree one in $A^2$ appears.  For larger
+pairs the number of such non-product entries grows (between $2$ and $7$ non-product entries per row of $B$ for the
+one-cell pairs with $|U|=5,6$; $6$ for each two-cell pair).
+\end{observation}
+
+\begin{observation}[two-cell pairs]
+Only Observation~\ref{obs:all} holds in general.  The union identities $B_{c\vac}=B_{U\vac}$, $B_{c,[1]}=B_{U,[1]}$
+hold for $\{[1,1,1,1],[2,2]\}$ and $\{[2,2],[4]\}$ but fail for $\{[1,1,1],[3]\}$, whose eigenvalue $A^6$ is resonant
+with the single $[2,1]$.
+\end{observation}
+
+\paragraph{What was tried and failed.}  (a) A product formula for the entries of $v_c$ (or of $B_c$, or of $E_c$)
+in terms of $D_k$, $[n]$ and monomials: false already for $\{[1,1,1],[2,1]\}$ (one non-product entry in each of
+$B_c$, $E_c$, $v_c$).  (b) A universal rule ``$v_{cX}=1/(1-\Lam_X/\Lam_c)$'' suggested by $\{[1,1],[2]\}$
+($v_{[1,1]}=1/(1-q^{-4})$, $v_{[2]}=1/(1-q^{4})$): false for every other pair.  (c) Divisibility of all corrections
+$B_{cX}-B_{UX}$ by $D_s$: true for $11$ of the $17$ one-cell pairs, false e.g.\ for $\{[2,1,1],[3,1]\}$.  (d) Pair
+columns of $v_c$ of the form monomial$/(\Lam_{U_X}-\Lam_X)$ ($U_X$ the union of the pair $X$): true for the four
+smallest one-cell pairs with pair columns, false from $\{[1,1,1,1],[2,1,1]\}$ on.  All $49$ rows of $B$ at $|R|\le6$ (singles and pairs) are
+tabulated exactly in \LMPH{data/twist\_weights/twist\_matrix\_le6.json} (check \LMPH{bmat} compares them with the
+engine), the twist weights built from them in Appendix~A / the JSON table; a closed form for the pair rows remains open.
+
+\section{The evolution coefficients}\label{sec:weights}
+
+\begin{observation}[top coefficients are products]\label{obs:top}
+For all $29$ diagrams $|R|\le6$ and all channels $X=[Z,Z']\in\Chan(R)$: $w_X(R)$ is a product of a monomial
+$A^aq^b$, quantum numbers $[n]$, $\{q\}$ and factors $D_k$ if and only if $Z\cup Z'=R$ (the \emph{top} channels), with
+a single exception in $[3,2,1]$, where the resonant pair $\{[1,1,1],[3]\}$ (union $[3,1,1]\ne R$) is also a product.
+Every other coefficient is such a product times an irreducible polynomial in $A^2$ and $q^{\pm2}$ of degree
+$\le|R|-|Z\cup Z'|$ in $A^2$.
+\end{observation}
+
+Examples (full tables for $[2,1]$, $[3,1]$, $[2,1,1]$ in Appendix~A.1; all $29$ diagrams in the JSON table):
+\begin{align*}
+w_{[2,1]}([2,1])&=-\frac{A^3D_{-3}D_{-1}D_1D_3}{D_0}, &
+w_{\{[1,1],[2]\}}([2,1])&=-\frac{2A^3[3]^2\{q\}^2D_{-2}D_2}{[2]^2D_0},\\
+w_{[3,1]}([3,1])&=\frac{A^4q^2D_{-3}D_{-1}D_0D_2D_5}{D_1}, &
+w_{\{[2,1],[3]\}}([3,1])&=\frac{2A^4q^2[2][4]^2\{q\}^2D_{-2}D_0D_4}{[3]^2D_1},\\
+w_{[3,2]}([3,2])&=-\frac{A^5q^2D_{-3}D_{-2}^2D_3^2D_5}{D_2}, &
+w_{\{[2,2],[3,1]\}}([3,2])&=-\frac{2A^5q^2[3][4]\{q\}^2D_{-3}D_{-2}D_3D_4}{[2]D_2},
+\end{align*}
+while e.g.\ $w_{[2]}([2])=A^2qD_{-1}D_0D_3/D_1$ and
+$w_{[1]}([2])=-A^2[2]D_{-1}\,(A^2q^6-q^6+q^4-1)/(q^2D_0)$.
+The factor $2$ in the pair weights is the two conjugate composites $[Z,Z']$, $[Z',Z]$ counted together.  The
+polynomial parts are the explicit form of the ``$K^R_{\mu\nu}(x)\in\mathbb Q(q)[x]$, $\deg_x\le|R|-|\mu\cup\nu|$'' of
+the project's Formula~I; we did not find a closed expression for them.
+
+\section{Checks}\label{sec:checks}
+
+All checks are modulo $p=10^9+7$ at random $(A,q)$ unless stated otherwise;
+\LMPH{python3 scripts/twist\_formula\_check.py} runs them all (about three minutes), \LMPH{tests/test\_twist\_formula.py}
+a fast subset.  Nothing is fitted anywhere: the only inputs are the vanishing conditions and \eqref{eq:kntz}.
+
+\begin{center}
+\begin{tabular}{p{0.42\textwidth}p{0.52\textwidth}}
+\toprule
+check & result\\
+\midrule
+\eqref{eq:channel} vs all data with $|R|\le6$ (\LMPH{data}) & $319/319$ ($29$ diagrams $\times$ ten knots and the unknot); exact over $\mathbb Q(A^2,q^2)$ as well\\
+tabulated weights (JSON) vs the same data (\LMPH{table}) & $319/319$\\
+$H_R(4_1)=1+\sum_cF_c(R)$ at $|R|=7$ (\LMPH{f41}) & $15/15$\\
+$H_R(4_1)$ at $|R|=8$ (\LMPH{f41}) & $20/22$; fails for $[4,3,1]$ and $[3,2,2,1]$, with and without KNTZ single rows\\
+symmetric $[7],[8],[9],[10]$, ten knots (\LMPH{sym}) & $40/40$\\
+KNTZ identity \eqref{eq:kntz} (\LMPH{kntz}) & exact for $29$ singles $|\lambda|\le6$; mod $p$ for $59$ full-rank singles $|\lambda|\le8$\\
+product formula \eqref{eq:phiprod} (\LMPH{phi}) & all $|\lambda|\le6$ exact, mod $p$ in the script\\
+pair rows: Observations \ref{obs:all}, \ref{obs:one} (\LMPH{pairs}) & $49$ channels at $|R|\le6$; $17/17$ one-cell pairs\\
+tabulated twist matrix vs engine (\LMPH{bmat}) & $49$ rows, all entries agree\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{What is not closed, and where it breaks}
+
+\begin{enumerate}
+\item \textbf{Pair rows of $B$ / $E$} (all non-rectangular $R$): exact but not closed; see Section~\ref{sec:pairs}.
+Already for $R=[2,1]$ the single pair $\{[1,1],[2]\}$ has a fully factorised row, but $\{[1,1,1],[2,1]\}$ and
+$\{[2,1],[3]\}$ ($R=[2,1,1]$, $[3,1]$) do not.
+\item \textbf{Non-top evolution coefficients}: product $\times$ polynomial, polynomial not closed
+(Section~\ref{sec:weights}); already $w_{[1]}([2])$.
+\item \textbf{Resonances}: from $[3,2,1]$ on, the evolution form does not separate channels with equal eigenvalues;
+the channel form does.
+\item \textbf{Rank deficiency}: from seven boxes on, some vanishing systems have free parameters.  For single channels
+the KNTZ row fixes them; for pair channels nothing in this note does.  The first visible failure is $H_R(4_1)$ at
+$R=[4,3,1]$, $[3,2,2,1]$ (eight boxes), where the pairs $\{[3,3],[4,1,1]\}$, $\{[4,2,1],[4,3]\}$, $\{[3,3,1],[4,3]\}$,
+$\{[3,3,1],[4,2,1]\}$ (and their transposes) have two free parameters each.
+\item \textbf{Nothing is proved}: Conjectures \ref{conj:main}, \ref{conj:kntz} and Observations
+\ref{obs:one}--\ref{obs:top} are statements verified on the data listed above only.
+\end{enumerate}
+
+\appendix
+\section{Tables}
+
+Notation: $D_k=Aq^k-A^{-1}q^{-k}$, $[n]$ quantum numbers, $\{q\}=q-q^{-1}$; $P$, $Q$, $S$, $T$ denote the
+non-factorising polynomial parts (in $A^2$ and $q^2$).  Channel labels: $[\mu]$ for the single $[\mu,\mu]$,
+$\{Z,Z'\}$ for a pair.
+
+\subsection*{A.1 Evolution coefficients}
+\noindent $R = [2,1]$ ($5$ channels, all with distinct eigenvalues):
+\begin{align*}
+w_{[1]} &= -\frac{A^{3}\,[3]}{q^{6}\,D_{0}}\,P_{[1]}, \\
+ P_{[1]} &= A^{4}q^{6}-A^{2}q^{12}-A^{2}+2q^{12}-4q^{10}+4q^{8}-3q^{6}+4q^{4}-4q^{2}+2 \\
+w_{[1,1]} &= \frac{A^{3}\,[3]\,D_{-3}\,D_{0}}{q^{4}\,[2]^{2}\,D_{-1}}\,P_{[1,1]}, \\
+ P_{[1,1]} &= A^{2}q^{8}+A^{2}q^{6}-q^{8}+q^{6}-q^{4}-1 \\
+w_{[2]} &= \frac{A^{3}\,[3]\,D_{0}\,D_{3}}{q^{4}\,[2]^{2}\,D_{1}}\,P_{[2]}, \\
+ P_{[2]} &= A^{2}q^{2}+A^{2}-q^{8}-q^{4}+q^{2}-1 \\
+w_{\{[1,1],[2]\}} &= -\frac{2\,A^{3}\,[3]^{2}\,\{q\}^{2}\,D_{-2}\,D_{2}}{[2]^{2}\,D_{0}} \\
+w_{[2,1]} &= -\frac{A^{3}\,D_{-3}\,D_{-1}\,D_{1}\,D_{3}}{D_{0}} \\
+\end{align*}
+
+\noindent $R = [3,1]$ ($8$ channels, all with distinct eigenvalues):
+\begin{align*}
+w_{[1]} &= -\frac{A^{4}\,[4]}{q^{9}\,D_{0}\,D_{2}}\,P_{[1]}, \\
+ P_{[1]} &= A^{6}q^{18}-A^{4}q^{24}-A^{4}q^{18}+A^{4}q^{12}-A^{4}q^{10}-A^{4}q^{8} \\
+ &\qquad +2A^{2}q^{24}-A^{2}q^{22}-A^{2}q^{20}+2A^{2}q^{18}-2A^{2}q^{16}+2A^{2}q^{14} \\
+ &\qquad +A^{2}q^{12}-2A^{2}q^{10}+2A^{2}q^{8}-A^{2}q^{4}+A^{2}-2q^{22}+4q^{20}-2q^{18} \\
+ &\qquad -4q^{16}+7q^{14}-5q^{12}+5q^{8}-6q^{6}+q^{4}+3q^{2}-2 \\
+w_{[1,1]} &= \frac{A^{4}\,[4]\,D_{-3}\,D_{0}}{q^{6}\,[2]\,D_{-1}\,D_{2}}\,P_{[1,1]}, \\
+ P_{[1,1]} &= A^{4}q^{18}-A^{2}q^{18}-A^{2}q^{8}+q^{16}-2q^{14}+q^{12}+2q^{10}-2q^{8}+q^{6} \\
+ &\qquad -q^{2}+1 \\
+w_{[2]} &= \frac{A^{4}\,[4]\,D_{0}\,D_{3}}{q^{5}\,D_{1}\,D_{2}}\,P_{[2]}, \\
+ P_{[2]} &= A^{4}q^{10}-A^{2}q^{16}+A^{2}q^{14}-2A^{2}q^{12}+2A^{2}q^{10}-2A^{2}q^{8} \\
+ &\qquad +A^{2}q^{6}-A^{2}+2q^{14}-5q^{12}+6q^{10}-4q^{8}+q^{6}+3q^{4}-4q^{2}+2 \\
+w_{\{[1,1],[2]\}} &= -\frac{2\,A^{4}\,[4]^{2}\,\{q\}^{2}\,D_{-2}}{q\,[2]\,D_{0}}\,P_{\{[1,1],[2]\}}, \\
+ P_{\{[1,1],[2]\}} &= A^{2}q^{8}-q^{6}+q^{4}-1 \\
+w_{[2,1]} &= -\frac{A^{4}\,[2]\,[4]\,D_{-3}\,D_{-1}\,D_{1}\,D_{3}}{q^{4}\,[3]^{2}\,D_{0}\,D_{2}}\,P_{[2,1]}, \\
+ P_{[2,1]} &= A^{2}q^{14}+A^{2}q^{12}+A^{2}q^{10}-q^{12}+q^{8}-q^{6}-q^{2}-1 \\
+w_{[3]} &= -\frac{A^{4}\,[4]\,D_{0}\,D_{1}\,D_{5}}{q^{3}\,[3]^{2}\,D_{2}}\,P_{[3]}, \\
+ P_{[3]} &= A^{2}q^{4}+A^{2}q^{2}+A^{2}-q^{10}-q^{6}-q^{4}+q^{2}-1 \\
+w_{\{[2,1],[3]\}} &= \frac{2\,A^{4}\,q^{2}\,[2]\,[4]^{2}\,\{q\}^{2}\,D_{-2}\,D_{0}\,D_{4}}{[3]^{2}\,D_{1}} \\
+w_{[3,1]} &= \frac{A^{4}\,q^{2}\,D_{-3}\,D_{-1}\,D_{0}\,D_{2}\,D_{5}}{D_{1}} \\
+\end{align*}
+
+\noindent $R = [2,1,1]$ ($8$ channels, all with distinct eigenvalues):
+\begin{align*}
+w_{[1]} &= -\frac{A^{4}\,[4]}{q^{15}\,D_{-2}\,D_{0}}\,P_{[1]}, \\
+ P_{[1]} &= A^{6}q^{6}-A^{4}q^{16}-A^{4}q^{14}+A^{4}q^{12}-A^{4}q^{6}-A^{4}+A^{2}q^{24} \\
+ &\qquad -A^{2}q^{20}+2A^{2}q^{16}-2A^{2}q^{14}+A^{2}q^{12}+2A^{2}q^{10}-2A^{2}q^{8} \\
+ &\qquad +2A^{2}q^{6}-A^{2}q^{4}-A^{2}q^{2}+2A^{2}-2q^{24}+3q^{22}+q^{20}-6q^{18} \\
+ &\qquad +5q^{16}-5q^{12}+7q^{10}-4q^{8}-2q^{6}+4q^{4}-2q^{2} \\
+w_{[1,1]} &= \frac{A^{4}\,[4]\,D_{-3}\,D_{0}}{q^{11}\,D_{-2}\,D_{-1}}\,P_{[1,1]}, \\
+ P_{[1,1]} &= A^{4}q^{6}-A^{2}q^{16}+A^{2}q^{10}-2A^{2}q^{8}+2A^{2}q^{6}-2A^{2}q^{4} \\
+ &\qquad +A^{2}q^{2}-A^{2}+2q^{16}-4q^{14}+3q^{12}+q^{10}-4q^{8}+6q^{6}-5q^{4}+2q^{2} \\
+w_{[2]} &= \frac{A^{4}\,[4]\,D_{0}\,D_{3}}{q^{12}\,[2]\,D_{-2}\,D_{1}}\,P_{[2]}, \\
+ P_{[2]} &= A^{4}-A^{2}q^{10}-A^{2}+q^{18}-q^{16}+q^{12}-2q^{10}+2q^{8}+q^{6}-2q^{4} \\
+ &\qquad +q^{2} \\
+w_{\{[1,1],[2]\}} &= -\frac{2\,A^{4}\,[4]^{2}\,\{q\}^{2}\,D_{2}}{q^{7}\,[2]\,D_{0}}\,P_{\{[1,1],[2]\}}, \\
+ P_{\{[1,1],[2]\}} &= A^{2}-q^{8}+q^{4}-q^{2} \\
+w_{[1,1,1]} &= -\frac{A^{4}\,[4]\,D_{-5}\,D_{-1}\,D_{0}}{q^{7}\,[3]^{2}\,D_{-2}}\,P_{[1,1,1]}, \\
+ P_{[1,1,1]} &= A^{2}q^{10}+A^{2}q^{8}+A^{2}q^{6}-q^{10}+q^{8}-q^{6}-q^{4}-1 \\
+w_{[2,1]} &= -\frac{A^{4}\,[2]\,[4]\,D_{-3}\,D_{-1}\,D_{1}\,D_{3}}{q^{10}\,[3]^{2}\,D_{-2}\,D_{0}}\,P_{[2,1]}, \\
+ P_{[2,1]} &= A^{2}q^{4}+A^{2}q^{2}+A^{2}-q^{14}-q^{12}-q^{8}+q^{6}-q^{2} \\
+w_{\{[1,1,1],[2,1]\}} &= \frac{2\,A^{4}\,[2]\,[4]^{2}\,\{q\}^{2}\,D_{-4}\,D_{0}\,D_{2}}{q^{2}\,[3]^{2}\,D_{-1}} \\
+w_{[2,1,1]} &= \frac{A^{4}\,D_{-5}\,D_{-2}\,D_{0}\,D_{1}\,D_{3}}{q^{2}\,D_{-1}} \\
+\end{align*}
+
+\subsection*{A.2 Rows of the twist matrix}
+\noindent Row $c = [2,1]$ (single, $\Lambda_c = A^{6}$):
+\begin{align*}
+B_{c,\varnothing} &= -A^{6} \\
+B_{c,[1]} &= A^{6}\,[3] \\
+B_{c,[1,1]} &= -\frac{A^{6}\,[3]}{q\,[2]} \\
+B_{c,[2]} &= -\frac{A^{6}\,q\,[3]}{[2]} \\
+B_{c,[2,1]} &= A^{6} \\
+\end{align*}
+
+\noindent Row $c = \{[1,1],[2]\}$ (pair, $\Lambda_c = A^{4}$, $U = [2,1]$, $\Lambda_U - \Lambda_c = A^{5}\,D_{0}$):
+\begin{align*}
+B_{c,\varnothing} &= -A^{6} \\
+B_{c,[1]} &= A^{6}\,[3] \\
+B_{c,[1,1]} &= \frac{A^{5}\,D_{-3}}{q\,[2]\,\{q\}} \\
+B_{c,[2]} &= -\frac{A^{5}\,q\,D_{3}}{[2]\,\{q\}} \\
+B_{c,\{[1,1],[2]\}} &= A^{4} \\
+\end{align*}
+
+\noindent Row $c = [2,1,1]$ (single, $\Lambda_c = \frac{A^{8}}{q^{8}}$):
+\begin{align*}
+B_{c,\varnothing} &= \frac{A^{8}}{q^{4}} \\
+B_{c,[1]} &= -\frac{A^{8}\,[4]}{q^{5}} \\
+B_{c,[1,1]} &= \frac{A^{8}\,[4]}{q^{7}} \\
+B_{c,[2]} &= \frac{A^{8}\,[4]}{q^{4}\,[2]} \\
+B_{c,[1,1,1]} &= -\frac{A^{8}\,[4]}{q^{9}\,[3]} \\
+B_{c,[2,1]} &= -\frac{A^{8}\,[2]\,[4]}{q^{6}\,[3]} \\
+B_{c,[2,1,1]} &= \frac{A^{8}}{q^{8}} \\
+\end{align*}
+
+\noindent Row $c = [3,1]$ (single, $\Lambda_c = A^{8}\,q^{8}$):
+\begin{align*}
+B_{c,\varnothing} &= A^{8}\,q^{4} \\
+B_{c,[1]} &= -A^{8}\,q^{5}\,[4] \\
+B_{c,[1,1]} &= \frac{A^{8}\,q^{4}\,[4]}{[2]} \\
+B_{c,[2]} &= A^{8}\,q^{7}\,[4] \\
+B_{c,[2,1]} &= -\frac{A^{8}\,q^{6}\,[2]\,[4]}{[3]} \\
+B_{c,[3]} &= -\frac{A^{8}\,q^{9}\,[4]}{[3]} \\
+B_{c,[3,1]} &= A^{8}\,q^{8} \\
+\end{align*}
+
+\noindent Row $c = \{[1,1,1],[2,1]\}$ (pair, $\Lambda_c = \frac{A^{6}}{q^{6}}$, $U = [2,1,1]$, $\Lambda_U - \Lambda_c = \frac{A^{7}\,D_{-1}}{q^{7}}$):
+\begin{align*}
+B_{c,\varnothing} &= \frac{A^{8}}{q^{4}} \\
+B_{c,[1]} &= -\frac{A^{8}\,[4]}{q^{5}} \\
+B_{c,[1,1]} &= \frac{A^{6}}{q^{12}\,[2]\,\{q\}}\,Q_{[1,1]}, \\
+ Q_{[1,1]} &= A^{2}q^{10}-A^{2}q^{2}-A^{2}+q^{10} \\
+B_{c,[2]} &= \frac{A^{7}\,D_{3}}{q^{3}\,[2]\,\{q\}} \\
+B_{c,\{[1,1],[2]\}} &= -\frac{A^{6}\,D_{-1}}{q^{5}\,D_{0}} \\
+B_{c,[1,1,1]} &= \frac{A^{7}\,D_{-5}}{q^{8}\,[3]\,\{q\}} \\
+B_{c,[2,1]} &= -\frac{A^{7}\,D_{1}\,D_{3}}{q^{5}\,[3]\,\{q\}\,D_{0}} \\
+B_{c,\{[1,1,1],[2,1]\}} &= \frac{A^{6}}{q^{6}} \\
+\end{align*}
+
+\noindent Row $c = \{[2,1],[3]\}$ (pair, $\Lambda_c = A^{6}\,q^{6}$, $U = [3,1]$, $\Lambda_U - \Lambda_c = A^{7}\,q^{7}\,D_{1}$):
+\begin{align*}
+B_{c,\varnothing} &= A^{8}\,q^{4} \\
+B_{c,[1]} &= -A^{8}\,q^{5}\,[4] \\
+B_{c,[1,1]} &= -\frac{A^{7}\,q^{3}\,D_{-3}}{[2]\,\{q\}} \\
+B_{c,[2]} &= \frac{A^{6}\,q^{2}}{[2]\,\{q\}}\,Q_{[2]}, \\
+ Q_{[2]} &= A^{2}q^{10}+A^{2}q^{8}-A^{2}-1 \\
+B_{c,\{[1,1],[2]\}} &= -\frac{A^{6}\,q^{5}\,D_{1}}{D_{0}} \\
+B_{c,[2,1]} &= \frac{A^{7}\,q^{5}\,D_{-3}\,D_{-1}}{[3]\,\{q\}\,D_{0}} \\
+B_{c,[3]} &= -\frac{A^{7}\,q^{8}\,D_{5}}{[3]\,\{q\}} \\
+B_{c,\{[2,1],[3]\}} &= A^{6}\,q^{6} \\
+\end{align*}
+
+\subsection*{A.3 Correction vectors of the one-cell pairs}
+\noindent $c = \{[1,1],[2]\}$, $U = [2,1]$:
+\begin{align*}
+v_{c,[1,1]} &= \frac{q^{2}}{[2]\,\{q\}} \\
+v_{c,[2]} &= -\frac{1}{q^{2}\,[2]\,\{q\}} \\
+\end{align*}
+
+\noindent $c = \{[1,1,1],[2,1]\}$, $U = [2,1,1]$:
+\begin{align*}
+v_{c,[1,1]} &= -\frac{q^{4}}{[2]\,\{q\}} \\
+v_{c,[2]} &= \frac{1}{[2]\,\{q\}} \\
+v_{c,\{[1,1],[2]\}} &= -\frac{q^{2}}{A\,D_{0}} \\
+v_{c,[1,1,1]} &= \frac{q^{3}}{[3]\,\{q\}} \\
+v_{c,[2,1]} &= \frac{1}{A\,q^{3}\,[3]\,\{q\}\,D_{0}}\,S_{[2,1]}, \\
+ S_{[2,1]} &= A^{2}q^{8}-A^{2}q^{2}-A^{2}+1 \\
+\end{align*}
+
+\noindent $c = \{[2,1],[3]\}$, $U = [3,1]$:
+\begin{align*}
+v_{c,[1,1]} &= -\frac{1}{[2]\,\{q\}} \\
+v_{c,[2]} &= \frac{1}{q^{4}\,[2]\,\{q\}} \\
+v_{c,\{[1,1],[2]\}} &= -\frac{1}{A\,q^{2}\,D_{0}} \\
+v_{c,[2,1]} &= \frac{1}{A\,q^{5}\,[3]\,\{q\}\,D_{0}}\,S_{[2,1]}, \\
+ S_{[2,1]} &= A^{2}q^{8}+A^{2}q^{6}-A^{2}-q^{8} \\
+v_{c,[3]} &= -\frac{1}{q^{3}\,[3]\,\{q\}} \\
+\end{align*}
+
+\subsection*{A.4 Interpolation rows $E_c$ of the smallest pairs}
+\noindent $c = \{[1,1],[2]\}$, $\varphi_c(-1) = \frac{[2]^{2}\,\{q\}^{2}\,D_{0}}{2\,A^{3}}$:
+\begin{align*}
+E_{c,\{[1,1],[2]\}} &= 1 \\
+E_{c,[1]} &= -\frac{[2]\,[4]\,\{q\}^{2}}{2\,D_{-2}\,D_{2}} \\
+E_{c,[1,1]} &= -\frac{D_{-3}\,D_{0}}{2\,D_{-2}\,D_{-1}} \\
+E_{c,[2]} &= -\frac{D_{0}\,D_{3}}{2\,D_{1}\,D_{2}} \\
+\end{align*}
+
+\noindent $c = \{[1,1,1],[2,1]\}$, $\varphi_c(-1) = -\frac{q^{2}\,[3]^{2}\,\{q\}^{2}\,D_{-3}\,D_{-1}}{2\,A^{4}}$:
+\begin{align*}
+E_{c,\{[1,1,1],[2,1]\}} &= 1 \\
+E_{c,[1]} &= \frac{[3]^{2}\,\{q\}^{2}\,D_{-1}}{2\,A\,q^{3}\,D_{-2}\,D_{0}^{2}\,D_{2}}\,T_{[1]}, \\
+ T_{[1]} &= A^{2}q^{6}+A^{2}q^{4}+A^{2}-q^{6}-q^{2}-1 \\
+E_{c,[1,1]} &= \frac{[3]^{2}\,D_{-3}}{2\,A^{2}\,q^{7}\,[2]^{2}\,D_{-4}\,D_{-2}\,D_{2}}\,T_{[1,1]}, \\
+ T_{[1,1]} &= A^{4}q^{4}-A^{2}q^{14}-A^{2}q^{12}+2A^{2}q^{10}-A^{2}q^{8}-A^{2}q^{6} \\
+ &\qquad +2A^{2}q^{4}-A^{2}q^{2}-A^{2}+q^{10} \\
+E_{c,[2]} &= \frac{[3]^{2}\,D_{-3}\,D_{-1}\,D_{3}}{2\,[2]^{2}\,D_{-2}\,D_{1}\,D_{2}} \\
+E_{c,\{[1,1],[2]\}} &= -\frac{[3]^{2}\,D_{-1}^{2}}{[2]^{2}\,D_{0}^{2}} \\
+E_{c,[1,1,1]} &= -\frac{D_{-5}\,D_{-1}}{2\,D_{-4}\,D_{-2}} \\
+E_{c,[2,1]} &= -\frac{D_{-3}\,D_{-1}\,D_{1}\,D_{3}}{2\,D_{-2}\,D_{0}^{2}\,D_{2}} \\
+\end{align*}
+
+\noindent $c = \{[2,1],[3]\}$, $\varphi_c(-1) = -\frac{[3]^{2}\,\{q\}^{2}\,D_{1}\,D_{3}}{2\,A^{4}\,q^{2}}$:
+\begin{align*}
+E_{c,\{[2,1],[3]\}} &= 1 \\
+E_{c,[1]} &= \frac{[3]^{2}\,\{q\}^{2}\,D_{1}}{2\,A\,q^{3}\,D_{-2}\,D_{0}^{2}\,D_{2}}\,T_{[1]}, \\
+ T_{[1]} &= A^{2}q^{6}+A^{2}q^{2}+A^{2}-q^{6}-q^{4}-1 \\
+E_{c,[1,1]} &= \frac{[3]^{2}\,D_{-3}\,D_{1}\,D_{3}}{2\,[2]^{2}\,D_{-2}\,D_{-1}\,D_{2}} \\
+E_{c,[2]} &= \frac{[3]^{2}\,D_{3}}{2\,A^{2}\,q^{7}\,[2]^{2}\,D_{-2}\,D_{2}\,D_{4}}\,T_{[2]}, \\
+ T_{[2]} &= A^{4}q^{10}-A^{2}q^{14}-A^{2}q^{12}+2A^{2}q^{10}-A^{2}q^{8}-A^{2}q^{6} \\
+ &\qquad +2A^{2}q^{4}-A^{2}q^{2}-A^{2}+q^{4} \\
+E_{c,\{[1,1],[2]\}} &= -\frac{[3]^{2}\,D_{1}^{2}}{[2]^{2}\,D_{0}^{2}} \\
+E_{c,[2,1]} &= -\frac{D_{-3}\,D_{-1}\,D_{1}\,D_{3}}{2\,D_{-2}\,D_{0}^{2}\,D_{2}} \\
+E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
+\end{align*}
+
+
+\section{How to reproduce}
+\begin{itemize}
+\item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
+(options \LMPH{--nmax}, \LMPH{--seed}; individual checks \LMPH{data kntz phi f41 sym table pairs}).
+\item \LMPH{python3 -m pytest tests/test\_twist\_formula.py} --- fast subset.
+\item \LMPH{data/twist\_weights/twist\_weights\_le6.json} --- all $w_X(R)$, $|R|\le6$, as numerator/denominator
+monomial lists in $x=A^2$, $y=q^2$ (exact, computed over $\mathbb Q(x,y)$ with python-flint from the vanishing
+conditions; the script evaluates them modulo $p$).
+\item \LMPH{data/twist\_weights/twist\_matrix\_le6.json} --- the exact twist matrix $B$ on the $49$ channels present
+at $|R|\le6$, same format.
+\end{itemize}
+
+\end{document}
