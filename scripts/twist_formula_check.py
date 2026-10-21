@@ -56,9 +56,12 @@ checks:
           channel with one minimal diagram, and rho = (-1)^{|R|} pi prod_b {q^{h(b)}}^2
   twocell the pair diagonal N_cc (one-cell and non-resonant two-cell pairs, hinge shift for domino/separate), the first pair
           column Ebar_1^2/(2 A^3 D_0), and for the two-cell rows the partner (P) and X* (P*) entries of B and the zeros of N
+  lagrange  the light columns of the non-resonant rows of N (singles, one-cell, two-cell) as Lagrange interpolants (L) in
+          the Ebar-even composite power sums on the channels of one domino orientation (node census (U) to weight 10),
+          and the explicit weight-3 columns
 
 usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed vacuum
-       twocell]
+       twocell lagrange]
 """
 import argparse
 import gzip
@@ -1995,12 +1998,206 @@ def check_twocell(nmax=6, seed=1):
                         "none" if not bad else bad[:4])]
 
 
+def lagrange_family(c):
+    """Interpolation families of (L): {'h', 'v'} for the vacuum, the singles, the one-cell pairs and the separate/separate
+    two-cell pairs; {'h'} for row/row pairs and domino/separate pairs with a horizontal domino; {'v'} for col/col pairs
+    and those with a vertical domino; set() for the resonant pairs and the pairs with three or more moved cells."""
+    if c == VAC or c[0] == "s":
+        return {"h", "v"}
+    kind = pair_kind(c)
+    if kind in ("1-cell", "2-cell separate/separate"):
+        return {"h", "v"}
+    if twocell_class(c) is None:
+        return set()
+    V, X, Y = pair_cells(c)
+    return {side_kind(X)} if side_kind(X) in ("h", "v") else {side_kind(Y)}
+
+
+def weight(c):
+    return 0 if c == VAC else sum(c[1])
+
+
+def lagrange_nodes(w):
+    """{xi: Omega^xi_w}: all channels of weight <= w in the family xi (every pair {Z, Z'}, |Z| = |Z'| <= w, and single)."""
+    out = {"h": [VAC], "v": [VAC]}
+    for k in range(1, w + 1):
+        ps = list(partitions(k))
+        for c in [I.single(mu) for mu in ps] + [I.pair(Z, Zp) for i, Z in enumerate(ps) for Zp in ps[i + 1:]]:
+            for xi in sorted(lagrange_family(c)):
+                out[xi].append(c)
+    return out
+
+
+def pi_monomials(w):
+    """The monomials prod_i Obar_{a_i} prod_j Ebar_{b_j} of weight sum a + sum b <= w with an even number of Ebar
+    factors, as pairs of partitions (a, b): a basis of Pi_w."""
+    out = []
+    for n in range(w + 1):
+        for k in range(n + 1):
+            for a in partitions(k):
+                for b in partitions(n - k):
+                    if len(b) % 2 == 0:
+                        out.append((tuple(a), tuple(b)))
+    return out
+
+
+def power_sums(c, kmax, F, A, q):
+    """Obar_k = sum_{e in Z u Z'} {z_e^k},  Ebar_k = sum_{e in Z} (z_e^k + z_e^-k) - sum_{e in Z'} (z_e^k + z_e^-k),
+    z_e = A q^{2c(e)}, k = 1..kmax (a single is Z = Z' = mu, the vacuum Z = Z' = ())."""
+    O, E = [F.zero] * (kmax + 1), [F.zero] * (kmax + 1)
+    for lam, sg in ((c[1], 1), (c[2], -1)):
+        for e in boxes(lam):
+            z, zk = A * q ** (2 * cont(e)), F.one
+            for k in range(1, kmax + 1):
+                zk = zk * z
+                O[k] = O[k] + zk - 1 / zk
+                E[k] = E[k] + sg * (zk + 1 / zk)
+    return O, E
+
+
+def monomial_values(c, mons, F, A, q):
+    """The values m(c) of the monomials of Pi_w at the channel c, as integers mod p."""
+    O, E = power_sums(c, max([sum(a) + sum(b) for a, b in mons] + [1]), F, A, q)
+    vals = []
+    for a, b in mons:
+        v = F.one
+        for k in a:
+            v = v * O[k]
+        for k in b:
+            v = v * E[k]
+        vals.append(int(v))
+    return vals
+
+
+def inverse_mod(M, p):
+    """Inverse of a square matrix of integers mod p (Gauss-Jordan), or None if singular."""
+    n = len(M)
+    W = [[x % p for x in row] + [int(i == j) for j in range(n)] for i, row in enumerate(M)]
+    for col in range(n):
+        piv = next((r for r in range(col, n) if W[r][col]), None)
+        if piv is None:
+            return None
+        W[col], W[piv] = W[piv], W[col]
+        s = pow(W[col][col], p - 2, p)
+        W[col] = [x * s % p for x in W[col]]
+        for r in range(n):
+            f = W[r][col]
+            if r != col and f:
+                W[r] = [(x - f * y) % p for x, y in zip(W[r], W[col])]
+    return [row[n:] for row in W]
+
+
+def low_columns(c, F, A, q):
+    """The explicit light columns of weight 3 of every non-resonant row (from (L)):
+        N_{c,{[2,1],[3]}}     =  Ebar_1 (2 b(q) b(A q^2) Ebar_1 - {q} Ebar_1 Obar_1 - b(q) Ebar_2) / (4 A^4 q^2 {q^2} D_1),
+        N_{c,{[1,1,1],[2,1]}} = -q^2 Ebar_1 (2 b(q) b(A q^-2) Ebar_1 + {q} Ebar_1 Obar_1 - b(q) Ebar_2) / (4 A^4 {q^2} D_-1),
+    with b(u) = u + 1/u."""
+    O, E = power_sums(c, 2, F, A, q)
+    b = lambda u: u + 1 / u
+    x = E[1] * (2 * b(q) * b(A * q ** 2) * E[1] - curly(q) * E[1] * O[1] - b(q) * E[2]) / (
+        4 * A ** 4 * q ** 2 * curly(q ** 2) * Dk(1, F, A, q))
+    y = -q ** 2 * E[1] * (2 * b(q) * b(A / q ** 2) * E[1] + curly(q) * E[1] * O[1] - b(q) * E[2]) / (
+        4 * A ** 4 * curly(q ** 2) * Dk(-1, F, A, q))
+    return {("p", (2, 1), (3,)): x, ("p", (1, 1, 1), (2, 1)): y}
+
+
+def check_lagrange(nmax=6, seed=1):
+    """(L) The light columns of the non-resonant rows of N are Lagrange interpolants.  With the families of
+    lagrange_family, the space Pi_w of Ebar-even polynomials of weight <= w in the composite power sums, and the nodes
+    Omega^xi_w (all channels of weight <= w of the family), (U) |Omega^xi_w| = dim Pi_w and the node matrix is invertible;
+    for a row c of the family and a column Y in Omega^xi_w of weight w < wt c,
+        N_cY = sum_{c' in Omega^xi_w, wt c' = w} N_{c'Y} L_{c'}(c),     L_{c'} the Lagrange basis of Pi_w on Omega^xi_w,
+    and N_cY = 0 for every light Y outside the family.  The top values N_{c'Y} are read from the engine rows (entries whose
+    needed top value has no clean row are counted as not tested); also the explicit weight-3 columns of low_columns."""
+    F, A, q = random_point(seed)
+    p = F.p
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    pos = {c: i for i, c in enumerate(order)}
+    have = set(clean) | {VAC}
+    rows = [c for c in clean if lagrange_family(c)]
+    wmax = max(weight(c) for c in rows) - 1
+    nodes = lagrange_nodes(wmax)
+    cnt = {"L": 0, "L nonzero": 0, "outside": 0, "untested": 0, "low": 0}
+    units, bad = [], []
+    allnodes, census = lagrange_nodes(10), []
+    for w in range(11):
+        sizes = [len([c for c in allnodes[xi] if weight(c) <= w]) for xi in ("h", "v")]
+        census.append((w, sizes, len(pi_monomials(w))))
+        if w <= 9 and sizes != [census[-1][2]] * 2:
+            bad.append(("census", w, sizes, census[-1][2]))
+    kinds = {}
+    for c in rows:
+        k = "single" if c[0] == "s" else ("one-cell" if pair_kind(c) == "1-cell" else "two-cell")
+        kinds[k] = kinds.get(k, 0) + 1
+    for w in range(wmax + 1):
+        mons = pi_monomials(w)
+        for xi in ("h", "v"):
+            Om = [c for c in nodes[xi] if weight(c) <= w]
+            units.append(len(Om) == len(mons))
+            if len(Om) != len(mons):
+                bad.append(("count", xi, w, len(Om), len(mons)))
+                continue
+            Vi = inverse_mod([monomial_values(c, mons, F, A, q) for c in Om], p)
+            if Vi is None:
+                bad.append(("singular", xi, w))
+                continue
+            top = [j for j, c in enumerate(Om) if weight(c) == w]
+            omset = set(Om)
+            for c in rows:
+                if xi not in lagrange_family(c) or weight(c) <= w:
+                    continue
+                m = monomial_values(c, mons, F, A, q)
+                L = {j: sum(m[k] * Vi[k][j] for k in range(len(mons))) % p for j in top}
+                i = pos[c]
+                for jY in top:
+                    Y = Om[jY]
+                    if Y not in pos:
+                        continue
+                    pred, ok = 0, True
+                    for j in top:
+                        if L[j]:
+                            if Om[j] not in have:
+                                ok = False
+                                break
+                            pred += int(N[pos[Om[j]]][pos[Y]]) * L[j]
+                    if not ok:
+                        cnt["untested"] += 1
+                        continue
+                    cnt["L"] += 1
+                    cnt["L nonzero"] += N[i][pos[Y]] != 0
+                    if N[i][pos[Y]] != F(pred % p):
+                        bad.append(("L", xi, c, Y))
+                for Y in order[1:i]:
+                    if weight(Y) == w and Y not in omset:
+                        cnt["outside"] += 1
+                        if N[i][pos[Y]] != 0:
+                            bad.append(("outside", xi, c, Y))
+    for c in rows:
+        if weight(c) > 3:
+            for Y, v in low_columns(c, F, A, q).items():
+                if Y in pos:
+                    cnt["low"] += 1
+                    if N[pos[c]][pos[Y]] != v:
+                        bad.append(("low", c, Y))
+    w10 = census[10]
+    return not bad, ["lagrange: (U) |Omega_w| = dim Pi_w for w <= 9 in both families (dim Pi_9 = %d; at w = 10 %d nodes "
+                     "against %d); |R| <= %d, rows %s, columns of weight <= %d: node matrices invertible %d/%d; (L) %d "
+                     "entries (%d non-zero), %d light columns outside the family = 0, %d not tested (a top value without a "
+                     "clean row); weight-3 columns %d; mismatches %s"
+                     % (census[9][2], w10[1][0], w10[2], nmax, ", ".join("%s %d" % (k, kinds[k]) for k in sorted(kinds)),
+                        wmax, sum(units), len(units), cnt["L"], cnt["L nonzero"], cnt["outside"], cnt["untested"],
+                        cnt["low"], "none" if not bad else bad[:4])]
+
+
 CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check_f41, "sym": check_sym,
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
           "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
           "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow, "kernel": check_kernel,
           "topweight": check_topweight, "mult": check_mult, "closed": check_closed, "vacuum": check_vacuum,
-          "twocell": check_twocell}
+          "twocell": check_twocell, "lagrange": check_lagrange}
 
 
 def set_node_bound(nb):

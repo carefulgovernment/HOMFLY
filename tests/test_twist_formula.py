@@ -162,3 +162,10 @@ def test_twocell_rows():
     """Pair diagonals, first pair columns, and the partner / X* / zero entries of the non-resonant two-cell rows."""
     ok, lines = T.check_twocell(nmax=6, seed=23)
     assert ok, lines
+
+
+def test_lagrange_light_columns():
+    """The light columns of the non-resonant rows of N are Lagrange interpolants on the channels of one domino
+    orientation (node count = dim Pi_w for w <= 9), and the explicit weight-3 columns."""
+    ok, lines = T.check_lagrange(nmax=6, seed=25)
+    assert ok, lines
