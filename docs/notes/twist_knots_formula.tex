@@ -92,9 +92,9 @@ formula \eqref{eq:union}), and the whole row is closed for the hook family $\{[k
 $[r,1]$, $[2,1^{r-1}]$ and all rectangles.  \emph{Not closed}: the landing pair entries, first met at $R=[2,2,1]$ and
 $[3,2]$, where exactly one entry of $N$ (for $c=\{[2,1,1],[2,2]\}$, $X=\{[1,1,1],[2,1]\}$, and its transpose) is outside
 the formulas; through the triangular structure they also leave the non-adjacent pair columns open (equivalently, the
-residues of $B_c$ at the resonances $\Lam_Y=\Lam_{U_Y}$ of the landing pairs $Y<c$); and the two-cell pairs, for which
-only an analysis-level rule with case distinctions exists.  This is exactly where the ``one simple closed formula''
-stops.
+residues of $B_c$ at the resonances $\Lam_Y=\Lam_{U_Y}$ of the landing pairs $Y<c$); and the two-cell pairs, for which an
+analysis-level grid expansion with one geometric input exists (Section~\ref{sec:pairs}), not re-checked by the script.
+This is exactly where the ``one simple closed formula'' stops.
 
 \item \textbf{Where it breaks.}  Up to seven boxes the vanishing conditions determine every row of $E$ once enough
 nodes are used; the rank deficiencies seen at seven and eight boxes with the engine's default node bound are an artefact
@@ -366,12 +366,24 @@ hold for $\{[1,1,1,1],[2,2]\}$ and $\{[2,2],[4]\}$ but fail for $\{[1,1,1],[3]\}
 with the single $[2,1]$.  (Up to eight boxes, modulo $p$: they hold for all $56$ one-cell pairs and for $16$ of the $22$
 multi-cell pairs; the six failures $\{[1,1,1],[3]\}$, $\{[1^4],[3,1]\}$, $\{[2,1,1],[4]\}$, $\{[1^5],[3,1,1]\}$,
 $\{[2,1^3],[4,1]\}$, $\{[3,1,1],[5]\}$ are exactly the pairs in which $Z$ and $Z'$ differ by a vertical and a horizontal
-domino, i.e.\ the resonant ones.)  In the analysis, the single columns of every non-resonant two-cell pair row
-of $N$ at up to nine boxes are a combination $\sum_{V\subseteq\lambda\subseteq U}M_\lambda N_{\lambda\mu}$ of the
-closed single rows of the diagrams between $V$ and $U$ (the ``grid expansion'', the pair analogue of
-\eqref{eq:fourrow}), with product coefficients $M_\lambda$ given by a cell rule that still needs a row/column case
-distinction; it is not re-checked by the script and not claimed here.  The resonant two-cell pairs have row support
-outside $U$ and no such expansion.
+domino, i.e.\ the resonant ones.)  In the analysis (two independent implementations, not re-checked by the
+script), the single columns of every non-resonant two-cell pair row of $N$ are a combination of the closed single
+rows of the diagrams between $V$ and $U$, the pair analogue of \eqref{eq:signflip}: with $X=Z\setminus V$,
+$Y=Z'\setminus V$ ($|X|=|Y|=n\le2$), $z_e=Aq^{2c(e)}$, $u_e=z_e^{\pm1}$ according to whether $e\in\lambda$ or not,
+$\mathrm{BC}(t)=t+t^{-1}$, and $l_e(\lambda)=Aq^{2c(e)\pm1}$ the variable of the line of $\lambda$ through $e$ in the
+direction transverse to the dominoes of $c$ (rows: $Aq^{2\lambda_i-2i-1}$; columns: $Aq^{-2\lambda'_j+2j+1}$),
+\[
+N_{c\mu}+\sum_{U_X=\mu}N_{cX}=\sum_{V\subseteq\lambda\subseteq U}M_\lambda N_{\lambda\mu},\qquad
+2M_\lambda=\frac{(-1)^n\prod_{x\in\mathrm{ends}(X)}\prod_{y\in Y}\{\sqrt{u_y/u_x}\}}{\prod_{e\in X\cup Y}\{u_e\}}
+\prod_{S\in\{X,Y\}}\prod_{a<b\in S}\frac{\mathrm{BC}(l_a)-\mathrm{BC}(l_b)}{\mathrm{BC}(z_a)-\mathrm{BC}(z_b)},
+\]
+$\mathrm{ends}(X)$ the two end cells of $X$ (for $n=1$ the single cell twice, and the formula is \eqref{eq:signflip}).
+The transverse direction is the only one in which the $2n$ cells lie in distinct lines; for the mixed pairs (a domino
+on one side, two separate cells on the other) it is fixed by the domino, and the sum rules $\sum_\lambda M_\lambda=1$,
+$\sum_{\lambda\ni e}M_\lambda=\frac12$ (consequences of \eqref{eq:Nvac}) force this choice.  Verified exactly for the
+$6$ two-cell pairs with at most seven boxes and modulo $p$ for all $28$ two-cell pairs with at most nine boxes at two
+points, with no failure.  Open: pairs with two separate cells on both sides (first at ten boxes, no data), the resonant
+pairs (their rows have support outside $U$ and no such expansion), and the middle coefficients for $n\ge3$.
 \end{observation}
 
 \subsection*{One-cell pairs: what is closed}
@@ -462,8 +474,14 @@ $2\bigl(N_{c\mu}+\sum_{X<c:\,U_X=\mu}N_{cX}\bigr)$, the coefficient of $\Phi_\mu
 $\{\Phi_\mu,\ \Phi_X-\Phi_{U_X}\}$, and at $\mu=U$ it is $2N_{cc}$.  So the pair row is the average of the two
 composite rows $Z$, $Z'$ plus $\{q^d\}^2$ times the divided mixed second difference of the single-row function
 $\lambda\mapsto N_{\lambda\mu}$ over the square $V\subset Z,Z'\subset U$, with the steps $D_{2c(b)}$, $D_{2c(b')}$ of
-the two added boxes.  Special cases: $\mu=\vac$ gives $2=2$; $\mu=[1]$ gives \eqref{eq:Nvac}; $\mu=U$ gives
-\eqref{eq:Ndiag}; $\mu=[1,1],[2]$ give \eqref{eq:Nadd}; and in general
+the two added boxes.  Equivalently, with the cell variables $z_e=Aq^{2c(e)}$,
+\begin{equation}\label{eq:signflip}
+2N_{c\mu}=\sum_{u\in\{z_b,z_b^{-1}\}}\ \sum_{v\in\{z_{b'},z_{b'}^{-1}\}}\frac{(u-v)(u^{-1}-v^{-1})}{\{u\}\{v\}}\,
+N_{\lambda(u,v),\mu},\qquad \lambda(u,v)=V+[\,b\text{ if }u=z_b\,]+[\,b'\text{ if }v=z_{b'}\,],
+\end{equation}
+a sum over the four sign choices of the two cell variables (the coefficient is $-\{q^d\}^2/(D_{2c(b)}D_{2c(b')})$ at
+$U$ and $V$, $+D_s^2/(D_{2c(b)}D_{2c(b')})$ at $Z$ and $Z'$).  Special cases: $\mu=\vac$ gives $2=2$; $\mu=[1]$ gives
+\eqref{eq:Nvac}; $\mu=U$ gives \eqref{eq:Ndiag}; $\mu=[1,1],[2]$ give \eqref{eq:Nadd}; and in general
 $\Gamma_c(\mu)=(P_\mu(Z)+P_\mu(Z')-P_\mu(U)-P_\mu(V))/(D_{2c(b)}D_{2c(b')})$ in the merged basis, which closes the
 correction of Observation~\ref{obs:Npair}.  Checked by the script (\LMPH{fourrow}: $17$ pairs, $179$ columns at
 $|R|\le6$; $28$ pairs, $344$ columns with \LMPH{--nmax 7}; no mismatch, the four rows computed from \eqref{eq:tab});
