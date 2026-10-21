@@ -125,3 +125,10 @@ def test_sign_flip_kernel_pair_rows():
     """Single columns of every one-cell and non-resonant two-cell pair row of N from the sign-flip kernel."""
     ok, lines = T.check_kernel(nmax=6, seed=19)
     assert ok, lines
+
+
+def test_top_weight_law():
+    """w_c(R_min) = d_c rho(R_min) with one closed rho for every channel with a single minimal diagram (tops and
+    resonant pairs)."""
+    ok, lines = T.check_topweight(nmax=6, seed=20)
+    assert ok, lines

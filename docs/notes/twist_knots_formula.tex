@@ -71,10 +71,16 @@ determined by the vanishing conditions up to nine boxes ($4096$ entries at $|\la
 Section~\ref{sec:checks}).  For rectangular $R$ only single channels occur, so there the whole formula is closed
 (the KNTZ result, in a different form).
 
-\item \textbf{Closed: the top evolution coefficients.}  For every $R$ with $|R|\le 6$, $w_X(R)$ is a product of
-$A^aq^b$, quantum numbers $[n]$ and factors $D_k$ exactly for the \emph{top} channels $X=[Z,Z']$ with $Z\cup Z'=R$
-(Section~\ref{sec:weights}); all other coefficients are such a product times a polynomial in $A^2$ of degree
-$\le |R|-|Z\cup Z'|$ which does not factorise.
+\item \textbf{Closed: the top evolution coefficients, by one law.}  For every $R$ with $|R|\le 6$, $w_X(R)$ is a
+product of $A^aq^b$, quantum numbers $[n]$ and factors $D_k$ exactly for the \emph{top} channels $X=[Z,Z']$ with
+$Z\cup Z'=R$; all other coefficients are such a product times a polynomial in $A^2$ of degree $\le |R|-|Z\cup Z'|$
+which does not factorise.  The top coefficients are all given by one formula (Section~\ref{sec:weights}),
+\[
+w_c(R)=d_c\,(-A)^{|R|}\,q^{\kappa_R}\prod_{b\in R}\frac{\{q^{h(b)}\}^2}{D_{c(b)}}\qquad(c\text{ top in }R),
+\]
+$d_c$ the quantum dimension of the composite(s) of $c$: the ratio $w_c(R)/d_c$ depends on $R$ only.  It holds for every
+channel whose only minimal diagram is $R$ ($399$ channels of all kinds with a row up to ten boxes, two points; exact up
+to six boxes).
 
 \item \textbf{Closed: every one-cell pair channel, every column, every gap.}  Pair channels $\{Z,Z'\}$, $Z\ne Z'$,
 exist precisely for non-rectangular $R$.  For a one-cell pair $c=\{Z,Z'\}$ with $V=Z\cap Z'$, $U=Z\cup Z'$
@@ -725,6 +731,30 @@ Every other coefficient is such a product times an irreducible polynomial in $A^
 $\le|R|-|Z\cup Z'|$ in $A^2$.
 \end{observation}
 
+\begin{observation}[top-weight law: one closed value for all top channels]\label{obs:topweight}
+Let $c$ be a channel with a single minimal diagram $R=R_{\min}(c)$: every top channel of $R$ ($Z\cup Z'=R$), and also
+the resonant pairs whose minimal diagram is $R$ (e.g.\ $\{[1,1,1],[3]\}$, $R_{\min}=[3,2,1]$, the exception in
+Observation~\ref{obs:top}).  No channel above $c$ is present at $R$, so $w_c(R)=F_c(R)/\varphi_c(-1)$, and
+\begin{equation}\label{eq:topweight}
+w_c(R)=d_c\,\rho(R),\qquad
+\rho(R)=(-A)^{|R|}\,q^{\kappa_R}\prod_{b\in R}\frac{\{q^{h(b)}\}^2}{D_{c(b)}}
+=\frac{(-A)^{|R|}\,q^{\kappa_R}\prod_{b\in R}\{q^{h(b)}\}}{\dim_qR},
+\end{equation}
+where $d_c$ is the quantum dimension of the composite(s) of $c$ and $\dim_qR=\prod_{b\in R}D_{c(b)}/\{q^{h(b)}\}$ that of
+$R$ ($A=q^N$).  So $w_c(R)/d_c$ is the same closed product for all top channels of $R$, singles and pairs alike, e.g.\
+$\rho([1])=-A\{q\}^2/D_0$, $\rho([2])=A^2q\{q\}^2\{q^2\}^2/(D_0D_1)$, $\rho([2,1])=-A^3\{q\}^6[3]^2/(D_{-1}D_0D_1)$.  In terms of
+the binomial matrix: the interpolation function $\Psi_c(R):=\sum_X\Et_{cX}\psi_X(R)$ of a channel, which vanishes on every
+$R\not\supseteq R_{\min}(c)$, takes at its minimal diagram the universal value $\Psi_c(R_{\min})=\rho(R_{\min})$;
+equivalently, the colour normalisation $\Psi_c(R_{\min})=\rho(R_{\min})$ and the twist normalisation $\Phi_c(-1)=1$ of
+the rows coincide.  Verified exactly for all $49$ such channels with $|R|\le6$ ($29$ singles, $17$ one-cell pairs, the
+pairs $\{[2,2],[4]\}$, $\{[1^4],[2,2]\}$ and the resonant $\{[1,1,1],[3]\}$); in the script (\LMPH{topweight}) at
+$|R|\le6$ and, with \LMPH{--nmax 7 --nb 10}, for $87$ channels at $|R|\le7$; analysis: modulo $p$ at two points for every
+channel with one minimal diagram, $|R_{\min}|\le10$, that has a row ($399$: $138$ singles, $182$ one-cell, $26$
+domino/domino, $26$ domino/separate, $15$ resonant two-cell pairs, $12$ three-cell pairs), no failure.  The two channels
+with two minimal diagrams that have a row at ten boxes ($\{[3,2,1,1],[5,2]\}$, $\{[2,2,1,1,1],[4,2,1]\}$) satisfy it at one
+of their minimal diagrams only: there the unsplit row of the vanishing conditions is a sum of two terms.
+\end{observation}
+
 Examples (full tables for $[2,1]$, $[3,1]$, $[2,1,1]$ in Appendix~A.1; all $29$ diagrams in the JSON table):
 \begin{align*}
 w_{[2,1]}([2,1])&=-\frac{A^3D_{-3}D_{-1}D_1D_3}{D_0}, &
@@ -746,7 +776,7 @@ All checks are modulo $p=10^9+7$ at random $(A,q)$ unless stated otherwise;
 \LMPH{python3 scripts/twist\_formula\_check.py} runs them all (about one minute), \LMPH{tests/test\_twist\_formula.py}
 a fast subset.  Nothing is fitted anywhere: the only inputs are the vanishing conditions and the closed formulas
 \eqref{eq:kntz}, \eqref{eq:tab}, \eqref{eq:union}, \eqref{eq:hook}, \eqref{eq:Nvac}--\eqref{eq:Nadd}, \eqref{eq:fourrow},
-\eqref{eq:adjres}, \eqref{eq:roots}, \eqref{eq:Nsingle}, \eqref{eq:Bsingle}, \eqref{eq:kernel}.  ``Analysis''
+\eqref{eq:adjres}, \eqref{eq:roots}, \eqref{eq:Nsingle}, \eqref{eq:Bsingle}, \eqref{eq:kernel}, \eqref{eq:topweight}.  ``Analysis''
 refers to checks run outside the repository on the same engine (exact rows over $\mathbb Q(A,q)$ up to seven boxes,
 and rows modulo $p$ with the vanishing conditions imposed on all diagrams with at most $13$ boxes, up to ten boxes);
 their numbers are quoted for completeness and are not reproduced by the script.
@@ -775,6 +805,7 @@ gap-two pair columns \eqref{eq:gap2}, \eqref{eq:chain} (\LMPH{gap2}) & $19$ entr
 pair columns at every gap \eqref{eq:roots} (\LMPH{roots}) & $B$ and $N$ at gaps $1,2,3$: $27$, $19$, $9$ entries at $|R|\le6$; gaps $1$--$4$: $47$, $42$, $25$, $11$ with \LMPH{--nmax 7} and $77$, $66$, $37$, $17$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: the same exact rows, mod $p$ two points at $8$, $9$, $10$ boxes, gaps up to $5$, $6$, $7$ ($299$, $603$, $1176$ entries), no failure\\
 whole one-cell pair rows \eqref{eq:Nsingle}, \eqref{eq:Bsingle} (\LMPH{fullrow}) & every single column of $N$ and $B$: $179+179$ at $|R|\le6$, $344+344$ with \LMPH{--nmax 7}, $458+458$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: $925$, $1633$, $2629$ columns at $8$, $9$, $10$ boxes, $N$ and $B$ each, two points, no failure\\
 sign-flip kernel \eqref{eq:kernel} (\LMPH{kernel}) & one-cell pairs $179$ columns and non-resonant two-cell pairs $24$ columns at $|R|\le6$; $458$ and $92$ with \LMPH{--nmax 7 --nb 10}; no mismatch; analysis: $10\,346$ one-cell, $1\,996$ domino/domino, $2\,170$ domino/separate columns up to ten boxes, two points, no failure; three-cell line pairs $92$ columns (middle states from the sum rules)\\
+top-weight law \eqref{eq:topweight} (\LMPH{topweight}) & every channel with one minimal diagram: $49$ at $|R|\le6$ (exact in the analysis), $87$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: $399$ channels up to ten boxes, two points, no failure\\
 four-row formula \eqref{eq:fourrow} (\LMPH{fourrow}) & $17$ pairs, $179$ single columns at $|R|\le6$ ($28$ pairs, $344$ columns with \LMPH{--nmax 7}), no mismatch; analysis: mod $p$ $869$ columns (8 boxes, two points), $1550$ columns (9 boxes)\\
 $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, implied $B$ entries $15/15$; analysis: exact $28$ pairs ($\le7$ boxes), mod $p$ $56$ pairs (8 boxes), $83$ pairs (9 boxes), no mismatch in the claimed classes\\
 \bottomrule
@@ -1014,7 +1045,7 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 \begin{itemize}
 \item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
 (options \LMPH{--nmax}, \LMPH{--seed}, \LMPH{--nb}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom
-pairn union hook khook fourrow adjres gap2 roots fullrow kernel}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
+pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
 adjres gap2 roots fullrow kernel} runs the checks of Sections \ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends
 them to seven boxes, and \LMPH{--nmax 7 --nb 10} imposes the vanishing conditions on all diagrams with at most ten boxes,
 which makes every channel with $|R|\le7$ full rank).
@@ -1023,7 +1054,7 @@ The closed formulas live in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{
 \eqref{eq:Ndiag}--\eqref{eq:Nadd}, \LMPH{khook\_N} \eqref{eq:khook}, \LMPH{check\_fourrow} \eqref{eq:fourrow},
 \LMPH{adjacent\_residue} \eqref{eq:adjres}, \LMPH{check\_gap2} \eqref{eq:gap2}, \eqref{eq:chain}, \LMPH{root\_T} /
 \LMPH{closed\_pair\_block} \eqref{eq:roots}, \eqref{eq:paths}, \LMPH{check\_fullrow} \eqref{eq:Nsingle}, \eqref{eq:Bsingle} and
-\LMPH{kernel\_K} \eqref{eq:kernel}.
+\LMPH{kernel\_K} \eqref{eq:kernel}, \LMPH{rho\_top} \eqref{eq:topweight}.
 \item \LMPH{python3 -m pytest tests/test\_twist\_formula.py} --- fast subset.
 \item \LMPH{data/twist\_weights/twist\_weights\_le6.json} --- all $w_X(R)$, $|R|\le6$, as numerator/denominator
 monomial lists in $x=A^2$, $y=q^2$ (exact, computed over $\mathbb Q(x,y)$ with python-flint from the vanishing

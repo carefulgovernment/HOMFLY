@@ -45,8 +45,10 @@ checks:
           pair entries at the resonant columns, single columns of B from N B = Lambda N with the KNTZ single rows
   kernel  every single column of every pair row of N (one-cell and non-resonant two-cell pairs, merged basis) from one
           sign-flip kernel over the states of the moved cells applied to the closed single rows
+  topweight  the top-weight law: w_c(R) = d_c rho(R), rho(R) = (-A)^{|R|} q^{kappa_R} prod_b {q^{h(b)}}^2 / D_{c(b)},
+          for every channel c whose only minimal diagram is R (one rho for all top channels of R)
 
-usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel]
+usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight]
 """
 import argparse
 import gzip
@@ -1523,10 +1525,41 @@ def check_kernel(nmax=6, seed=1):
                         len(skipped), len(middle), "none" if not bad else bad[:4])]
 
 
+def rho_top(R, F, A, q):
+    """rho(R) = (-A)^{|R|} q^{kappa_R} prod_{b in R} {q^{h(b)}}^2 / D_{c(b)}, the common value of w_c(R)/d_c."""
+    v = (-A) ** sum(R) * q ** kappa(R)
+    for b in boxes(R):
+        v = v * curly(q ** hook(R, b)) ** 2 / Dk(cont(b), F, A, q)
+    return v
+
+
+def check_topweight(nmax=6, seed=1):
+    """Top-weight law: every clean channel c whose only minimal diagram is R (the top channels of R, Z u Z' = R, and
+    the resonant pairs with R_min = R) has the evolution coefficient w_c(R) = F_c(R)/phi_c(-1) = d_c rho(R), with one
+    closed rho(R) for all of them (no channel above c is present at R, so only F_c contributes)."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    clean, excluded = clean_channels(pt, channels_present(nmax))
+    counts, bad = {}, []
+    for c in clean:
+        rm = I.rmin(c)
+        if len(rm) != 1:
+            continue
+        R = rm[0]
+        kind = "single" if c[0] == "s" else pair_kind(c)
+        counts[kind] = counts.get(kind, 0) + 1
+        if pt.F_c(c, R) / pt.phi(c, -1) != pt.d(c) * rho_top(R, F, A, q):
+            bad.append(c)
+    return not bad, ["topweight: w_c(R_min) = d_c rho(R_min) for every clean channel with one minimal diagram, "
+                     "|R| <= %d: %s; mismatches %s" % (nmax, ", ".join("%s %d" % (k, counts[k]) for k in sorted(counts)),
+                                                         "none" if not bad else bad[:4])]
+
+
 CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check_f41, "sym": check_sym,
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
           "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
-          "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow, "kernel": check_kernel}
+          "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow, "kernel": check_kernel,
+          "topweight": check_topweight}
 
 
 def set_node_bound(nb):
