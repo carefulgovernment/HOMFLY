@@ -84,17 +84,19 @@ non-rectangular $R$.  For a one-cell pair $c=\{Z,Z'\}$ with $V=Z\cap Z'$, $U=Z\c
 \]
 the average of the two single rows $Z$, $Z'$ plus a divided second difference of the closed single rows over the
 square $V\subset Z,Z'\subset U$ (at a resonant column it gives the regular combination $N_{c\mu}+\sum_{U_X=\mu}N_{cX}$);
-(ii) the pair columns $N_{cX}$ between \emph{adjacent} pairs ($|U|=|U_X|+1$) are given by the product formula
-\eqref{eq:khook} (the $K$-hook law), except the ``landing'' ones; (iii) for the twist matrix $B$ itself, every entry of
-the row $B_c$ outside the resonant columns is a closed combination of the three KNTZ rows of $U$, $Z$, $Z'$ (union
-formula \eqref{eq:union}), and the whole row is closed for the hook family $\{[k-1,1],[k]\}$ and its transpose
-\eqref{eq:hook}.  Consequently the twist-knot formula is completely closed for every $R$ with $|R|\le4$, for all hooks
-$[r,1]$, $[2,1^{r-1}]$ and all rectangles.  \emph{Not closed}: the landing pair entries, first met at $R=[2,2,1]$ and
-$[3,2]$, where exactly one entry of $N$ (for $c=\{[2,1,1],[2,2]\}$, $X=\{[1,1,1],[2,1]\}$, and its transpose) is outside
-the formulas; through the triangular structure they also leave the non-adjacent pair columns open (equivalently, the
-residues of $B_c$ at the resonances $\Lam_Y=\Lam_{U_Y}$ of the landing pairs $Y<c$); and the two-cell pairs, for which an
-analysis-level grid expansion with one geometric input exists (Section~\ref{sec:pairs}), not re-checked by the script.
-This is exactly where the ``one simple closed formula'' stops.
+(ii) every pair column $N_{cX}$ (hence $B_{cX}$, $E_{cX}$) between \emph{adjacent} pairs ($|U|=|U_X|+1$) is
+given by one product formula, the residue formula \eqref{eq:adjres}, whose non-landing case is the $K$-hook law
+\eqref{eq:khook}; (iii) for the twist matrix $B$ itself, every entry of the row $B_c$ outside the resonant columns is
+a closed combination of the three KNTZ rows of $U$, $Z$, $Z'$ (union formula \eqref{eq:union}), and the whole row is
+closed for the hook family $\{[k-1,1],[k]\}$ and its transpose \eqref{eq:hook}.  Consequently the twist-knot formula
+is completely closed for every $R$ with $|R|\le4$, for $[2,2,1]$ and $[3,2]$, for all hooks $[r,1]$, $[2,1^{r-1}]$ and
+all rectangles.  \emph{Not closed}: the \emph{non-adjacent} pair columns ($|U|\ge|U_X|+2$, other than the first
+column), first met at six boxes ($c=\{[2,1,1,1],[2,2,1]\}$, $X=\{[1,1,1],[2,1]\}$ in $R=[2,2,1,1]$ and its transpose in
+$[4,2]$), whose residues are products in $117$ of $123$ cases up to seven boxes but follow no rule we found; and the
+resonant two-cell pairs (a vertical against a horizontal domino, first $\{[1,1,1],[3]\}$ in $R=[3,1,1]$), whose rows
+have no formula beyond their vacuum, $[1]$ and first-pair-column entries.  The other two-cell pairs have an
+analysis-level grid expansion with one geometric input (Section~\ref{sec:pairs}), not re-checked by the script.  This
+is exactly where the ``one simple closed formula'' stops.
 
 \item \textbf{Where it breaks.}  Up to seven boxes the vanishing conditions determine every row of $E$ once enough
 nodes are used; the rank deficiencies seen at seven and eight boxes with the engine's default node bound are an artefact
@@ -507,16 +509,39 @@ replaced by the pole factor $D_s^2/D_{s_X}$.  Between adjacent pairs no channel 
 $B_{cX}=N_{cX}(\Lam_c-\Lam_X)/\varphi_c(-1)$ and $E_{cX}=-N_{cX}/\varphi_X(-1)$ are closed too; for $V=V_X+e$ with the
 same moved cells ($K=\{b,b'\}$) the residue of Observation~\ref{obs:union} is
 $r_{cX}=-q^{-c(e)-2s_X}\prod_{x\in V_X\setminus h_X}[h_U(x)]/[h_{U_X}(x)]$.  Also $N_{cX}=0$ whenever $U_X=U$.
-Eq.~\eqref{eq:khook} fails at every landing entry ($h_c\in V_X\setminus\{h_X\}$): these are sums of $D$'s rather than
-products, e.g.\ the product in \eqref{eq:khook} must be replaced by $D_1+D_{-3}=[4]D_{-1}/[2]$ for
-$c=\{[2,1,1],[2,2]\}$, $X=\{[1,1,1],[2,1]\}$; and it fails at part of the non-adjacent entries (from the rows whose $V$
-contains a $2\times2$ block on), which are chain sums over adjacent entries by
-$N_{cX}(\Lam_c-\Lam_X)=\sum_{X<Y\le c}N_{cY}B_{YX}$.  Checked by the script (\LMPH{khook}; $17$ pairs at $|R|\le6$:
+Eq.~\eqref{eq:khook} fails at every landing entry ($h_c\in V_X\setminus\{h_X\}$), e.g.\ the product must be
+replaced by $[4]D_{-1}/[2]=D_1+D_{-3}$ for $c=\{[2,1,1],[2,2]\}$, $X=\{[1,1,1],[2,1]\}$; the landing entries are
+covered by the general adjacent formula of Observation~\ref{obs:adjres}, of which \eqref{eq:khook} is the non-landing
+case.  It also fails at part of the non-adjacent entries (from the rows whose $V$ contains a $2\times2$ block on).  Checked by the script (\LMPH{khook}; $17$ pairs at $|R|\le6$:
 diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, the implied $B$ entries $15/15$, the zero rule
 $6/6$; with \LMPH{--nmax 7}, $28$ pairs: $28/28$, $27/27$, $27/27$, $27/27$); in the analysis exact for all $28$ one-cell pairs with at most seven boxes (diagonal $28/28$, adjacent
 non-landing $29/29$), modulo $p$ for $56$ pairs at eight boxes ($56/56$, $74/74$) and $83$ pairs at nine boxes
 ($83/83$, $118/118$), with the non-adjacent non-landing entries right in $515$ of $741$ cases and the landing ones in
 none.  Found on the exact rows with at most seven boxes; the eight- and nine-box rows were not used in finding it.
+\end{observation}
+
+\begin{observation}[all adjacent pair columns, landing included]\label{obs:adjres}
+Let $X<c$ be a one-cell pair with $U=U_X+e$ (adjacent), $k,k'$ the moved cells of $X$, $K=\{b,b'\}\cap\{k,k'\}$,
+$H(\lambda)=\prod_{x\in\lambda}[h_\lambda(x)]$, and write $B_{cX}=\Lam_c\,r_{cX}\,q^{s+s_X}D_s/D_{s_X}$ as in
+Observation~\ref{obs:union}.  Then, with $[-n]=-[n]$,
+\begin{equation}\label{eq:adjres}
+r_{cX}=\begin{cases}
+0 & \text{unless }\{b,b'\}\subseteq\{k,k',e\},\\[2pt]
+-q^{-2s_X-c(e)}\,\dfrac{H(U)}{H(U_X)} & K=\{k,k'\}\quad(V=V_X+e),\\[8pt]
+-q^{-2s_X-c(e)}\,\dfrac{H(V)}{H(V_X)}\,\dfrac{[d_X+1]\,[d_X-1]}{[d_X]\,[d_c]\,[d_3]^2} & K=\{k\}\quad(V=V_X+k',\ \text{moved cells of $c$: }k,e),
+\end{cases}
+\end{equation}
+where $d_X=c(k')-c(k)$, $d_c=c(e)-c(k)$, $d_3=c(e)-c(k')$; and $N_{cX}=N_{cc}B_{cX}/(\Lam_c-\Lam_X)$,
+$E_{cX}=-N_{cX}/\varphi_X(-1)$.  The $K$-hook law is the case $d_3=\pm1$ ($e$ next to $k'$); the formula covers the
+landing entries as well, and its zero rule explains the zero entries seen at eight and nine boxes (a moved cell of
+$c$ inside $V_X$).  Checked by the script (\LMPH{adjres}: $27$ adjacent entries at $|R|\le6$, ten of them landing,
+and $47$ with \LMPH{--nmax 7}, $18$ landing, on $N$ and on $B$, no mismatch); in the analysis exact for all adjacent
+entries up to seven boxes including the six rank-deficient seven-box pairs recomputed at node bound $10$ ($47+30$
+entries) and modulo $p$ for $156$ entries at eight boxes and $258$ at nine boxes, at two points, no failure.  Found by
+a linear fit of a cell-type product ansatz to $18$ exact residues; three monomial exponents that the small diagrams
+leave free were fixed by the eight- and nine-box rows, after which every other entry of those rows is a check.
+Together with Observations \ref{obs:fourrow} and \ref{obs:khook} every entry of a one-cell pair row of $N$ is closed
+except the non-adjacent pair columns.
 \end{observation}
 
 \paragraph{What was tried and failed.}  (a) A product formula for the entries of $v_c$ (or of $B_c$, or of $E_c$)
@@ -592,6 +617,7 @@ tableau formula \eqref{eq:tab} for the single rows of $N$ (\LMPH{binom}) & $841$
 one-cell pairs of $N$: \eqref{eq:Ndiag}, \eqref{eq:Nfirst}, \eqref{eq:Nadd} (\LMPH{pairn}) & $17/17$ pairs at $|R|\le6$\\
 union formula \eqref{eq:union} (\LMPH{union}) & $472$ non-resonant entries of the $17$ pairs at $|R|\le6$, no mismatch; analysis: exact $1856$ entries ($28$ pairs, $\le7$ boxes), mod $p$ $5704$ entries ($41$ pairs, $\le8$ boxes)\\
 hook family \eqref{eq:hook} and transposes (\LMPH{hook}) & $8$ rows, $k\le5$, at $|R|\le6$; analysis: exact $k\le6$, mod $p$ $k\le10$\\
+adjacent pair columns \eqref{eq:adjres} (\LMPH{adjres}) & $27$ entries of $N$ and $B$ at $|R|\le6$ ($10$ landing), $47$ with \LMPH{--nmax 7} ($18$ landing), no mismatch; analysis: exact $77$ entries ($\le7$ boxes), mod $p$ $156$ (8 boxes) $+$ $258$ (9 boxes), two points\\
 four-row formula \eqref{eq:fourrow} (\LMPH{fourrow}) & $17$ pairs, $179$ single columns at $|R|\le6$ ($28$ pairs, $344$ columns with \LMPH{--nmax 7}), no mismatch; analysis: mod $p$ $869$ columns (8 boxes, two points), $1550$ columns (9 boxes)\\
 $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, implied $B$ entries $15/15$; analysis: exact $28$ pairs ($\le7$ boxes), mod $p$ $56$ pairs (8 boxes), $83$ pairs (9 boxes), no mismatch in the claimed classes\\
 \bottomrule
@@ -602,15 +628,14 @@ $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal
 
 \begin{enumerate}
 \item \textbf{Pair rows of $N$ / $B$ / $E$} (all non-rectangular $R$ except $[r,1]$, $[2,1^{r-1}]$): for one-cell
-pairs all single columns are closed \eqref{eq:fourrow}, the pair columns between adjacent pairs are closed except the
-landing ones \eqref{eq:khook}, the row of $B$ is closed on all non-resonant columns \eqref{eq:union} and completely for
-the hook family \eqref{eq:hook}.  Not closed: the landing pair entries, and with them the split of the regular
-combination $N_{c\mu}+\sum_{U_X=\mu}N_{cX}$ at the resonant columns and the non-adjacent pair entries (equivalently
-the residues $r_{cY}$ of Observation~\ref{obs:res} at landing pairs; the first residue that is not a monomial belongs
-to $\{[1,1,1,1],[2,1,1]\}$, the first that is not a product to $\{[2,1,1,1],[2,2,1]\}$).  The first landing entry is
-$N_{cX}$ for $c=\{[2,1,1],[2,2]\}$, $X=\{[1,1,1],[2,1]\}$ at five boxes, where the data give
-$N_{cX}=-q^2[2][4]\{q\}^2D_{-2}^2/(2A^4)$ (transpose: $-[2][4]\{q\}^2D_2^2/(2A^4q^2)$ for $c=\{[2,2],[3,1]\}$,
-$X=\{[2,1],[3]\}$), a product that the $K$-hook law does not produce.  Equivalently, on the $N$ side, the correction
+pairs all single columns are closed \eqref{eq:fourrow}, all adjacent pair columns are closed \eqref{eq:adjres}, the
+row of $B$ is closed on all non-resonant columns \eqref{eq:union} and completely for the hook family \eqref{eq:hook}.
+Not closed: the non-adjacent pair entries ($|U|\ge|U_X|+2$, other than the first column), and with them the split
+of the regular combination $N_{c\mu}+\sum_{U_X=\mu}N_{cX}$ at those resonant columns; equivalently the non-adjacent
+residues $r_{cY}$ of Observation~\ref{obs:res}, products in $117$ of $123$ cases up to seven boxes, the first
+non-product one at six boxes ($c=\{[2,1,1,1],[2,2,1]\}$, $Y=\{[1,1,1],[2,1]\}$: $r=q^2(q^6+q^2+1)$).  The resonant
+two-cell pairs (vertical against horizontal domino) have rows with support outside $U$ and no formula beyond
+\eqref{eq:Nvac}, \eqref{eq:Nfirst}; the first is $\{[1,1,1],[3]\}$ in $R=[3,1,1]$.  Equivalently, on the $N$ side, the correction
 $\Gamma_c(\mu)$ of \eqref{eq:Nadd} for $|\mu|\ge3$.  For the two-cell pairs only \eqref{eq:Nvac}, \eqref{eq:Nfirst}
 and the vacuum/$[1]$ identities (where not resonant) are known; their pair-column entries of $N$ are products at
 seven boxes (analysis), but no uniform law was found.
@@ -833,11 +858,12 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 \begin{itemize}
 \item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
 (options \LMPH{--nmax}, \LMPH{--seed}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom pairn
-union hook khook fourrow}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow} runs the checks of Sections
-\ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends them to seven boxes).  The closed formulas live
-in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{binom\_N} / \LMPH{tableau\_P} \eqref{eq:tab},
+union hook khook fourrow adjres}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow adjres} runs the checks of
+Sections \ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends them to seven boxes).  The closed
+formulas live in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{binom\_N} / \LMPH{tableau\_P} \eqref{eq:tab},
 \LMPH{check\_union} \eqref{eq:union}, \LMPH{hook\_pair\_row} \eqref{eq:hook}, \LMPH{check\_pairn}
-\eqref{eq:Ndiag}--\eqref{eq:Nadd}, \LMPH{khook\_N} \eqref{eq:khook} and \LMPH{check\_fourrow} \eqref{eq:fourrow}.
+\eqref{eq:Ndiag}--\eqref{eq:Nadd}, \LMPH{khook\_N} \eqref{eq:khook}, \LMPH{check\_fourrow} \eqref{eq:fourrow} and
+\LMPH{adjacent\_residue} \eqref{eq:adjres}.
 \item \LMPH{python3 -m pytest tests/test\_twist\_formula.py} --- fast subset.
 \item \LMPH{data/twist\_weights/twist\_weights\_le6.json} --- all $w_X(R)$, $|R|\le6$, as numerator/denominator
 monomial lists in $x=A^2$, $y=q^2$ (exact, computed over $\mathbb Q(x,y)$ with python-flint from the vanishing

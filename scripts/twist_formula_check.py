@@ -34,8 +34,10 @@ checks:
           non-landing entries), and the B entries it implies
   fourrow the four-row formula: every single column of a one-cell pair row of N (in the merged basis at the resonant
           columns) from the closed single rows of V, Z, Z', U
+  adjres  the residue formula for every adjacent pair column (|U_c| = |U_X| + 1) of a one-cell pair row, landing
+          entries included: zero rule, type B (two shared corners) and one shared corner; checked on N and on B
 
-usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow]
+usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres]
 """
 import argparse
 import gzip
@@ -917,9 +919,91 @@ def check_fourrow(nmax=6, seed=1):
                      "V, Z, Z', U: mismatches %s" % (n_pairs, nmax, n_cols, "none" if not bad else bad[:4])]
 
 
+def hookprod(lam, F, q):
+    """H(lam) = prod_{x in lam} [h_lam(x)]."""
+    v = F.one
+    for x in boxes(lam):
+        v = v * qnum(hook(lam, x), F, q)
+    return v
+
+
+def adjacent_residue(c, X, F, A, q):
+    """Residue r_cX (B_cX = Lambda_c r_cX q^{s_c+s_X} D_{s_c}/D_{s_X}) for an adjacent pair column X of the one-cell pair
+    row c (U_c = U_X + e), landing entries included.  With k, k' the moved cells of X and K = {b, b'} cap {k, k'}:
+      zero rule:  r = 0 unless {b, b'} is contained in {k, k', e};
+      |K| = 2:    r = -q^{-2 s_X - c(e)} H(U_c)/H(U_X);
+      |K| = 1:    r = -q^{-2 s_X - c(e)} H(V_c)/H(V_X) [dX+1][dX-1] / ([dX][dc][d3]^2),
+                  k the shared corner, k' the other one, dX = c(k') - c(k), dc = c(e) - c(k), d3 = c(e) - c(k')
+    (signed quantum numbers, [-n] = -[n]).  None if the formula has a vanishing denominator."""
+    ic, iX = pair_info(c), pair_info(X)
+    extra = [x for x in boxes(ic["U"]) if x not in boxes(iX["U"])]
+    if len(extra) != 1:
+        return None
+    e = extra[0]
+    corners = {iX["b"], iX["bp"]}
+    moved = {ic["b"], ic["bp"]}
+    if not moved <= corners | {e}:
+        return F.zero
+    K = moved & corners
+    pre = -q ** (-2 * iX["s"] - cont(e))
+    if len(K) == 2:
+        return pre * hookprod(ic["U"], F, q) / hookprod(iX["U"], F, q)
+    k = next(iter(K))
+    kp = next(iter(corners - K))
+    dX, dc, d3 = cont(kp) - cont(k), cont(e) - cont(k), cont(e) - cont(kp)
+    den = qnum(dX, F, q) * qnum(dc, F, q) * qnum(d3, F, q) ** 2
+    if den == 0:
+        return None
+    return pre * hookprod(ic["V"], F, q) / hookprod(iX["V"], F, q) * qnum(dX + 1, F, q) * qnum(dX - 1, F, q) / den
+
+
+def check_adjres(nmax=6, seed=1):
+    """Every adjacent pair column X (|U_c| = |U_X| + 1, one-cell X) of every clean one-cell pair row c: B_cX and N_cX
+    from the residue formula (landing entries included), N_cX = N_cc B_cX / (Lambda_c - Lambda_X)."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    orderB, B = build_B(pt, chans)
+    pos = {c: i for i, c in enumerate(order)}
+    pairs = [c for c in clean if pair_info(c) is not None]
+    cnt = {"zero": [0, 0], "two": [0, 0], "one": [0, 0]}
+    n_land = 0
+    bad, undefined = [], []
+    for c in pairs:
+        ic = pair_info(c)
+        for X in pairs:
+            iX = pair_info(X)
+            if X == c or not I.contains(ic["U"], iX["U"]) or sum(ic["U"]) != sum(iX["U"]) + 1:
+                continue
+            r = adjacent_residue(c, X, F, A, q)
+            if r is None:
+                undefined.append((c, X))
+                continue
+            landing = ic["h"] in boxes(iX["V"]) and ic["h"] != iX["h"]
+            n_land += landing
+            key = "zero" if r == 0 else ("two" if len({ic["b"], ic["bp"]} & {iX["b"], iX["bp"]}) == 2 else "one")
+            Lc, LX = Lam(c, F, A, q), Lam(X, F, A, q)
+            Bc = Lc * r * q ** (ic["s"] + iX["s"]) * Dk(ic["s"], F, A, q) / Dk(iX["s"], F, A, q)
+            Nc = N[pos[c]][pos[c]] * Bc / (Lc - LX)
+            ok = B[c].get(X, F.zero) == Bc and N[pos[c]][pos[X]] == Nc
+            cnt[key][0 if ok else 1] += 1
+            if not ok:
+                bad.append((c, X))
+    tot = sum(sum(v) for v in cnt.values())
+    lines = ["adjres: %d clean one-cell pairs (|R| <= %d), %d adjacent pair entries of N and B from the residue formula "
+             "(%d of them landing): zero rule %d/%d, two shared corners %d/%d, one shared corner %d/%d; undefined %s; "
+             "mismatches %s" % (len(pairs), nmax, tot, n_land, cnt["zero"][0], sum(cnt["zero"]), cnt["two"][0],
+                                sum(cnt["two"]), cnt["one"][0], sum(cnt["one"]), "none" if not undefined else undefined[:3],
+                                "none" if not bad else bad[:4])]
+    return not (bad or undefined), lines
+
+
 CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check_f41, "sym": check_sym,
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
-          "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow}
+          "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
+          "adjres": check_adjres}
 
 
 def main(argv=None):

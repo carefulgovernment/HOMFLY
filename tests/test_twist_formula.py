@@ -94,3 +94,9 @@ def test_four_row_formula_single_columns():
     # every single column of a one-cell pair row of N from the four closed single rows V, Z, Z', U (merged basis)
     ok, lines = T.check_fourrow(nmax=5, seed=14)
     assert ok, lines
+
+
+def test_adjacent_residue_formula():
+    # every adjacent pair column of a one-cell pair row (landing entries included) on N and B
+    ok, lines = T.check_adjres(nmax=5, seed=15)
+    assert ok, lines
