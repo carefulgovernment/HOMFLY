@@ -36,8 +36,10 @@ checks:
           columns) from the closed single rows of V, Z, Z', U
   adjres  the residue formula for every adjacent pair column (|U_c| = |U_X| + 1) of a one-cell pair row, landing
           entries included: zero rule, type B (two shared corners) and one shared corner; checked on N and on B
+  gap2    the gap-two formula T_cX = sum_Y T_cY T_YX / (1 + q^{a_1(Y) - a_2(Y)}) for the pair columns with
+          |U_c| = |U_X| + 2, built from the adjacent residues only; B_cX and (via the chain relation) N_cX
 
-usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres]
+usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2]
 """
 import argparse
 import gzip
@@ -1000,10 +1002,86 @@ def check_adjres(nmax=6, seed=1):
     return not (bad or undefined), lines
 
 
+def kap2(c):
+    """kappa_Z + kappa_Z' of a channel (Lambda_c = A^{2|Z|} q^{2 kap2})."""
+    return kappa(c[1]) + kappa(c[2])
+
+
+def adjacent_B(c, X, F, A, q):
+    """B_cX of an adjacent pair column from the residue formula (None if undefined)."""
+    r = adjacent_residue(c, X, F, A, q)
+    if r is None:
+        return None
+    ic, iX = pair_info(c), pair_info(X)
+    return Lam(c, F, A, q) * r * q ** (ic["s"] + iX["s"]) * Dk(ic["s"], F, A, q) / Dk(iX["s"], F, A, q)
+
+
+def check_gap2(nmax=6, seed=1):
+    """Pair columns X of a one-cell pair row c at gap two (|U_c| = |U_X| + 2, X one-cell): with T_cX := r_cX q^{2 s_X}
+    (B_cX = Lambda_c T_cX q^{s_c - s_X} D_{s_c}/D_{s_X}),
+        T_cX = sum_Y T_cY T_YX / (1 + q^{a_1(Y) - a_2(Y)}),   Lambda_c/Lambda_Y = A^2 q^{2 a_1},  Lambda_Y/Lambda_X = A^2 q^{2 a_2},
+    the sum over the one-cell pairs Y with U_X < U_Y < U_c, all T's from the adjacent residue formula; and then
+        N_cX = (N_cc B_cX + sum_Y N_cY B_YX) / (Lambda_c - Lambda_X)      (chain relation of N B = Lambda N)
+    with N_cc, N_cY from the closed diagonal and adjacent formulas.  Both compared with the engine."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    orderB, B = build_B(pt, chans)
+    pos = {c: i for i, c in enumerate(order)}
+    pairs = [c for c in clean if pair_info(c) is not None]
+    nB = nN = nzero = 0
+    bad, undefined = [], []
+    for c in pairs:
+        ic = pair_info(c)
+        Lc = Lam(c, F, A, q)
+        Ncc = khook_N(c, c, F, A, q)
+        for X in pairs:
+            iX = pair_info(X)
+            if not I.contains(ic["U"], iX["U"]) or sum(ic["U"]) != sum(iX["U"]) + 2:
+                continue
+            LX = Lam(X, F, A, q)
+            T = F.zero
+            chain = F.zero
+            ok_def = True
+            for Y in pairs:
+                iY = pair_info(Y)
+                if sum(iY["U"]) != sum(iX["U"]) + 1 or not I.contains(ic["U"], iY["U"]) or not I.contains(iY["U"], iX["U"]):
+                    continue
+                rcY, rYX = adjacent_residue(c, Y, F, A, q), adjacent_residue(Y, X, F, A, q)
+                if rcY is None or rYX is None:
+                    ok_def = False
+                    break
+                TcY, TYX = rcY * q ** (2 * iY["s"]), rYX * q ** (2 * iX["s"])
+                a1 = kap2(c) - kap2(Y)
+                a2 = kap2(Y) - kap2(X)
+                T = T + TcY * TYX / (F.one + q ** (a1 - a2))
+                LY = Lam(Y, F, A, q)
+                BcY, BYX = adjacent_B(c, Y, F, A, q), adjacent_B(Y, X, F, A, q)
+                NcY = Ncc * BcY / (Lc - LY)
+                chain = chain + NcY * BYX
+            if not ok_def:
+                undefined.append((c, X))
+                continue
+            BcX = Lc * T * q ** (ic["s"] - iX["s"]) * Dk(ic["s"], F, A, q) / Dk(iX["s"], F, A, q)
+            NcX = (Ncc * BcX + chain) / (Lc - LX)
+            vB, vN = B[c].get(X, F.zero), N[pos[c]][pos[X]]
+            nzero += vB == 0
+            nB += 1
+            nN += 1
+            if vB != BcX or vN != NcX:
+                bad.append((c, X))
+    return not (bad or undefined), ["gap2: %d clean one-cell pairs (|R| <= %d), %d gap-two pair entries (%d of them zero) from the adjacent "
+                                     "residues: B via the gap-two formula and N via the chain relation; undefined %s; mismatches %s"
+                                     % (len(pairs), nmax, nB, nzero, "none" if not undefined else undefined[:3],
+                                        "none" if not bad else bad[:4])]
+
+
 CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check_f41, "sym": check_sym,
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
           "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
-          "adjres": check_adjres}
+          "adjres": check_adjres, "gap2": check_gap2}
 
 
 def main(argv=None):

@@ -100,3 +100,9 @@ def test_adjacent_residue_formula():
     # every adjacent pair column of a one-cell pair row (landing entries included) on N and B
     ok, lines = T.check_adjres(nmax=5, seed=15)
     assert ok, lines
+
+
+def test_gap_two_pair_columns():
+    # pair columns at gap two from the adjacent residues (B) and the chain relation (N)
+    ok, lines = T.check_gap2(nmax=6, seed=16)
+    assert ok, lines
