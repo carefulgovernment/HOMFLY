@@ -132,3 +132,10 @@ def test_top_weight_law():
     resonant pairs)."""
     ok, lines = T.check_topweight(nmax=6, seed=20)
     assert ok, lines
+
+
+def test_closed_end_to_end():
+    """H_R(Tw_m) from the closed rows of N alone (no vanishing conditions) for every |R| <= 6 whose channels are singles
+    and one-cell pairs, against the data and Rosso-Jones."""
+    ok, lines = T.check_closed(nmax=6, seed=21)
+    assert ok, lines

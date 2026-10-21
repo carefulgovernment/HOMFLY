@@ -47,8 +47,10 @@ checks:
           sign-flip kernel over the states of the moved cells applied to the closed single rows
   topweight  the top-weight law: w_c(R) = d_c rho(R), rho(R) = (-A)^{|R|} q^{kappa_R} prod_b {q^{h(b)}}^2 / D_{c(b)},
           for every channel c whose only minimal diagram is R (one rho for all top channels of R)
+  closed  end to end from the closed formulas only: H_R(Tw_m) for every R whose channels are singles and one-cell
+          pairs, from the closed rows of N (no vanishing condition solved), against the data and Rosso-Jones T(2,3)
 
-usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight]
+usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight closed]
 """
 import argparse
 import gzip
@@ -1555,11 +1557,106 @@ def check_topweight(nmax=6, seed=1):
                                                          "none" if not bad else bad[:4])]
 
 
+def closed_N(nmax, F, A, q):
+    """Rows {c: {X: N_cX}} of the binomial matrix for every single and one-cell pair channel present at |R| <= nmax,
+    from the closed formulas only: the tableau formula (singles); the four-row formula minus the root-formula pair
+    entries (single columns), the root formula with the chain relation (pair columns) and the closed diagonal
+    (one-cell pairs).  No vanishing condition is solved."""
+    pairs, T, Bf, Nf, undefined, inconsistent = closed_pair_block(nmax, F, A, q)
+    info = {c: pair_info(c) for c in pairs}
+    lab = lambda mu: VAC if not mu else ("s", mu, mu)
+    rows = {VAC: {VAC: F.one}}
+    for c in channels_present(nmax):
+        if c[0] == "s":
+            rows[c] = {lab(mu): binom_N(c[1], mu, F, A, q) for mu in subdiagrams(c[1])}
+        elif c in info:
+            row = {}
+            for mu in subdiagrams(info[c]["U"]):
+                v = fourrow_merged(c, mu, F, A, q)
+                for X in pairs:
+                    if info[X]["U"] == mu and (c, X) in Nf:
+                        v = v - Nf[(c, X)]
+                row[lab(mu)] = v
+            for X in pairs:
+                if (c, X) in Nf:
+                    row[X] = Nf[(c, X)]
+            rows[c] = row
+    return rows, undefined, inconsistent
+
+
+def closed_H(R, ms, pt, rows):
+    """H_R(Tw_m) = 1 + sum_c d_c N_cc Psi_c(R) Phi_c(m), Psi = N^{-1} psi(R), Phi(m) = N^{-1} (Lambda^m - 1), from the
+    rows of N alone; None when a channel below R has no closed row."""
+    F, A, q = pt.F, pt.A, pt.q
+    chans = I.channels_of(R)
+    S, stack = {VAC}, list(chans)
+    while stack:
+        c = stack.pop()
+        if c in S:
+            continue
+        if c not in rows:
+            return None
+        S.add(c)
+        stack.extend(X for X in rows[c] if X not in S)
+    Et = {VAC: {VAC: F.one}}
+    for c in _order([c for c in S if c != VAC])[1:]:
+        acc = {c: F.one}
+        for Y, v in rows[c].items():
+            if Y != c and v != 0:
+                for X, w in Et[Y].items():
+                    acc[X] = acc.get(X, F.zero) - v * w
+        Ncc = rows[c][c]
+        Et[c] = {X: w / Ncc for X, w in acc.items() if w != 0}
+    out = {}
+    Psi = {c: sum((w * pt.psi(X, R) for X, w in Et[c].items() if X != VAC), F.zero) for c in chans}
+    for m in ms:
+        tot = F.one
+        for c in chans:
+            Phi = sum((w * (Lam(X, F, A, q) ** m - 1) for X, w in Et[c].items() if X != VAC), F.zero)
+            tot = tot + pt.d(c) * rows[c][c] * Psi[c] * Phi
+        out[m] = tot
+    return out
+
+
+def check_closed(nmax=6, seed=1, ms=range(-5, 6)):
+    """End to end from the closed formulas only: for every R with |R| <= nmax whose channels (and all channels below
+    them) are singles and one-cell pairs, H_R(Tw_m) from closed_N / closed_H against every stored polynomial (ten twist
+    knots at |R| <= 6, 4_1 at seven and eight boxes, the symmetric tables) and against Rosso--Jones T(2,3) = Tw_1."""
+    from homfly.methods.rosso_jones import RossoJones
+    from homfly.knots.families import TorusKnot
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    rows, undefined, inconsistent = closed_N(nmax, F, A, q)
+    RJ = RossoJones()
+    n_R, n_val, n_rj, bad, open_R = 0, 0, 0, [], 0
+    for k in range(1, nmax + 1):
+        for R in partitions(k):
+            R = tuple(R)
+            vals = closed_H(R, [m for m in ms if m], pt, rows)
+            if vals is None:
+                open_R += 1
+                continue
+            n_R += 1
+            for m, v in vals.items():
+                sym = len(R) == 1 and not has_data(M_KNOT[m], R) and k >= 7
+                if has_data(M_KNOT[m], R, symmetric=sym):
+                    n_val += 1
+                    if v != twist_data(m, R, F, A, q, symmetric=sym):
+                        bad.append((R, m))
+            n_rj += 1
+            if vals[1] != RJ.evaluate(TorusKnot(2, 3), R, F, A, q):
+                bad.append((R, "RJ"))
+    return not (bad or inconsistent), [
+        "closed: %d diagrams |R| <= %d entirely closed (singles and one-cell pairs; %d others need multi-cell rows): "
+        "H_R(Tw_m) from the closed rows of N only vs %d stored values and %d Rosso-Jones values: mismatches %s"
+        % (n_R, nmax, open_R, n_val, n_rj, "none" if not bad else bad[:4])]
+
+
 CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check_f41, "sym": check_sym,
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
           "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
           "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow, "kernel": check_kernel,
-          "topweight": check_topweight}
+          "topweight": check_topweight, "closed": check_closed}
 
 
 def set_node_bound(nb):
