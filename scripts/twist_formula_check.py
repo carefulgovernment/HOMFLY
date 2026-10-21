@@ -45,8 +45,11 @@ checks:
           pair entries at the resonant columns, single columns of B from N B = Lambda N with the KNTZ single rows
   kernel  every single column of every pair row of N (one-cell and non-resonant two-cell pairs, merged basis) from one
           sign-flip kernel over the states of the moved cells applied to the closed single rows
-  topweight  the top-weight law: w_c(R) = d_c rho(R), rho(R) = (-A)^{|R|} q^{kappa_R} prod_b {q^{h(b)}}^2 / D_{c(b)},
-          for every channel c whose only minimal diagram is R (one rho for all top channels of R)
+  topweight  the top-weight law: w_c(R) = m_c(R) d_c rho(R), rho(R) = (-A)^{|R|} q^{kappa_R} prod_b {q^{h(b)}}^2 / D_{c(b)},
+          for every channel c whose only minimal diagram is R (one rho for all top channels of R; m_c(R) the
+          multiplicity of the composite of c in R (x) Rbar)
+  mult    the multiplicity factor of the top-weight law at the minimal diagrams of all pair channels (combinatorics,
+          at least 12 boxes): 1, except 2 for every two-cell separate/separate pair (first at [4,3,2,1])
   closed  end to end from the closed formulas only: H_R(Tw_m) for every R whose channels are singles and one-cell
           pairs, from the closed rows of N (no vanishing condition solved), against the data and Rosso-Jones T(2,3)
   vacuum  the vacuum law: E~_{c,vac} (the constant term of Phi_c(m)) = pi(R_min(c)) = prod_b A q^{c(b)} / D_{c(b)} for every
@@ -54,7 +57,8 @@ checks:
   twocell the pair diagonal N_cc (one-cell and non-resonant two-cell pairs, hinge shift for domino/separate), the first pair
           column Ebar_1^2/(2 A^3 D_0), and for the two-cell rows the partner (P) and X* (P*) entries of B and the zeros of N
 
-usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight closed vacuum twocell]
+usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed vacuum
+       twocell]
 """
 import argparse
 import gzip
@@ -1541,12 +1545,13 @@ def rho_top(R, F, A, q):
 
 def check_topweight(nmax=6, seed=1):
     """Top-weight law: every clean channel c whose only minimal diagram is R (the top channels of R, Z u Z' = R, and
-    the resonant pairs with R_min = R) has the evolution coefficient w_c(R) = F_c(R)/phi_c(-1) = d_c rho(R), with one
-    closed rho(R) for all of them (no channel above c is present at R, so only F_c contributes)."""
+    the resonant pairs with R_min = R) has the evolution coefficient w_c(R) = F_c(R)/phi_c(-1) = m_c(R) d_c rho(R), with
+    one closed rho(R) for all of them (no channel above c is present at R, so only F_c contributes) and m_c(R) the
+    multiplicity of the composite of c in R (x) Rbar (1 here; first 2 at [4,3,2,1], see check_mult)."""
     F, A, q = random_point(seed)
     pt = I.Point(F, A, q)
     clean, excluded = clean_channels(pt, channels_present(nmax))
-    counts, bad = {}, []
+    counts, mults, bad = {}, {}, []
     for c in clean:
         rm = I.rmin(c)
         if len(rm) != 1:
@@ -1554,11 +1559,59 @@ def check_topweight(nmax=6, seed=1):
         R = rm[0]
         kind = "single" if c[0] == "s" else pair_kind(c)
         counts[kind] = counts.get(kind, 0) + 1
-        if pt.F_c(c, R) / pt.phi(c, -1) != pt.d(c) * rho_top(R, F, A, q):
+        m = I.presence(c, R)
+        mults[m] = mults.get(m, 0) + 1
+        if pt.F_c(c, R) / pt.phi(c, -1) != m * pt.d(c) * rho_top(R, F, A, q):
             bad.append(c)
-    return not bad, ["topweight: w_c(R_min) = d_c rho(R_min) for every clean channel with one minimal diagram, "
-                     "|R| <= %d: %s; mismatches %s" % (nmax, ", ".join("%s %d" % (k, counts[k]) for k in sorted(counts)),
-                                                         "none" if not bad else bad[:4])]
+    return not bad, ["topweight: w_c(R_min) = m_c(R_min) d_c rho(R_min) for every clean channel with one minimal "
+                     "diagram, |R| <= %d: %s (multiplicities %s); mismatches %s"
+                     % (nmax, ", ".join("%s %d" % (k, counts[k]) for k in sorted(counts)),
+                        ", ".join("m=%d: %d" % (m, mults[m]) for m in sorted(mults)), "none" if not bad else bad[:4])]
+
+
+def minimal_pairs(n):
+    """(U, c) for every pair channel c = {Z, Z'} and every minimal diagram U of c with |U| = n, with m_c(U) > 0."""
+    out = []
+    for U in I.partitions(n):
+        subs = subdiagrams(U)
+        bysize = {}
+        for Z in subs:
+            bysize.setdefault(sum(Z), []).append(Z)
+        for Zs in bysize.values():
+            for i, Z in enumerate(Zs):
+                for Zp in Zs[i + 1:]:
+                    c = I.pair(Z, Zp)
+                    if not I.presence(c, U):
+                        continue
+                    base = I.union(Z, Zp)
+                    if not any(S != U and I.contains(S, base) and I.presence(c, S) for S in subs):
+                        out.append((U, c))
+    return out
+
+
+def check_mult(nmax=6, seed=1):
+    """Multiplicity factor of the top-weight law (pure combinatorics, seed unused): for every pair channel c = {Z, Z'}
+    and every minimal diagram U of c with |U| <= max(nmax, 12), the Koike multiplicity m_c(U) = <s_{U/Z}, s_{U/Z'}> of
+    the composite in U (x) Ubar is 1, except for the separate/separate pairs: every two-cell pair whose sides are two
+    separate cells each has m_c(U) = 2 (U/Z and U/Z' are two separate corners of U, so m = <h_1^2, h_1^2>; first at
+    U = [4,3,2,1]), and some three-cell ones do (from 13 boxes).  Singles have m = 1 at R_min = lambda."""
+    n_max = max(nmax, 12)
+    counts, first, bad = {}, {}, []
+    for n in range(2, n_max + 1):
+        for U, c in minimal_pairs(n):
+            m = I.presence(c, U)
+            kind = pair_kind(c)
+            sep = kind.endswith("separate/separate")
+            if m > 2 or (m == 2 and not sep) or (kind == "2-cell separate/separate" and m != 2):
+                bad.append((U, c, m))
+            key = (kind, m) if m > 1 or sep else ("other", 1)
+            counts[key] = counts.get(key, 0) + 1
+            if m > 1 and kind not in first:
+                first[kind] = U
+    return not bad, ["mult: m_c(U) at the minimal diagrams of all pair channels, |U| <= %d: %s; first m = 2 at %s; "
+                     "mismatches %s" % (n_max, ", ".join("%s m=%d: %d" % (k, m, counts[(k, m)]) for k, m in sorted(counts)),
+                                        ", ".join("%s (%s)" % (U, k) for k, U in sorted(first.items())),
+                                        "none" if not bad else bad[:4])]
 
 
 def closed_N(nmax, F, A, q):
@@ -1946,7 +1999,8 @@ CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
           "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
           "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow, "kernel": check_kernel,
-          "topweight": check_topweight, "closed": check_closed, "vacuum": check_vacuum, "twocell": check_twocell}
+          "topweight": check_topweight, "mult": check_mult, "closed": check_closed, "vacuum": check_vacuum,
+          "twocell": check_twocell}
 
 
 def set_node_bound(nb):

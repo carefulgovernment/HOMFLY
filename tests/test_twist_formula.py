@@ -128,10 +128,21 @@ def test_sign_flip_kernel_pair_rows():
 
 
 def test_top_weight_law():
-    """w_c(R_min) = d_c rho(R_min) with one closed rho for every channel with a single minimal diagram (tops and
-    resonant pairs)."""
+    """w_c(R_min) = m_c(R_min) d_c rho(R_min) with one closed rho for every channel with a single minimal diagram (tops
+    and resonant pairs)."""
     ok, lines = T.check_topweight(nmax=6, seed=20)
     assert ok, lines
+
+
+def test_top_weight_multiplicities():
+    """The multiplicity m_c(U) of a pair channel at its minimal diagram is 1 up to nine boxes and 2 for the two-cell
+    separate/separate pairs, the first being the three 2+2 splittings of the corners of [4,3,2,1]."""
+    ok, lines = T.check_mult(nmax=6, seed=24)
+    assert ok, lines
+    tops = [c for U, c in T.minimal_pairs(10) if U == (4, 3, 2, 1) and T.I.presence(c, U) == 2]
+    assert sorted(tops) == sorted(T.I.pair(Z, Zp) for Z, Zp in (((3, 2, 2, 1), (4, 3, 1)), ((3, 3, 1, 1), (4, 2, 2)),
+                                                                   ((3, 3, 2), (4, 2, 1, 1))))
+    assert not any(T.I.presence(c, U) > 1 for n in range(2, 10) for U, c in T.minimal_pairs(n))
 
 
 def test_closed_end_to_end():

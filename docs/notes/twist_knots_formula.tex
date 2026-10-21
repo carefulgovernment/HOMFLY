@@ -55,7 +55,9 @@ $\Lam_X=A^{2|Z|}q^{2(\kappa_Z+\kappa_{Z'})}$ in the same way (a two-sided binomi
 \end{equation}
 with $R_c$ the minimal diagram of $c$ and $\rho$ the closed product \eqref{eq:topweight}.  Three normalisations fix $N$
 (away from the ghost directions of Section~\ref{sec:ghosts}): $\cf Rc=0$ whenever $c$ is absent from $R\otimes\Rbar$,
-$\Phi_c(-1)=1$, and $\cf{R_c}c=1$; the last one is a law and not a choice (the top-weight law).  The constants are products
+$\Phi_c(-1)=1$, and $\cf{R_c}c=m_c(R_c)$, the multiplicity of $c$ in $R_c\otimes\Rbar_c$; the last one is a law and not a
+choice (the top-weight law), and $m_c(R_c)=1$ except for some separate/separate pairs (all two-cell ones, the first
+three in $[4,3,2,1]$), where it is $2$.  The constants are products
 of quantum numbers and factors $D_k=Aq^k-A^{-1}q^{-k}$ for every channel whose diagonal $N_{cc}$ is closed (Table~\ref{tab:N}),
 \begin{gather*}
 Z_c=d_c\,N_{cc}\,\rho(R_c),\qquad\text{e.g.}\quad Z_{[1]}=D_1D_{-1},\qquad Z_{[k]}=\prod_{i=0}^{k-1}D_{k+i}D_{i-1},\\
@@ -113,11 +115,14 @@ product of $A^aq^b$, quantum numbers $[n]$ and factors $D_k$ exactly for the \em
 $Z\cup Z'=R$; all other coefficients are such a product times a polynomial in $A^2$ of degree $\le |R|-|Z\cup Z'|$
 which does not factorise.  The top coefficients are all given by one formula (Section~\ref{sec:weights}),
 \[
-w_c(R)=d_c\,(-A)^{|R|}\,q^{\kappa_R}\prod_{b\in R}\frac{\{q^{h(b)}\}^2}{D_{c(b)}}\qquad(c\text{ top in }R),
+w_c(R)=m_c(R)\,d_c\,(-A)^{|R|}\,q^{\kappa_R}\prod_{b\in R}\frac{\{q^{h(b)}\}^2}{D_{c(b)}}\qquad(c\text{ top in }R),
 \]
-$d_c$ the quantum dimension of the composite(s) of $c$: the ratio $w_c(R)/d_c$ depends on $R$ only.  It holds for every
-channel whose only minimal diagram is $R$ ($399$ channels of all kinds with a row up to ten boxes, two points; exact up
-to six boxes).  The minimal diagram also fixes the constant term of the twist binomial, $\Phi_c(m)=\pi(R_c)+\sum_{X\ne\vac}
+$d_c$ the quantum dimension of the composite(s) of $c$ and $m_c(R)=\langle s_{R/Z},s_{R/Z'}\rangle$ its multiplicity in
+$R\otimes\Rbar$: the ratio $w_c(R)/(m_c(R)d_c)$ depends on $R$ only.  It holds for every channel whose only minimal
+diagram is $R$ ($399$ channels of all kinds with a row up to ten boxes, two points; exact up to six boxes), all with
+$m_c=1$, and at $R=U$ for all tops and co-tops of twelve diagrams with eight to ten boxes that contain a ghost
+diagram; among them is $[4,3,2,1]$, where the first $m_c=2$ occurs, on its three separate/separate tops.  The minimal
+diagram also fixes the constant term of the twist binomial, $\Phi_c(m)=\pi(R_c)+\sum_{X\ne\vac}
 \Et_{cX}\Lam_X^m$ with $\pi(R)=\prod_{b\in R}Aq^{c(b)}/D_{c(b)}$, and $\rho=(-1)^{|R|}\pi\prod_b\{q^{h(b)}\}^2$ (vacuum law,
 Observation~\ref{obs:vacuum}; all $380$ clean channels up to eleven boxes, two points).
 
@@ -183,7 +188,11 @@ the strengthened Formula II of the other branch for all $137$ diagrams up to ten
 two points), in particular with the stored $H_R(4_1)$ of $[4,3,1]$ and $[3,2,2,1]$ (Section~\ref{sec:ghosts}).  Which
 diagrams carry ghosts is a combinatorial rule checked up to $14$ boxes: never for at most two corners, always for four or
 more, and by the Kerov gaps for three corners.  Open: diagrams with two or more ghosts (first $[6,4,1]$ and $[5,4,2]$ at
-eleven boxes) and the four-corner diagrams ($[4,3,2,1]$, ten ghosts, at ten boxes).
+eleven boxes) and the four-corner diagrams ($[4,3,2,1]$, ten ghosts, at ten boxes).  For these the tops are still fixed,
+by the top-weight law with its multiplicities, so at $R=U$ exactly $\mathrm{ex}(U)$ numbers are open (ten for
+$[4,3,2,1]$, where everything else agrees with the closed block of the other branch); but polynomiality in $A$, the
+amphichirality of $4_1$ and Rosso--Jones do not fix them from $\mathrm{ex}(U)=2$ on, and by a count even a closed
+$H_R(4_1)$ could fix them only for $\mathrm{ex}(U)\le3$.
 \end{itemize}
 
 Nothing in this note is proved.  The statements are conjectures checked on the data described in
@@ -944,23 +953,37 @@ Let $c$ be a channel with a single minimal diagram $R=R_{\min}(c)$: every top ch
 the resonant pairs whose minimal diagram is $R$ (e.g.\ $\{[1,1,1],[3]\}$, $R_{\min}=[3,2,1]$, the exception in
 Observation~\ref{obs:top}).  No channel above $c$ is present at $R$, so $w_c(R)=F_c(R)/\varphi_c(-1)$, and
 \begin{equation}\label{eq:topweight}
-w_c(R)=d_c\,\rho(R),\qquad
+w_c(R)=m_c(R)\,d_c\,\rho(R),\qquad
 \rho(R)=(-A)^{|R|}\,q^{\kappa_R}\prod_{b\in R}\frac{\{q^{h(b)}\}^2}{D_{c(b)}}
 =\frac{(-A)^{|R|}\,q^{\kappa_R}\prod_{b\in R}\{q^{h(b)}\}}{\dim_qR},
 \end{equation}
-where $d_c$ is the quantum dimension of the composite(s) of $c$ and $\dim_qR=\prod_{b\in R}D_{c(b)}/\{q^{h(b)}\}$ that of
-$R$ ($A=q^N$).  So $w_c(R)/d_c$ is the same closed product for all top channels of $R$, singles and pairs alike, e.g.\
+where $d_c$ is the quantum dimension of the composite(s) of $c$, $m_c(R)=\langle s_{R/Z},s_{R/Z'}\rangle
+=\sum_Wc^R_{ZW}c^R_{Z'W}$ is the multiplicity of the composite $[Z,Z']$ in $R\otimes\Rbar$ (Koike; it is $1$ for every
+channel in the checks of this paragraph), and $\dim_qR=\prod_{b\in R}D_{c(b)}/\{q^{h(b)}\}$ is the quantum dimension of
+$R$ ($A=q^N$).  So $w_c(R)/(m_c(R)d_c)$ is the same closed product for all top channels of $R$, singles and pairs alike, e.g.\
 $\rho([1])=-A\{q\}^2/D_0$, $\rho([2])=A^2q\{q\}^2\{q^2\}^2/(D_0D_1)$, $\rho([2,1])=-A^3\{q\}^6[3]^2/(D_{-1}D_0D_1)$.  In terms of
 the binomial matrix: the interpolation function $\Psi_c(R):=\sum_X\Et_{cX}\psi_X(R)$ of a channel, which vanishes on every
-$R\not\supseteq R_{\min}(c)$, takes at its minimal diagram the universal value $\Psi_c(R_{\min})=\rho(R_{\min})$;
-equivalently, the colour normalisation $\Psi_c(R_{\min})=\rho(R_{\min})$ and the twist normalisation $\Phi_c(-1)=1$ of
-the rows coincide.  Verified exactly for all $49$ such channels with $|R|\le6$ ($29$ singles, $17$ one-cell pairs, the
+$R\not\supseteq R_{\min}(c)$, takes at its minimal diagram the universal value $\Psi_c(R_{\min})=m_c(R_{\min})\rho(R_{\min})$;
+equivalently, the colour normalisation of the rows and the twist normalisation $\Phi_c(-1)=1$ coincide up to the
+multiplicity.  Verified exactly for all $49$ such channels with $|R|\le6$ ($29$ singles, $17$ one-cell pairs, the
 pairs $\{[2,2],[4]\}$, $\{[1^4],[2,2]\}$ and the resonant $\{[1,1,1],[3]\}$); in the script (\LMPH{topweight}) at
 $|R|\le6$ and, with \LMPH{--nmax 7 --nb 10}, for $87$ channels at $|R|\le7$; analysis: modulo $p$ at two points for every
 channel with one minimal diagram, $|R_{\min}|\le10$, that has a row ($399$: $138$ singles, $182$ one-cell, $26$
 domino/domino, $26$ domino/separate, $15$ resonant two-cell pairs, $12$ three-cell pairs), no failure.  The two channels
 with two minimal diagrams that have a row at ten boxes ($\{[3,2,1,1],[5,2]\}$, $\{[2,2,1,1,1],[4,2,1]\}$) satisfy it at one
 of their minimal diagrams only: there the unsplit row of the vanishing conditions is a sum of two terms.
+
+\emph{Multiplicities.}  $m_c(R_{\min})=1$ for every channel with $|R_{\min}|\le9$, so the factor is invisible in the checks
+above.  It is $2$ for every separate/separate two-cell pair (each side two separate cells): then $R_{\min}=Z\cup Z'$,
+both $R_{\min}/Z$ and $R_{\min}/Z'$ are two separate corners, and $m_c=\langle h_1^2,h_1^2\rangle=2$.  Such a pair needs
+four corners, and the first are the three $2+2$ splittings of the corners of $[4,3,2,1]$: $\{[3,2,2,1],[4,3,1]\}$,
+$\{[3,3,1,1],[4,2,2]\}$, $\{[3,3,2],[4,2,1,1]\}$.  Up to fifteen boxes $m_c(R_{\min})\le2$, and the only other channels with
+$m_c(R_{\min})=2$ are some three-cell pairs of the same kind, from $[6,4,2,1]$ on (check \LMPH{mult}).  The factor is
+confirmed where it first appears: at $R=U=[4,3,2,1]$ the closed block of the other branch (which reproduces Formula~I for
+$|m|\le4$ and Rosso--Jones) gives $w_c=2d_c\rho(U)$ on these three tops, and \eqref{eq:topweight} holds on all $14$ tops
+and co-tops of $[4,3,2,1]$ and on the $82$ tops and co-tops of eleven other diagrams with eight to ten boxes that contain
+a ghost diagram (two points, $192/192$; analysis, Section~\ref{sec:ghosts}).  For a co-top the law holds at each of its
+minimal diagrams, with the row split as in Remark~(e) of Section~\ref{sec:universal}.
 \end{observation}
 
 \begin{observation}[vacuum law: the constant term of the twist binomial]\label{obs:vacuum}
@@ -1018,7 +1041,8 @@ Here $N$ is the lower triangular matrix for which the two expansions
 \end{equation}
 hold with (i) $\cf Rc=0$ whenever $c$ is absent from $R\otimes\Rbar$ (the vanishing conditions; at $R=\varnothing$ this
 gives $N_{X\vac}=1$, i.e.\ $\Phi_c(0)=\delta_{c\vac}$) and (ii) $\Phi_c(-1)=1$, i.e.\ $\sum_cN_{Xc}=\Lam_X^{-1}$.  Then
-(iii) $\cf{R_c}c=1$ (the top-weight law \eqref{eq:topweight}).  The second sum runs over the ghosts of the ghost diagrams
+(iii) $\cf{R_c}c=m_c(R_c)$, the multiplicity of $c$ in $R_c\otimes\Rbar_c$ (the top-weight law \eqref{eq:topweight}; $1$
+except for some separate/separate pairs).  The second sum runs over the ghosts of the ghost diagrams
 $U\subseteq R$ (Section~\ref{sec:ghosts}); it is empty unless $R$ contains one of $[4,3,1]$, $[3,2,2,1]$, $[5,3,1]$,
 $[3,2,2,1,1]$, \dots
 \end{conjecture}
@@ -1087,14 +1111,15 @@ states: $n=4$ closed, $n=5$ tables & mod $p$, $n\le6$\\
 resonant two-cell rows, single columns & extended kernel on $[V,R_{\min}]$ (Obs.~\ref{obs:kernel}(c)) & mod $p$ $\le11$ boxes\\
 resonant two-cell rows, pair columns & heavier: products (H); light and top: unique solution of (F$'$)$+$(Z$'$)
 (Obs.~\ref{obs:resrows}) & mod $p$ $\le11$ boxes\\
-ghost directions & zero rule for the tops, ghost term with $Z_g$ from the trefoil (Section~\ref{sec:ghosts}) & $\le10$ boxes
-except $[4,3,2,1]$\\
+ghost directions & zero rule for the tops, ghost term with $Z_g$ from the trefoil (Section~\ref{sec:ghosts}); top
+coordinates at $R=U$ by the top-weight law with multiplicities & $\le10$ boxes except $[4,3,2,1]$; there all but ten
+ghost numbers\\
 \midrule
 \multicolumn{3}{p{0.95\textwidth}}{\textbf{Not closed:} an entry-by-entry formula for the columns fixed only by a linear
 system (the light columns of the two-cell rows, the light and top columns of the resonant rows); the pair columns of the
 rows with three or more moved cells per side; sides of $n\ge3$ cells that are not lines; deep states of line pairs with
 $n\ge6$; separate/separate pairs (no data); ghost diagrams with two or more ghosts (from $[6,4,1]$, $[5,4,2]$ at eleven
-boxes) and the four-corner diagrams (from $[4,3,2,1]$).}\\
+boxes) and the four-corner diagrams (from $[4,3,2,1]$): their ghost forms $G^U$.}\\
 \bottomrule
 \end{tabular}
 \caption{The binomial matrix $N$ block by block.  ``Checked'' gives the largest range checked (two points modulo
@@ -1148,11 +1173,36 @@ Z_{[a,3,1]}=-\{q\}^{10}\,\frac{[a+2]\,[4]}{[a-4]!}\prod_{b\in[a,3,1]}[h(b)]\;D_{
 \]
 and the predicted $H_U(\Tw_m)$ for $U=[7,3,1]$, $[6,3,2]$, $[7,3,2]$ are Laurent polynomials in $A$ on the twist-knot
 windows for $m=-1,\pm2,3$, while without the ghost term or with $2Z_g$ they are not ($[6,3,2]$ at all four $m$,
-$[7,3,2]$ at $m=2,3$).  $Z_g$ is not a product in general: $Z_{[6,3,2]}$ has a pole at $D_1$.
-\item \textbf{Open.}  Ghost diagrams with $\mathrm{ex}(U)\ge2$ (first $[6,4,1]$, $[5,4,2]$ at eleven boxes), where the
-zero rule leaves free directions and the trefoil gives fewer equations than there are constants; the four-corner
-diagrams ($[4,3,2,1]$ with ten ghosts, $[5,3,2,1]$ with eleven); the values of $\mathrm{ex}(U)$; a closed form for the
-coefficients of $k_U$.
+$[7,3,2]$ at $m=2,3$).  This is a check and not a principle: polynomiality alone does not fix $Z_g$ (next items).  $Z_g$
+is not a product in general: $Z_{[6,3,2]}$ has a pole at $D_1$.
+\item \textbf{The top part of the layer.}  At $R=U$ write $H_U(\Tw_m)=H^{\rm low}_U(m)+\sum_XY_X(\Lam_X^{\,m}-1)$, where
+$H^{\rm low}_U$ collects the vacuum and every term whose channel or ghost has its minimal diagram strictly inside $U$
+(one term per minimal diagram for the split channels).  The \emph{$U$-level twist vector} $Y$ lies in $I_U$, and its
+coordinates on the tops and co-tops of $U$ are fixed by the top-weight law, $Y_c=m_c(U)\,d_c\,\rho(U)$
+(Observation~\ref{obs:topweight}).  So the free directions of the top rows drop out, and only the $\mathrm{ex}(U)$ ghost
+coordinates of $Y$ are open.  For $U=[4,3,2,1]$: $\dim I_U=24=12+2+10$; the lower part ($118$ terms, four of them from
+split channels, and the trefoil-rule ghost terms of $[4,3,1]$ and $[3,2,2,1]$) is term by term that of the closed
+$[4,3,2,1]$ block of the other branch, which reproduces Formula~I for $|m|\le4$ and Rosso--Jones; and the block's $Y$ lies
+in $I_U$ with the predicted top coordinates, $m_c=2$ on the three separate/separate tops (two points).  So at
+$R=[4,3,2,1]$ exactly ten numbers per point are open, more than the eight twist knots of Formula~I can fix.
+\item \textbf{What does not fix the layer.}  Measured at $R=U$ with the top coordinates imposed and nothing fitted
+(random $A$ at a fixed $q$; the unknowns are the $A$-coefficients of $H_U(\Tw_m)$ on the twist-knot windows, and the
+ghost coordinates are free at each point).  Polynomiality in $A$ alone leaves a nine-parameter family per value of $q$
+already at $[4,3,1]$; the amphichirality of $4_1$ (the sweeps at $q$ and $1/q$ coupled) leaves one parameter; and
+Rosso--Jones fixes it with equations to spare, an independent check of the trefoil rule at $\mathrm{ex}(U)=1$.  At
+$\mathrm{ex}(U)=2$ ($[5,4,2]$, $[6,4,1]$) polynomiality, $4_1$ and Rosso--Jones together leave $34$ free coefficients, at
+$[4,3,2,1]$ they leave $259$ ($43$ with Formula~I for $|m|\le4$, which lies in the family).  The reason is a count.  The
+twist knots see the layer of $U$ only through a symmetric form $G^U$ on its ghost space, the ghost part of $H$ being
+$\sum_{a,b}G^U_{ab}\,k_a(R)\,\phi_b(m)$ with $k_a(R)=\sum_Xk_{a,X}\psi_X(R)$, $\phi_b(m)=\sum_Xk_{b,X}(\Lam_X^{\,m}-1)$
+(the ghost analogue of the matrix $G$ of Remark~(b); for $\mathrm{ex}(U)=1$ it is \eqref{eq:ghost}).  $G^U$ has
+$e(e+1)/2$ entries for $e=\mathrm{ex}(U)$.  Rosso--Jones at all $R\supseteq U$ sees only the $e$ numbers $G^U\phi(1)$,
+and a closed $H_R(4_1)$ would add the $e$ numbers $G^U\phi(-1)$, so these can fix the layer only for $e\le3$, while
+$[4,3,2,1]$ has $55$ entries.  The layer needs input beyond the twist knots in one colour: the double braids with their
+mirror symmetry (not tested), or two-colour (ring-leg) data, which is what the closed $[4,3,2,1]$ block of the other
+branch uses.
+\item \textbf{Open.}  Ghost diagrams with $\mathrm{ex}(U)\ge2$ (first $[6,4,1]$, $[5,4,2]$ at eleven boxes) and the
+four-corner diagrams ($[4,3,2,1]$ with ten ghosts, $[5,3,2,1]$ with eleven): the forms $G^U$; the values of
+$\mathrm{ex}(U)$; a closed form for the coefficients of $k_U$.
 \end{itemize}
 
 \subsection{Status}
@@ -1163,7 +1213,8 @@ $320$ stored values and $76$ Rosso--Jones values), Rosso--Jones for the $72$ suc
 $260$ stored values of the $26$ such diagrams up to six boxes exactly over $\mathbb Q(A,q)$ (analysis).  With the kernel
 single columns and engine pair columns, all $117$ diagrams up to ten boxes that have a row for every channel agree with all
 data.  With the ghost layer and the rows from the vanishing conditions, all diagrams up to ten boxes except $[4,3,2,1]$
-agree with the strengthened engine.  What remains open is the last row of Table~\ref{tab:N}.
+agree with the strengthened engine; for $[4,3,2,1]$ everything except ten ghost numbers per point agrees with the closed
+block of the other branch.  What remains open is the last row of Table~\ref{tab:N}.
 
 \section{Checks}\label{sec:checks}
 
@@ -1200,13 +1251,17 @@ gap-two pair columns \eqref{eq:gap2}, \eqref{eq:chain} (\LMPH{gap2}) & $19$ entr
 pair columns at every gap \eqref{eq:roots} (\LMPH{roots}) & $B$ and $N$ at gaps $1,2,3$: $27$, $19$, $9$ entries at $|R|\le6$; gaps $1$--$4$: $47$, $42$, $25$, $11$ with \LMPH{--nmax 7} and $77$, $66$, $37$, $17$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: the same exact rows, mod $p$ two points at $8$, $9$, $10$ boxes, gaps up to $5$, $6$, $7$ ($299$, $603$, $1176$ entries), no failure\\
 whole one-cell pair rows \eqref{eq:Nsingle}, \eqref{eq:Bsingle} (\LMPH{fullrow}) & every single column of $N$ and $B$: $179+179$ at $|R|\le6$, $344+344$ with \LMPH{--nmax 7}, $458+458$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: $925$, $1633$, $2629$ columns at $8$, $9$, $10$ boxes, $N$ and $B$ each, two points, no failure\\
 sign-flip kernel \eqref{eq:kernel} (\LMPH{kernel}) & one-cell pairs $179$ columns and non-resonant two-cell pairs $24$ columns at $|R|\le6$; $458$ and $92$ with \LMPH{--nmax 7 --nb 10}; no mismatch; analysis: $10\,346$ one-cell, $1\,996$ domino/domino, $2\,170$ domino/separate columns up to ten boxes, two points, no failure; three-cell line pairs $92$ columns (middle states from the sum rules)\\
-top-weight law \eqref{eq:topweight} (\LMPH{topweight}) & every channel with one minimal diagram: $49$ at $|R|\le6$ (exact in the analysis), $87$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: $399$ channels up to ten boxes, two points, no failure\\
+top-weight law \eqref{eq:topweight} (\LMPH{topweight}) & every channel with one minimal diagram (all with $m_c=1$): $49$ at $|R|\le6$ (exact in the analysis), $87$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: $399$ channels up to ten boxes, two points, no failure\\
+multiplicities $m_c(R_{\min})$ (\LMPH{mult}) & every pair channel at every minimal diagram with at most $12$ boxes ($1062$ cases): $m_c=2$ exactly for the $24$ two-cell separate/separate pairs, first at $[4,3,2,1]$, otherwise $1$; with \LMPH{--nmax 15}: $m_c\le2$, $219$ two-cell and $56$ three-cell pairs with $m_c=2$\\
+top-weight law at the ghost diagrams, $R=U$ (analysis) & $Y_c=m_c(U)d_c\rho(U)$ on all $14$ tops and co-tops of $[4,3,2,1]$ (against the closed block of the other branch, $m_c=2$ on three of them) and on the $82$ of eleven diagrams with $8$--$10$ boxes; two points, $192/192$\\
 vacuum law \eqref{eq:vacuum} (\LMPH{vacuum}) & every channel with one minimal diagram: $49$ at $|R|\le6$, $87$ with \LMPH{--nmax 7 --nb 10}, $142$ with \LMPH{--nmax 8 --nb 12}, no mismatch; analysis: all $380$ clean channels of the engine rows up to eleven boxes, two points\\
 two-cell rows: \eqref{eq:pdiag}, first pair column, (P), $X^*$, (Z) (\LMPH{twocell}) & at $|R|\le6$: $19$, $18$ pairs, $4$ partners, $7$ zeros; \LMPH{--nmax 8 --nb 12}: $72$, $71$ pairs, $16$ two-cell rows, $44$ partners, $6$ columns $X^*$, $285$ zeros; no mismatch; analysis: whole rows, $62$ rows at eleven boxes, two points\\
 end to end from the closed rows only, \eqref{eq:U} without ghosts (\LMPH{closed}) & \LMPH{--nmax 10}: all $76$ diagrams whose channels are singles and one-cell pairs, $320$ stored values and $76$ Rosso--Jones values, no mismatch; analysis: $72$ such diagrams with $11$--$14$ boxes (Rosso--Jones), $26$ diagrams $\le6$ exactly\\
 pair-pair block: interpolation (I), zonal binomials \eqref{eq:zonal} (analysis) & (I) on every engine entry up to eleven boxes and $98\,343$ generated entries $\le14$ boxes; \eqref{eq:zonal} on $26\,826$ axis-type entries; no failure\\
 resonant rows, Observation~\ref{obs:resrows} (analysis) & all $21$ resonant pairs with one minimal diagram up to eleven boxes: unique solution $=$ engine row at every column, two points; exact identities on the three rows $\le7$ boxes; uniform filtration on $1019$ clean rows per point\\
 ghost layer \eqref{eq:ghost} (analysis) & with $Z_g$ from the trefoil: all $137$ diagrams $\le10$ boxes except $[4,3,2,1]$ against the strengthened engine, $m=-4,\dots,4$, two points\\
+ghost layer of $[4,3,2,1]$ at $R=U$ (analysis) & lower part $118/118$ terms equal to the closed block of the other branch (which equals Formula~I $8/8$ and Rosso--Jones), $Y\in I_U$, $\dim I_U=24=12+2+10$; two points\\
+fixing principles at $R=U$ (analysis) & free parameters left by polynomiality / $+4_1$ amphichirality / $+$Rosso--Jones: $18$ / $1$ / $0$ (consistent) at $[4,3,1]$; $58$ / $35$ / $34$ at $[5,4,2]$ and $[6,4,1]$; $270$ / not run / $259$ at $[4,3,2,1]$\\
 four-row formula \eqref{eq:fourrow} (\LMPH{fourrow}) & $17$ pairs, $179$ single columns at $|R|\le6$ ($28$ pairs, $344$ columns with \LMPH{--nmax 7}), no mismatch; analysis: mod $p$ $869$ columns (8 boxes, two points), $1550$ columns (9 boxes)\\
 $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, implied $B$ entries $15/15$; analysis: exact $28$ pairs ($\le7$ boxes), mod $p$ $56$ pairs (8 boxes), $83$ pairs (9 boxes), no mismatch in the claimed classes\\
 \bottomrule
@@ -1241,7 +1296,10 @@ missing term is the ghost term of \eqref{eq:U}, a rank-one term built from the k
 the trefoil (Section~\ref{sec:ghosts}; the strengthened Formula II of the other branch contains the same term).  At nine
 boxes the same happens for the tops of $[5,3,1]$, $[3,2,2,1,1]$, and four channels with two minimal diagrams are not
 determined either.  With the ghost terms everything up to ten boxes is accounted for except $[4,3,2,1]$; open are the
-ghost diagrams with two or more ghosts (from eleven boxes) and the four-corner diagrams.
+ghost diagrams with two or more ghosts (from eleven boxes) and the four-corner diagrams.  For them only the ghost
+coordinates are open (the tops follow from the top-weight law with multiplicities, ten numbers per point remain for
+$[4,3,2,1]$), and none of the principles tested (polynomiality in $A$, the amphichirality of $4_1$, Rosso--Jones) fixes
+them once $\mathrm{ex}(U)\ge2$ (Section~\ref{sec:ghosts}).
 \item \textbf{Nothing is proved}: Conjectures \ref{conj:main}, \ref{conj:kntz}, \ref{conj:tab}, \ref{conj:U} and all
 Observations are statements verified on the data listed above only.
 \end{enumerate}
@@ -1448,7 +1506,7 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 \begin{itemize}
 \item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
 (options \LMPH{--nmax}, \LMPH{--seed}, \LMPH{--nb}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom
-pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight closed vacuum twocell}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
+pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed vacuum twocell}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
 adjres gap2 roots fullrow kernel} runs the checks of Sections \ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends
 them to seven boxes, and \LMPH{--nmax 7 --nb 10} imposes the vanishing conditions on all diagrams with at most ten boxes,
 which makes every channel with $|R|\le7$ full rank).
@@ -1457,7 +1515,8 @@ The closed formulas live in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{
 \eqref{eq:Ndiag}--\eqref{eq:Nadd}, \LMPH{khook\_N} \eqref{eq:khook}, \LMPH{check\_fourrow} \eqref{eq:fourrow},
 \LMPH{adjacent\_residue} \eqref{eq:adjres}, \LMPH{check\_gap2} \eqref{eq:gap2}, \eqref{eq:chain}, \LMPH{root\_T} /
 \LMPH{closed\_pair\_block} \eqref{eq:roots}, \eqref{eq:paths}, \LMPH{check\_fullrow} \eqref{eq:Nsingle}, \eqref{eq:Bsingle} and
-\LMPH{kernel\_K} \eqref{eq:kernel}, \LMPH{rho\_top} \eqref{eq:topweight}, \LMPH{pi\_vac} \eqref{eq:vacuum},
+\LMPH{kernel\_K} \eqref{eq:kernel}, \LMPH{rho\_top} \eqref{eq:topweight} (with the engine's \LMPH{presence} for $m_c$,
+and \LMPH{minimal\_pairs} for the census), \LMPH{pi\_vac} \eqref{eq:vacuum},
 \LMPH{pair\_diag} \eqref{eq:pdiag}, \LMPH{first\_pair\_column}, \LMPH{partner\_B}, \LMPH{xstar\_B} and \LMPH{twocell\_zero}
 (Observation~\ref{obs:twocell}), and \LMPH{closed\_N} / \LMPH{closed\_H}, which build $N$ from the closed rules and
 evaluate \eqref{eq:U}.  \LMPH{--nmax 10 closed} is the end-to-end check (about two minutes).
