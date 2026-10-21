@@ -109,8 +109,9 @@ states.  \textbf{Not closed.}  (i) The pair columns of the two-cell pair rows: t
 \eqref{eq:roots} fails there (the normalised pair entries of $B$ are polynomials of degree one to four in $A^2$;
 analysis, nine exact rows), so their split of the merged entries at the resonant columns has no formula.  (ii) The
 resonant two-cell pairs (a vertical against a horizontal domino, eigenvalue identical to that of a single): their rows
-live partly outside $U$ and are not a combination of single rows; the data do not separate the channels of such an
-eigenvalue class, so these rows are the engine's gauge (Observation~\ref{obs:kernel}).  (iii) The middle states of the
+live partly outside $U$ and are not a combination of single rows.  They are not a gauge: the vanishing conditions fix
+them uniquely; only the twist-knot polynomials cannot separate the channels of such an eigenvalue class, so they test
+the class sum and not the rows one by one (Observation~\ref{obs:kernel}).  (iii) The middle states of the
 three-cell pairs are fixed by the sum rules but are not products; separate/separate two-cell pairs have no data.  This
 is exactly where the ``one simple closed formula'' stops.
 
@@ -689,10 +690,10 @@ non-zero exactly on the singles $\mu$ with $U\subsetneq\mu\subsetneq R_{\min}$ (
 $\{[1,1,1],[3]\}$: $U=[3,1,1]$, $R_{\min}=[3,2,1]$, non-zero at $[2,2]$, $[2,2,1]$, $[3,2]$), which no combination of
 single rows $N_\lambda$, $\lambda\subseteq U$, can produce, and the unique expansion in all single rows violates the vacuum
 column (all $18$ such pairs with data up to ten boxes).  Each of them is $\Lam$-degenerate with the grid state $V$ plus the
-inner cells of both dominoes ($\{[1,1,1],[3]\}$ with $[2,1]$, $\{[2,1,1],[4]\}$ with $[3,1]$): the twist-knot data do
-not separate channels with identical eigenvalues, so the split of such a $\Lam$-class between its channels is the
-engine's gauge, and a formula for these rows would be a formula for that gauge; the gauge-invariant content of these
-classes was not extracted.
+inner cells of both dominoes ($\{[1,1,1],[3]\}$ with $[2,1]$, $\{[2,1,1],[4]\}$ with $[3,1]$).  The twist-knot
+polynomials alone do not separate channels with identical eigenvalues, so they test only the sum over such a
+$\Lam$-class; the rows themselves are nevertheless not a gauge, since the vanishing conditions determine them
+uniquely, and a closed formula for them is open.
 \end{observation}
 
 \paragraph{What was tried and failed.}  (a) A product formula for the entries of $v_c$ (or of $B_c$, or of $E_c$)
@@ -790,8 +791,9 @@ columns of the non-resonant two-cell pair rows are closed by the kernel \eqref{e
 columns of the two-cell pair rows (the pure-$q$ property that underlies \eqref{eq:roots} fails: the normalised pair
 entries of $B$ are polynomials of degree one to four in $A^2$ over $\mathbb Q(q)$; analysis, nine exact rows), hence
 also the split of their merged entries at the resonant columns; the resonant two-cell pairs (vertical against
-horizontal domino, e.g.\ $\{[1,1,1],[3]\}$ in $R=[3,2,1]$), whose rows are not combinations of single rows and are the
-engine's gauge inside an eigenvalue class (Observation~\ref{obs:kernel}); the middle states of the three-cell pairs
+horizontal domino, e.g.\ $\{[1,1,1],[3]\}$ in $R=[3,2,1]$), whose rows are not combinations of single rows (they are
+fixed by the vanishing conditions, while the twist-knot data test only their eigenvalue class,
+Observation~\ref{obs:kernel}); the middle states of the three-cell pairs
 (sum rules only); the separate/separate pairs (no data).
 \item \textbf{Non-top evolution coefficients}: product $\times$ polynomial, polynomial not closed
 (Section~\ref{sec:weights}); already $w_{[1]}([2])$.
