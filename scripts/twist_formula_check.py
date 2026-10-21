@@ -30,8 +30,10 @@ checks:
   pairn   pair rows of N: the one-cell diagonal, the first pair column and the two-box columns [1,1], [2]
   union   pair rows of B from the union diagram (one-cell pairs, all columns except the resonant ones)
   hook    the closed rows of B for the hook family {[k-1,1],[k]} and its transpose
+  khook   the K-hook law for the pair columns of the pair rows of N (diagonal, first pair column and all adjacent
+          non-landing entries), and the B entries it implies
 
-usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [data kntz phi f41 sym table pairs bmat binom pairn union hook]
+usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook]
 """
 import argparse
 import gzip
@@ -743,9 +745,135 @@ def check_hook(nmax=6, seed=1):
     return not bad, ["hook: closed rows of B for {[k-1,1],[k]} and transposes, k = 2..%d: %d rows, mismatches %s" % (nmax - 1, n, "none" if not bad else bad)]
 
 
+def arm(lam, b):
+    return lam[b[0]] - b[1] - 1
+
+
+def leg(lam, b):
+    return conjugate(lam)[b[1]] - b[0] - 1
+
+
+def idx(lam, b):
+    """a - l + 2c of the box b in lam (the D-index of the product formulas)."""
+    return arm(lam, b) - leg(lam, b) + 2 * cont(b)
+
+
+def add_cells(lam, cells):
+    """The diagram lam with the cells added (None if the result is not a partition)."""
+    rows = list(lam)
+    for i, j in cells:
+        while len(rows) <= i:
+            rows.append(0)
+        if j >= rows[i]:
+            rows[i] = j + 1
+    while rows and rows[-1] == 0:
+        rows.pop()
+    if any(rows[i] > rows[i - 1] for i in range(1, len(rows))):
+        return None
+    return tuple(rows)
+
+
+def pair_info(c):
+    """One-cell pair c = {V+b, V+b'} with c(b) < c(b'): U, V, b, b', the hinge h = (row of b', column of b) in V,
+    d = c(b') - c(b), s = c(b) + c(b').  None for other channels."""
+    oc = one_cell(c)
+    if oc is None:
+        return None
+    Z, Zp, U, b, bp = oc
+    if cont(b) > cont(bp):
+        b, bp = bp, b
+    V = tuple(v for v in (min(Z[i], Zp[i]) for i in range(min(len(Z), len(Zp)))) if v)
+    return {"U": U, "V": V, "b": b, "bp": bp, "h": (bp[0], b[1]), "d": cont(bp) - cont(b), "s": cont(b) + cont(bp)}
+
+
+def khook_N(c, X, F, A, q):
+    """The K-hook law for the pair column X of the one-cell pair row c of N:
+    N_cX = -(1/2)(-A)^{-|U_X|} q^{-kappa(U_X)} {q^{d_c}}^2 D_{s_c}^2 / D_{s_X}
+           * prod_{x in V_X minus h_X} [h_{V_c+K}(x)]/[h_{V_X+K}(x)] D_{idx_{U_c}(x)},   K = {b_c,b'_c} cap {b_X,b'_X}.
+    None where a cell of V_X minus h_X lies outside V_c + K (the law is not claimed there)."""
+    ic, iX = pair_info(c), pair_info(X)
+    K = {ic["b"], ic["bp"]} & {iX["b"], iX["bp"]}
+    VcK, VXK = add_cells(ic["V"], K), add_cells(iX["V"], K)
+    if VcK is None or VXK is None:
+        return None
+    u = F.one
+    for x in boxes(iX["V"]):
+        if x == iX["h"]:
+            continue
+        if x not in boxes(VcK):
+            return None
+        u = u * qnum(hook(VcK, x), F, q) / qnum(hook(VXK, x), F, q) * Dk(idx(ic["U"], x), F, A, q)
+    cq = q ** ic["d"] - q ** (-ic["d"])
+    P = -(F.one / 2) * (-A) ** (-sum(iX["U"])) * q ** (-kappa(iX["U"])) * cq * cq
+    P = P * Dk(ic["s"], F, A, q) ** 2 / Dk(iX["s"], F, A, q)
+    return P * u
+
+
+def check_khook(nmax=6, seed=1):
+    """Pair columns X of the one-cell pair rows c of N (U_X inside U_c): N_cX = 0 when U_X = U_c; the K-hook law
+    on the diagonal, the first pair column and every adjacent (|U_c| = |U_X| + 1) non-landing (h_c not in V_X minus h_X)
+    entry; for those adjacent entries also B_cX = N_cX (Lambda_c - Lambda_X) / phi_c(-1).  Landing and non-adjacent
+    entries are only counted."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    orderB, B = build_B(pt, chans)
+    pos = {c: i for i, c in enumerate(order)}
+    first = ("p", (1, 1), (2,))
+    cnt = {"diag": [0, 0], "first": [0, 0], "adjacent": [0, 0], "adjacentB": [0, 0], "sameU": [0, 0]}
+    other = {"landing": 0, "nonadjacent": 0}
+    bad = []
+    pairs = [c for c in clean if pair_info(c) is not None]
+    for c in pairs:
+        ic = pair_info(c)
+        for X in pairs:
+            iX = pair_info(X)
+            if not I.contains(ic["U"], iX["U"]):
+                continue
+            v = N[pos[c]][pos[X]]
+            if X == c:
+                key = "diag"
+            elif iX["U"] == ic["U"]:
+                key = "sameU"
+            elif X == first:
+                key = "first"
+            elif sum(ic["U"]) != sum(iX["U"]) + 1:
+                other["nonadjacent"] += 1
+                continue
+            elif ic["h"] in boxes(iX["V"]) and ic["h"] != iX["h"]:
+                other["landing"] += 1
+                continue
+            else:
+                key = "adjacent"
+            if key == "sameU":
+                ok = v == 0
+            else:
+                want = khook_N(c, X, F, A, q)
+                ok = want is not None and v == want
+                if key == "adjacent" and want is not None:
+                    Lc, LX = Lam(c, F, A, q), Lam(X, F, A, q)
+                    okB = B[c].get(X, F.zero) == want * (Lc - LX) / N[pos[c]][pos[c]]
+                    cnt["adjacentB"][0 if okB else 1] += 1
+                    if not okB:
+                        bad.append(("B", c, X))
+            cnt[key][0 if ok else 1] += 1
+            if not ok:
+                bad.append((key, c, X))
+    lines = ["khook: %d clean one-cell pairs (|R| <= %d); N_cX = 0 for U_X = U_c: %d/%d; K-hook law: diagonal %d/%d, "
+             "first pair column %d/%d, adjacent non-landing %d/%d; implied B entries %d/%d; not claimed (counted only): "
+             "landing %d, non-adjacent %d; mismatches %s"
+             % (len(pairs), nmax, cnt["sameU"][0], sum(cnt["sameU"]), cnt["diag"][0], sum(cnt["diag"]),
+                cnt["first"][0], sum(cnt["first"]), cnt["adjacent"][0], sum(cnt["adjacent"]),
+                cnt["adjacentB"][0], sum(cnt["adjacentB"]), other["landing"], other["nonadjacent"],
+                "none" if not bad else bad[:4])]
+    return not bad, lines
+
+
 CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check_f41, "sym": check_sym,
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
-          "union": check_union, "hook": check_hook}
+          "union": check_union, "hook": check_hook, "khook": check_khook}
 
 
 def main(argv=None):

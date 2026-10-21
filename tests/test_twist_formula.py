@@ -82,3 +82,9 @@ def test_hook_family_rows():
     # closed rows of B for {[k-1,1],[k]} and the transposed family
     ok, lines = T.check_hook(nmax=5, seed=12)
     assert ok, lines
+
+
+def test_khook_law_pair_columns():
+    # K-hook law for the pair columns of the pair rows of N (diagonal, first column, adjacent non-landing entries)
+    ok, lines = T.check_khook(nmax=5, seed=13)
+    assert ok, lines

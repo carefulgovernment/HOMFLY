@@ -82,10 +82,12 @@ non-rectangular $R$.  For a one-cell pair $c=\{Z,Z'\}$ with union $U=Z\cup Z'$ (
 $U$, $Z$, $Z'$ (union formula \eqref{eq:union}); (ii) the whole row is closed for the hook family
 $\{[k-1,1],[k]\}$ and its transpose \eqref{eq:hook}, so for $R=[r,1]$ and $R=[2,1^{r-1}]$ the twist-knot formula is
 completely closed; (iii) the normalisation $\varphi_c(-1)$, the vacuum, $[1]$, $[1,1]$, $[2]$ and first-pair-column
-entries of $N$ are closed.  \emph{Not closed}: the residues of $B_c$ at the resonances $\Lam_Y=\Lam_{U_Y}$ of the
-smaller pairs $Y<c$, one element of $\mathbb Q(q^2)$ per such pair ($123$ of them for the $28$ one-cell pairs with at
-most seven boxes, six of which are not products), i.e.\ the pair columns of the pair rows and the matching union
-columns; and the two-cell pairs beyond (iii).  This is exactly where the ``one simple closed formula'' stops.
+entries of $N$ are closed, and one more product formula, the $K$-hook law \eqref{eq:khook}, gives every pair-column
+entry of $N$ (hence of $B$ and $E$) between \emph{adjacent} pairs ($|U_c|=|U_X|+1$) except the ``landing'' ones.
+\emph{Not closed}: the residues of $B_c$ at the resonances $\Lam_Y=\Lam_{U_Y}$ of the smaller pairs $Y<c$ in the
+landing case (one element of $\mathbb Q(q^2)$ per such pair; of the $123$ residues of the $28$ one-cell pairs with at
+most seven boxes, six are not products), which through the triangular structure also leave the non-adjacent pair
+columns open; and the two-cell pairs beyond (iii).  This is exactly where the ``one simple closed formula'' stops.
 
 \item \textbf{Where it breaks.}  Up to seven boxes the vanishing conditions determine every row of $E$ once enough
 nodes are used; the rank deficiencies seen at seven and eight boxes with the engine's default node bound are an artefact
@@ -388,7 +390,8 @@ pair $Y<c$: $123$ elements of $\mathbb Q(y)$ for the $28$ one-cell pairs with at
 $r_{c,\{[1,1],[2]\}}=(-1)^{|V|+1}q^{-2\kappa_V}$ (all $27$ pairs that have the column); the others depend on $c$ and $Y$
 jointly (not on $V$ and $Y$ alone, and not as a product $a_cb_Y$), and six of them are not products of quantum numbers
 and monomials, the smallest being $r_{cY}=q^2(q^6+q^2+1)$ for $c=\{[2,1,1,1],[2,2,1]\}$, $Y=\{[1,1,1],[2,1]\}$ and
-its transpose.  No rule for the $r_{cY}$ was found.  (Analysis only; not re-checked by the script.)
+its transpose.  The adjacent non-landing residues are given by the $K$-hook law (Observation~\ref{obs:khook});
+no rule for the landing ones was found.  (The counts are from the analysis; the script checks the $K$-hook law.)
 \end{observation}
 
 \begin{observation}[hook family; whole rows closed]\label{obs:hook}
@@ -433,6 +436,34 @@ one-cell pairs up to seven boxes, \eqref{eq:Nfirst} for all $20$ pairs at $|R|\l
 pairs $N_{c,\{[1,1],[2]\}}=\varphi_{\{[1,1],[2]\}}(-1)\,([3]D_{s/2}/D_0)^2$ with $s$ the content sum of the four moved boxes).
 Note that $\Lam_c=\Lam_V\,(Aq^{s})^2$: the pair has the eigenvalue of $V$ with one fictitious box of content $s/2$, and
 $D_s=D_{2\cdot s/2}$ is the ``content factor'' of that box in \eqref{eq:union}, \eqref{eq:Ndiag}, \eqref{eq:Nfirst}.
+\end{observation}
+
+\begin{observation}[$K$-hook law for the pair columns of $N$]\label{obs:khook}
+Write $h_c:=(\text{row of }b',\ \text{column of }b)\in V$ for the \emph{hinge} of $c$ (so that $a_U-l_U+2c$ of $h_c$
+equals $s$), and for a one-cell pair $X=\{W,W'\}<c$ with $U_X\subseteq U$ write $V_X$, $b_X$, $b'_X$, $h_X$, $s_X$ for
+the same data of $X$ and $K:=\{b,b'\}\cap\{b_X,b'_X\}$ for the moved cells the two pairs share.  Then
+\begin{equation}\label{eq:khook}
+N_{cX}=-\frac12\,(-A)^{-|U_X|}q^{-\kappa_{U_X}}\,\frac{\{q^d\}^2D_s^2}{D_{s_X}}\;
+\prod_{x\in V_X\setminus\{h_X\}}\frac{[h_{V+K}(x)]}{[h_{V_X+K}(x)]}\,D_{a_U(x)-l_U(x)+2c(x)}
+\end{equation}
+holds (a) on the diagonal $X=c$, where it is \eqref{eq:Ndiag}; (b) in the first pair column $X=\{[1,1],[2]\}$, where
+the product is empty and it is \eqref{eq:Nfirst}; (c) for every \emph{adjacent non-landing} entry, i.e.\
+$|U|=|U_X|+1$ and $h_c\notin V_X\setminus\{h_X\}$.  It is the pair analogue of the hook product form of
+\eqref{eq:tab}: $(\lambda,\mu)\to(V+K,V_X+K)$ in the quantum numbers, $U$ in the $D$-indices, and the hinge of $X$
+replaced by the pole factor $D_s^2/D_{s_X}$.  Between adjacent pairs no channel lies strictly between $X$ and $c$, so
+$B_{cX}=N_{cX}(\Lam_c-\Lam_X)/\varphi_c(-1)$ and $E_{cX}=-N_{cX}/\varphi_X(-1)$ are closed too; for $V=V_X+e$ with the
+same moved cells ($K=\{b,b'\}$) the residue of Observation~\ref{obs:union} is
+$r_{cX}=-q^{-c(e)-2s_X}\prod_{x\in V_X\setminus h_X}[h_U(x)]/[h_{U_X}(x)]$.  Also $N_{cX}=0$ whenever $U_X=U$.
+Eq.~\eqref{eq:khook} fails at every landing entry ($h_c\in V_X\setminus\{h_X\}$): these are sums of $D$'s rather than
+products, e.g.\ the product in \eqref{eq:khook} must be replaced by $D_1+D_{-3}=[4]D_{-1}/[2]$ for
+$c=\{[2,1,1],[2,2]\}$, $X=\{[1,1,1],[2,1]\}$; and it fails at part of the non-adjacent entries (from the rows whose $V$
+contains a $2\times2$ block on), which are chain sums over adjacent entries by
+$N_{cX}(\Lam_c-\Lam_X)=\sum_{X<Y\le c}N_{cY}B_{YX}$.  Checked by the script (\LMPH{khook}; $17$ pairs at $|R|\le6$:
+diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, the implied $B$ entries $15/15$, the zero rule
+$6/6$; with \LMPH{--nmax 7}, $28$ pairs: $28/28$, $27/27$, $27/27$, $27/27$); in the analysis exact for all $28$ one-cell pairs with at most seven boxes (diagonal $28/28$, adjacent
+non-landing $29/29$), modulo $p$ for $56$ pairs at eight boxes ($56/56$, $74/74$) and $83$ pairs at nine boxes
+($83/83$, $118/118$), with the non-adjacent non-landing entries right in $515$ of $741$ cases and the landing ones in
+none.  Found on the exact rows with at most seven boxes; the eight- and nine-box rows were not used in finding it.
 \end{observation}
 
 \paragraph{What was tried and failed.}  (a) A product formula for the entries of $v_c$ (or of $B_c$, or of $E_c$)
@@ -508,6 +539,7 @@ tableau formula \eqref{eq:tab} for the single rows of $N$ (\LMPH{binom}) & $841$
 one-cell pairs of $N$: \eqref{eq:Ndiag}, \eqref{eq:Nfirst}, \eqref{eq:Nadd} (\LMPH{pairn}) & $17/17$ pairs at $|R|\le6$\\
 union formula \eqref{eq:union} (\LMPH{union}) & $472$ non-resonant entries of the $17$ pairs at $|R|\le6$, no mismatch; analysis: exact $1856$ entries ($28$ pairs, $\le7$ boxes), mod $p$ $5704$ entries ($41$ pairs, $\le8$ boxes)\\
 hook family \eqref{eq:hook} and transposes (\LMPH{hook}) & $8$ rows, $k\le5$, at $|R|\le6$; analysis: exact $k\le6$, mod $p$ $k\le10$\\
+$K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, implied $B$ entries $15/15$; analysis: exact $28$ pairs ($\le7$ boxes), mod $p$ $56$ pairs (8 boxes), $83$ pairs (9 boxes), no mismatch in the claimed classes\\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -516,12 +548,14 @@ hook family \eqref{eq:hook} and transposes (\LMPH{hook}) & $8$ rows, $k\le5$, at
 
 \begin{enumerate}
 \item \textbf{Pair rows of $B$ / $E$ / $N$} (all non-rectangular $R$ except $[r,1]$, $[2,1^{r-1}]$): closed on
-all non-resonant columns \eqref{eq:union}, closed as whole rows for the hook family \eqref{eq:hook}; not closed at the
-resonant columns, where one residue $r_{cY}\in\mathbb Q(q^2)$ per smaller pair $Y<c$ is needed (Observation~\ref{obs:res}):
-the first pair for which such a residue is not a monomial is $\{[1,1,1,1],[2,1,1]\}$ (it is $[2]$), the first for
-which it is not a product is $\{[2,1,1,1],[2,2,1]\}$ (seven boxes).  Equivalently, on the $N$ side, the correction
+all non-resonant columns \eqref{eq:union}, closed as whole rows for the hook family \eqref{eq:hook}; closed between adjacent pairs except for the landing entries \eqref{eq:khook}; not closed at the
+remaining resonant columns, where one residue $r_{cY}\in\mathbb Q(q^2)$ per smaller pair $Y<c$ is needed
+(Observation~\ref{obs:res}): the first pair for which such a residue is not a monomial is $\{[1,1,1,1],[2,1,1]\}$ (it
+is $[2]$), the first for which it is not a product is $\{[2,1,1,1],[2,2,1]\}$ (seven boxes); the first landing entry
+is $N_{cX}$ for $c=\{[2,1,1],[2,2]\}$, $X=\{[1,1,1],[2,1]\}$ (five boxes).  Equivalently, on the $N$ side, the correction
 $\Gamma_c(\mu)$ of \eqref{eq:Nadd} for $|\mu|\ge3$.  For the two-cell pairs only \eqref{eq:Nvac}, \eqref{eq:Nfirst}
-and the vacuum/$[1]$ identities (where not resonant) are known.
+and the vacuum/$[1]$ identities (where not resonant) are known; their pair-column entries of $N$ are products at
+seven boxes (analysis), but no uniform law was found.
 \item \textbf{Non-top evolution coefficients}: product $\times$ polynomial, polynomial not closed
 (Section~\ref{sec:weights}); already $w_{[1]}([2])$.
 \item \textbf{Resonances}: from $[3,2,1]$ on, the evolution form does not separate channels with equal eigenvalues;
@@ -741,10 +775,11 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 \begin{itemize}
 \item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
 (options \LMPH{--nmax}, \LMPH{--seed}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom pairn
-union hook}; e.g.\ \LMPH{--nmax 6 binom pairn union hook} runs the checks of Sections \ref{sec:N}--\ref{sec:pairs} in
-under a minute).  The closed formulas live in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{binom\_N} /
-\LMPH{tableau\_P} \eqref{eq:tab}, \LMPH{check\_union} \eqref{eq:union}, \LMPH{hook\_pair\_row} \eqref{eq:hook} and
-\LMPH{check\_pairn} \eqref{eq:Ndiag}--\eqref{eq:Nadd}.
+union hook khook}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook} runs the checks of Sections
+\ref{sec:N}--\ref{sec:pairs} in under a minute).  The closed formulas live in the functions \LMPH{kntz\_B}
+\eqref{eq:kntz}, \LMPH{binom\_N} / \LMPH{tableau\_P} \eqref{eq:tab}, \LMPH{check\_union} \eqref{eq:union},
+\LMPH{hook\_pair\_row} \eqref{eq:hook}, \LMPH{check\_pairn} \eqref{eq:Ndiag}--\eqref{eq:Nadd} and \LMPH{khook\_N}
+\eqref{eq:khook}.
 \item \LMPH{python3 -m pytest tests/test\_twist\_formula.py} --- fast subset.
 \item \LMPH{data/twist\_weights/twist\_weights\_le6.json} --- all $w_X(R)$, $|R|\le6$, as numerator/denominator
 monomial lists in $x=A^2$, $y=q^2$ (exact, computed over $\mathbb Q(x,y)$ with python-flint from the vanishing
