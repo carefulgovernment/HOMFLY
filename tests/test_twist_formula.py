@@ -88,3 +88,9 @@ def test_khook_law_pair_columns():
     # K-hook law for the pair columns of the pair rows of N (diagonal, first column, adjacent non-landing entries)
     ok, lines = T.check_khook(nmax=5, seed=13)
     assert ok, lines
+
+
+def test_four_row_formula_single_columns():
+    # every single column of a one-cell pair row of N from the four closed single rows V, Z, Z', U (merged basis)
+    ok, lines = T.check_fourrow(nmax=5, seed=14)
+    assert ok, lines

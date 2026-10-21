@@ -76,18 +76,25 @@ $A^aq^b$, quantum numbers $[n]$ and factors $D_k$ exactly for the \emph{top} cha
 (Section~\ref{sec:weights}); all other coefficients are such a product times a polynomial in $A^2$ of degree
 $\le |R|-|Z\cup Z'|$ which does not factorise.
 
-\item \textbf{Partly closed: the pair-channel sector.}  Pair channels $\{Z,Z'\}$, $Z\ne Z'$, exist precisely for
-non-rectangular $R$.  For a one-cell pair $c=\{Z,Z'\}$ with union $U=Z\cup Z'$ (Section~\ref{sec:pairs}):
-(i) every entry of the row $B_c$ outside the \emph{resonant} columns is a closed combination of the three KNTZ rows of
-$U$, $Z$, $Z'$ (union formula \eqref{eq:union}); (ii) the whole row is closed for the hook family
-$\{[k-1,1],[k]\}$ and its transpose \eqref{eq:hook}, so for $R=[r,1]$ and $R=[2,1^{r-1}]$ the twist-knot formula is
-completely closed; (iii) the normalisation $\varphi_c(-1)$, the vacuum, $[1]$, $[1,1]$, $[2]$ and first-pair-column
-entries of $N$ are closed, and one more product formula, the $K$-hook law \eqref{eq:khook}, gives every pair-column
-entry of $N$ (hence of $B$ and $E$) between \emph{adjacent} pairs ($|U_c|=|U_X|+1$) except the ``landing'' ones.
-\emph{Not closed}: the residues of $B_c$ at the resonances $\Lam_Y=\Lam_{U_Y}$ of the smaller pairs $Y<c$ in the
-landing case (one element of $\mathbb Q(q^2)$ per such pair; of the $123$ residues of the $28$ one-cell pairs with at
-most seven boxes, six are not products), which through the triangular structure also leave the non-adjacent pair
-columns open; and the two-cell pairs beyond (iii).  This is exactly where the ``one simple closed formula'' stops.
+\item \textbf{Mostly closed: the pair-channel sector.}  Pair channels $\{Z,Z'\}$, $Z\ne Z'$, exist precisely for
+non-rectangular $R$.  For a one-cell pair $c=\{Z,Z'\}$ with $V=Z\cap Z'$, $U=Z\cup Z'$ (Section~\ref{sec:pairs}):
+(i) every single column of the row $N_c$ is given by the \emph{four-row formula} \eqref{eq:fourrow},
+\[
+2N_{c\mu}=N_{Z\mu}+N_{Z'\mu}+\{q^d\}^2\,\frac{N_{Z\mu}+N_{Z'\mu}-N_{U\mu}-N_{V\mu}}{D_{2c(b)}\,D_{2c(b')}},
+\]
+the average of the two single rows $Z$, $Z'$ plus a divided second difference of the closed single rows over the
+square $V\subset Z,Z'\subset U$ (at a resonant column it gives the regular combination $N_{c\mu}+\sum_{U_X=\mu}N_{cX}$);
+(ii) the pair columns $N_{cX}$ between \emph{adjacent} pairs ($|U|=|U_X|+1$) are given by the product formula
+\eqref{eq:khook} (the $K$-hook law), except the ``landing'' ones; (iii) for the twist matrix $B$ itself, every entry of
+the row $B_c$ outside the resonant columns is a closed combination of the three KNTZ rows of $U$, $Z$, $Z'$ (union
+formula \eqref{eq:union}), and the whole row is closed for the hook family $\{[k-1,1],[k]\}$ and its transpose
+\eqref{eq:hook}.  Consequently the twist-knot formula is completely closed for every $R$ with $|R|\le4$, for all hooks
+$[r,1]$, $[2,1^{r-1}]$ and all rectangles.  \emph{Not closed}: the landing pair entries, first met at $R=[2,2,1]$ and
+$[3,2]$, where exactly one entry of $N$ (for $c=\{[2,1,1],[2,2]\}$, $X=\{[1,1,1],[2,1]\}$, and its transpose) is outside
+the formulas; through the triangular structure they also leave the non-adjacent pair columns open (equivalently, the
+residues of $B_c$ at the resonances $\Lam_Y=\Lam_{U_Y}$ of the landing pairs $Y<c$); and the two-cell pairs, for which
+only an analysis-level rule with case distinctions exists.  This is exactly where the ``one simple closed formula''
+stops.
 
 \item \textbf{Where it breaks.}  Up to seven boxes the vanishing conditions determine every row of $E$ once enough
 nodes are used; the rank deficiencies seen at seven and eight boxes with the engine's default node bound are an artefact
@@ -359,7 +366,12 @@ hold for $\{[1,1,1,1],[2,2]\}$ and $\{[2,2],[4]\}$ but fail for $\{[1,1,1],[3]\}
 with the single $[2,1]$.  (Up to eight boxes, modulo $p$: they hold for all $56$ one-cell pairs and for $16$ of the $22$
 multi-cell pairs; the six failures $\{[1,1,1],[3]\}$, $\{[1^4],[3,1]\}$, $\{[2,1,1],[4]\}$, $\{[1^5],[3,1,1]\}$,
 $\{[2,1^3],[4,1]\}$, $\{[3,1,1],[5]\}$ are exactly the pairs in which $Z$ and $Z'$ differ by a vertical and a horizontal
-domino, i.e.\ the resonant ones.)
+domino, i.e.\ the resonant ones.)  In the analysis, the single columns of every non-resonant two-cell pair row
+of $N$ at up to nine boxes are a combination $\sum_{V\subseteq\lambda\subseteq U}M_\lambda N_{\lambda\mu}$ of the
+closed single rows of the diagrams between $V$ and $U$ (the ``grid expansion'', the pair analogue of
+\eqref{eq:fourrow}), with product coefficients $M_\lambda$ given by a cell rule that still needs a row/column case
+distinction; it is not re-checked by the script and not claimed here.  The resonant two-cell pairs have row support
+outside $U$ and no such expansion.
 \end{observation}
 
 \subsection*{One-cell pairs: what is closed}
@@ -430,12 +442,35 @@ For the larger single columns the same additive structure holds with a correctio
 $P^c_\mu=P_\mu(Z)+P_\mu(Z')-\{q^d\}^2\Gamma_c(\mu)$, where $\Gamma_c(\mu)$ is a Laurent polynomial in $A,q$ at the
 non-resonant columns (e.g.\ $\Gamma([1,1,1])=[2]D_{-3}$ for $\{[1,1,1],[2,1]\}$, $\Gamma([3])=[2]D_3$ for
 $\{[2,1],[3]\}$, $\Gamma([2,1])=([4]+[2])D_0$ for $\{[2,1,1],[3,1]\}$) and has the pole $D_{s_Y}$ at the resonant ones;
-no closed rule for $\Gamma_c(\mu)$ was found (it is the $N$-side of the residue problem).  Eqs.\ \eqref{eq:Nvac}--\eqref{eq:Nadd}
+$\Gamma_c(\mu)$ is given in closed form by the four-row formula \eqref{eq:fourrow} below.  Eqs.\ \eqref{eq:Nvac}--\eqref{eq:Nadd}
 are checked by the script (\LMPH{binom}, \LMPH{pairn}: $17$ pairs at $|R|\le6$); \eqref{eq:Ndiag} is exact for all $28$
 one-cell pairs up to seven boxes, \eqref{eq:Nfirst} for all $20$ pairs at $|R|\le6$ in the analysis (for the two-cell
 pairs $N_{c,\{[1,1],[2]\}}=\varphi_{\{[1,1],[2]\}}(-1)\,([3]D_{s/2}/D_0)^2$ with $s$ the content sum of the four moved boxes).
 Note that $\Lam_c=\Lam_V\,(Aq^{s})^2$: the pair has the eigenvalue of $V$ with one fictitious box of content $s/2$, and
 $D_s=D_{2\cdot s/2}$ is the ``content factor'' of that box in \eqref{eq:union}, \eqref{eq:Ndiag}, \eqref{eq:Nfirst}.
+\end{observation}
+
+\begin{observation}[four-row formula: all single columns of a one-cell pair row]\label{obs:fourrow}
+For every single column $\mu\subseteq U$,
+\begin{equation}\label{eq:fourrow}
+2N_{c\mu}=\frac{D_s^2\,(N_{Z\mu}+N_{Z'\mu})-\{q^d\}^2\,(N_{U\mu}+N_{V\mu})}{D_{2c(b)}\,D_{2c(b')}}
+=N_{Z\mu}+N_{Z'\mu}+\{q^d\}^2\,\frac{N_{Z\mu}+N_{Z'\mu}-N_{U\mu}-N_{V\mu}}{D_{2c(b)}\,D_{2c(b')}}
+\end{equation}
+(the two forms agree because $D_{2c(b)}D_{2c(b')}+\{q^d\}^2=D_s^2$), where the four single rows are given by
+\eqref{eq:tab} and the left side is read in the merged basis: at a resonant column $\mu=U_X$ it is
+$2\bigl(N_{c\mu}+\sum_{X<c:\,U_X=\mu}N_{cX}\bigr)$, the coefficient of $\Phi_\mu$ in the basis
+$\{\Phi_\mu,\ \Phi_X-\Phi_{U_X}\}$, and at $\mu=U$ it is $2N_{cc}$.  So the pair row is the average of the two
+composite rows $Z$, $Z'$ plus $\{q^d\}^2$ times the divided mixed second difference of the single-row function
+$\lambda\mapsto N_{\lambda\mu}$ over the square $V\subset Z,Z'\subset U$, with the steps $D_{2c(b)}$, $D_{2c(b')}$ of
+the two added boxes.  Special cases: $\mu=\vac$ gives $2=2$; $\mu=[1]$ gives \eqref{eq:Nvac}; $\mu=U$ gives
+\eqref{eq:Ndiag}; $\mu=[1,1],[2]$ give \eqref{eq:Nadd}; and in general
+$\Gamma_c(\mu)=(P_\mu(Z)+P_\mu(Z')-P_\mu(U)-P_\mu(V))/(D_{2c(b)}D_{2c(b')})$ in the merged basis, which closes the
+correction of Observation~\ref{obs:Npair}.  Checked by the script (\LMPH{fourrow}: $17$ pairs, $179$ columns at
+$|R|\le6$; $28$ pairs, $344$ columns with \LMPH{--nmax 7}; no mismatch, the four rows computed from \eqref{eq:tab});
+in the analysis exact on the same rows and modulo $p$ for $56$ pairs ($869$ columns) at eight boxes at two points and
+$83$ pairs ($1550$ columns) at nine boxes.  Found on the rows with at most six boxes; the rest was not used in finding
+it.  Together with Observation~\ref{obs:khook} below this makes every entry of a one-cell pair row of $N$ closed except
+the landing pair entries and the non-adjacent pair entries that depend on them.
 \end{observation}
 
 \begin{observation}[$K$-hook law for the pair columns of $N$]\label{obs:khook}
@@ -539,6 +574,7 @@ tableau formula \eqref{eq:tab} for the single rows of $N$ (\LMPH{binom}) & $841$
 one-cell pairs of $N$: \eqref{eq:Ndiag}, \eqref{eq:Nfirst}, \eqref{eq:Nadd} (\LMPH{pairn}) & $17/17$ pairs at $|R|\le6$\\
 union formula \eqref{eq:union} (\LMPH{union}) & $472$ non-resonant entries of the $17$ pairs at $|R|\le6$, no mismatch; analysis: exact $1856$ entries ($28$ pairs, $\le7$ boxes), mod $p$ $5704$ entries ($41$ pairs, $\le8$ boxes)\\
 hook family \eqref{eq:hook} and transposes (\LMPH{hook}) & $8$ rows, $k\le5$, at $|R|\le6$; analysis: exact $k\le6$, mod $p$ $k\le10$\\
+four-row formula \eqref{eq:fourrow} (\LMPH{fourrow}) & $17$ pairs, $179$ single columns at $|R|\le6$ ($28$ pairs, $344$ columns with \LMPH{--nmax 7}), no mismatch; analysis: mod $p$ $869$ columns (8 boxes, two points), $1550$ columns (9 boxes)\\
 $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, implied $B$ entries $15/15$; analysis: exact $28$ pairs ($\le7$ boxes), mod $p$ $56$ pairs (8 boxes), $83$ pairs (9 boxes), no mismatch in the claimed classes\\
 \bottomrule
 \end{tabular}
@@ -547,12 +583,16 @@ $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal
 \section{What is not closed, and where it breaks}
 
 \begin{enumerate}
-\item \textbf{Pair rows of $B$ / $E$ / $N$} (all non-rectangular $R$ except $[r,1]$, $[2,1^{r-1}]$): closed on
-all non-resonant columns \eqref{eq:union}, closed as whole rows for the hook family \eqref{eq:hook}; closed between adjacent pairs except for the landing entries \eqref{eq:khook}; not closed at the
-remaining resonant columns, where one residue $r_{cY}\in\mathbb Q(q^2)$ per smaller pair $Y<c$ is needed
-(Observation~\ref{obs:res}): the first pair for which such a residue is not a monomial is $\{[1,1,1,1],[2,1,1]\}$ (it
-is $[2]$), the first for which it is not a product is $\{[2,1,1,1],[2,2,1]\}$ (seven boxes); the first landing entry
-is $N_{cX}$ for $c=\{[2,1,1],[2,2]\}$, $X=\{[1,1,1],[2,1]\}$ (five boxes).  Equivalently, on the $N$ side, the correction
+\item \textbf{Pair rows of $N$ / $B$ / $E$} (all non-rectangular $R$ except $[r,1]$, $[2,1^{r-1}]$): for one-cell
+pairs all single columns are closed \eqref{eq:fourrow}, the pair columns between adjacent pairs are closed except the
+landing ones \eqref{eq:khook}, the row of $B$ is closed on all non-resonant columns \eqref{eq:union} and completely for
+the hook family \eqref{eq:hook}.  Not closed: the landing pair entries, and with them the split of the regular
+combination $N_{c\mu}+\sum_{U_X=\mu}N_{cX}$ at the resonant columns and the non-adjacent pair entries (equivalently
+the residues $r_{cY}$ of Observation~\ref{obs:res} at landing pairs; the first residue that is not a monomial belongs
+to $\{[1,1,1,1],[2,1,1]\}$, the first that is not a product to $\{[2,1,1,1],[2,2,1]\}$).  The first landing entry is
+$N_{cX}$ for $c=\{[2,1,1],[2,2]\}$, $X=\{[1,1,1],[2,1]\}$ at five boxes, where the data give
+$N_{cX}=-q^2[2][4]\{q\}^2D_{-2}^2/(2A^4)$ (transpose: $-[2][4]\{q\}^2D_2^2/(2A^4q^2)$ for $c=\{[2,2],[3,1]\}$,
+$X=\{[2,1],[3]\}$), a product that the $K$-hook law does not produce.  Equivalently, on the $N$ side, the correction
 $\Gamma_c(\mu)$ of \eqref{eq:Nadd} for $|\mu|\ge3$.  For the two-cell pairs only \eqref{eq:Nvac}, \eqref{eq:Nfirst}
 and the vacuum/$[1]$ identities (where not resonant) are known; their pair-column entries of $N$ are products at
 seven boxes (analysis), but no uniform law was found.
@@ -775,11 +815,11 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 \begin{itemize}
 \item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
 (options \LMPH{--nmax}, \LMPH{--seed}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom pairn
-union hook khook}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook} runs the checks of Sections
-\ref{sec:N}--\ref{sec:pairs} in under a minute).  The closed formulas live in the functions \LMPH{kntz\_B}
-\eqref{eq:kntz}, \LMPH{binom\_N} / \LMPH{tableau\_P} \eqref{eq:tab}, \LMPH{check\_union} \eqref{eq:union},
-\LMPH{hook\_pair\_row} \eqref{eq:hook}, \LMPH{check\_pairn} \eqref{eq:Ndiag}--\eqref{eq:Nadd} and \LMPH{khook\_N}
-\eqref{eq:khook}.
+union hook khook fourrow}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow} runs the checks of Sections
+\ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends them to seven boxes).  The closed formulas live
+in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{binom\_N} / \LMPH{tableau\_P} \eqref{eq:tab},
+\LMPH{check\_union} \eqref{eq:union}, \LMPH{hook\_pair\_row} \eqref{eq:hook}, \LMPH{check\_pairn}
+\eqref{eq:Ndiag}--\eqref{eq:Nadd}, \LMPH{khook\_N} \eqref{eq:khook} and \LMPH{check\_fourrow} \eqref{eq:fourrow}.
 \item \LMPH{python3 -m pytest tests/test\_twist\_formula.py} --- fast subset.
 \item \LMPH{data/twist\_weights/twist\_weights\_le6.json} --- all $w_X(R)$, $|R|\le6$, as numerator/denominator
 monomial lists in $x=A^2$, $y=q^2$ (exact, computed over $\mathbb Q(x,y)$ with python-flint from the vanishing

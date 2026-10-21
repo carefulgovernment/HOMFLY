@@ -32,8 +32,10 @@ checks:
   hook    the closed rows of B for the hook family {[k-1,1],[k]} and its transpose
   khook   the K-hook law for the pair columns of the pair rows of N (diagonal, first pair column and all adjacent
           non-landing entries), and the B entries it implies
+  fourrow the four-row formula: every single column of a one-cell pair row of N (in the merged basis at the resonant
+          columns) from the closed single rows of V, Z, Z', U
 
-usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook]
+usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow]
 """
 import argparse
 import gzip
@@ -871,9 +873,53 @@ def check_khook(nmax=6, seed=1):
     return not bad, lines
 
 
+def check_fourrow(nmax=6, seed=1):
+    """Four-row formula for the single columns mu of a one-cell pair row c = {Z, Z'} of N (V = Z cap Z', U = Z cup Z'):
+        2 N_c[mu] + 2 sum_{pairs X: U_X = mu} N_c[X]
+            = ( D_s^2 (N_Z[mu] + N_Z'[mu]) - {q^d}^2 (N_U[mu] + N_V[mu]) ) / (D_{2c(b)} D_{2c(b')}),
+    the four single rows taken from the closed tableau formula; the left side is the coefficient of Phi_mu in the basis
+    Phi_mu, Phi_X - Phi_{U_X}.  Every single column mu <= U is checked, the vacuum and the diagonal (mu = U) included."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    pos = {c: i for i, c in enumerate(order)}
+    unions = {}
+    for X in order:
+        if X[0] == "p":
+            unions.setdefault(I.union(X[1], X[2]), []).append(X)
+    n_pairs = n_cols = 0
+    bad = []
+    for c in clean:
+        info = pair_info(c)
+        if info is None:
+            continue
+        Z, Zp, U, V = c[1], c[2], info["U"], info["V"]
+        b, bp = info["b"], info["bp"]
+        n_pairs += 1
+        cq = q ** info["d"] - q ** (-info["d"])
+        den = Dk(2 * cont(b), F, A, q) * Dk(2 * cont(bp), F, A, q)
+        for X in order:
+            if X[0] != "s" or not I.contains(U, X[1]):
+                continue
+            mu = X[1]
+            lhs = 2 * N[pos[c]][pos[X]]
+            for Y in unions.get(mu, []):
+                if Y in pos:
+                    lhs = lhs + 2 * N[pos[c]][pos[Y]]
+            rhs = Dk(info["s"], F, A, q) ** 2 * (binom_N(Z, mu, F, A, q) + binom_N(Zp, mu, F, A, q))
+            rhs = rhs - cq * cq * (binom_N(U, mu, F, A, q) + binom_N(V, mu, F, A, q))
+            n_cols += 1
+            if lhs != rhs / den:
+                bad.append((c, mu))
+    return not bad, ["fourrow: %d clean one-cell pairs (|R| <= %d), %d single columns of N from the four closed single rows "
+                     "V, Z, Z', U: mismatches %s" % (n_pairs, nmax, n_cols, "none" if not bad else bad[:4])]
+
+
 CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check_f41, "sym": check_sym,
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
-          "union": check_union, "hook": check_hook, "khook": check_khook}
+          "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow}
 
 
 def main(argv=None):
