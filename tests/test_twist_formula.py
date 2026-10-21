@@ -106,3 +106,16 @@ def test_gap_two_pair_columns():
     # pair columns at gap two from the adjacent residues (B) and the chain relation (N)
     ok, lines = T.check_gap2(nmax=6, seed=16)
     assert ok, lines
+
+
+def test_root_formula_all_gaps():
+    """Pair columns of one-cell pair rows at every gap (gaps 1-3 at six boxes) from the adjacent residues and the
+    root formula, B and N against the engine."""
+    ok, lines = T.check_roots(nmax=6, seed=17)
+    assert ok, lines
+
+
+def test_full_one_cell_pair_rows():
+    """Whole one-cell pair rows of N and B (every single column, resonant ones included) from the closed formulas."""
+    ok, lines = T.check_fullrow(nmax=6, seed=18)
+    assert ok, lines

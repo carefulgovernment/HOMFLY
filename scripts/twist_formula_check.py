@@ -38,12 +38,18 @@ checks:
           entries included: zero rule, type B (two shared corners) and one shared corner; checked on N and on B
   gap2    the gap-two formula T_cX = sum_Y T_cY T_YX / (1 + q^{a_1(Y) - a_2(Y)}) for the pair columns with
           |U_c| = |U_X| + 2, built from the adjacent residues only; B_cX and (via the chain relation) N_cX
+  roots   every pair column of every one-cell pair row at every gap: the root formula (the chain expansion of N_cX
+          must be regular at the roots of Lambda_c = Lambda_X that are not zeros of a D_k), in its rational form in
+          F[y]/(cyclotomic factor), from the adjacent residues only; B and N compared with the engine
+  fullrow the whole one-cell pair rows of N and B: single columns of N from the four-row formula minus the root-formula
+          pair entries at the resonant columns, single columns of B from N B = Lambda N with the KNTZ single rows
 
-usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2]
+usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow]
 """
 import argparse
 import gzip
 import json
+import math
 import os
 import random
 import sys
@@ -1078,10 +1084,310 @@ def check_gap2(nmax=6, seed=1):
                                         "none" if not bad else bad[:4])]
 
 
+# ---------------------------------------------------------------------------
+# every gap: the root formula for the pair-pair block, and the whole one-cell pair rows of N and B
+# ---------------------------------------------------------------------------
+_CYC = {}
+
+
+def cyclotomic(n):
+    """Integer coefficients (low to high) of the cyclotomic polynomial Phi_n (exact division of u^n - 1)."""
+    if n in _CYC:
+        return _CYC[n]
+    p = [-1] + [0] * (n - 1) + [1]
+    for d in range(1, n):
+        if n % d == 0:
+            d_ = cyclotomic(d)
+            out, r = [0] * (len(p) - len(d_) + 1), list(p)
+            for i in range(len(out) - 1, -1, -1):
+                out[i] = r[i + len(d_) - 1] // d_[-1]
+                for j in range(len(d_)):
+                    r[i + j] -= out[i] * d_[j]
+            assert not any(r)
+            p = out
+    _CYC[n] = p
+    return p
+
+
+class QRing:
+    """F[y]/(Psi) with y = A^{-2} and Psi(y) = q^{m1 phi(e)} Phi_e(y^{g1} q^{-m1}), e = gcd(g, 2a), g1 = g/e, m1 = 2a/e:
+    the factor of y^g - q^{2a} (the equation Lambda_c = Lambda_X) whose roots are zeta q^{2a/g} with zeta a primitive
+    e-th root of unity.  These roots are never zeros of a D_k (where the regularity of N is supplied by N_cc) and never
+    a resonance Lambda_Y = Lambda_c.  Elements are coefficient lists of length deg Psi."""
+
+    def __init__(self, F, q, g, a):
+        e = math.gcd(g, 2 * a)
+        g1, m1 = g // e, (2 * a) // e
+        cyc = cyclotomic(e)
+        phi_e = len(cyc) - 1
+        d = g1 * phi_e
+        Psi = [F.zero] * (d + 1)
+        for j, cj in enumerate(cyc):
+            if cj:
+                Psi[g1 * j] = F(cj) * q ** (m1 * (phi_e - j))
+        assert Psi[d] == F.one
+        self.F, self.d, self.Psi, self.e = F, d, Psi, e
+
+    def red(self, p):
+        F, d, Psi = self.F, self.d, self.Psi
+        p = list(p)
+        for i in range(len(p) - 1, d - 1, -1):
+            c = p[i]
+            if c != 0:
+                for j in range(d + 1):
+                    p[i - d + j] = p[i - d + j] - c * Psi[j]
+        return p[:d] + [F.zero] * (d - len(p))
+
+    def const(self, k):
+        return [k] + [self.F.zero] * (self.d - 1)
+
+    def ymon(self, n, k):
+        return self.red([self.F.zero] * n + [k])
+
+    def mul(self, p, r):
+        out = [self.F.zero] * (len(p) + len(r) - 1)
+        for i, a in enumerate(p):
+            if a != 0:
+                for j, b in enumerate(r):
+                    if b != 0:
+                        out[i + j] = out[i + j] + a * b
+        return self.red(out)
+
+    @staticmethod
+    def add(p, r):
+        return [a + b for a, b in zip(p, r)]
+
+    @staticmethod
+    def scal(p, k):
+        return [a * k for a in p]
+
+
+def root_T(c, X, T, F, q, pairs):
+    """T_cX at gap g = |U_c| - |U_X| >= 2 from the T's at smaller gaps (dict T[(Y, Y')]) by the root formula
+        T_cX = -(1/(g-1)) sum_{zeta^g = 1, zeta != 1} S(A^2 = zeta q^{-2a/g}),
+        S = sum_{chains c = Y_0 > ... > Y_k = X, k >= 2} prod_i T_{Y_{i-1} Y_i} prod_{i<k} rho_i/(1 - rho_i),
+        rho_i = Lambda_{Y_i}/Lambda_c,  Lambda_c/Lambda_X = A^{2g} q^{2a},
+    the expression of the requirement that the chain expansion of N_cX be regular at the roots of Lambda_c = Lambda_X
+    that are not zeros of a D_k.  Rational form: with y = A^{-2}, rho_Y = y^{g_cY} q^{-2 a_cY}, the chain sum is formed
+    as P/Q with Q = prod_Y (1 - rho_Y) by a transfer sum over the intermediate pairs Y, and T_cX = -P/Q in F[y]/(Psi)
+    must be a constant (deg Psi coefficient equations for one unknown).  Returns (T_cX, consistent), or (None, False)
+    when an ingredient is missing."""
+    ic, iX = pair_info(c), pair_info(X)
+    g, a = sum(ic["U"]) - sum(iX["U"]), kap2(c) - kap2(X)
+    R = QRing(F, q, g, a)
+    infos = {Y: pair_info(Y) for Y in pairs}
+    inter = [Y for Y in pairs if sum(iX["U"]) < sum(infos[Y]["U"]) < sum(ic["U"])
+             and I.contains(ic["U"], infos[Y]["U"]) and I.contains(infos[Y]["U"], iX["U"])]
+    inter.sort(key=lambda Y: (-sum(infos[Y]["U"]), Y))
+    rho, skip = {}, {}
+    for Y in inter:
+        rho[Y] = R.ymon(sum(ic["U"]) - sum(infos[Y]["U"]), q ** (-2 * (kap2(c) - kap2(Y))))
+        skip[Y] = R.add(R.const(F.one), R.scal(rho[Y], -F.one))
+    state = {c: R.const(F.one)}            # chains from c, keyed by their last pair; Q = prod (1 - rho) built in
+    for Y in inter:
+        new = {}
+        for last, val in state.items():
+            v = R.mul(val, skip[Y])
+            new[last] = R.add(new[last], v) if last in new else v
+            if last != c and not (sum(infos[last]["U"]) > sum(infos[Y]["U"]) and I.contains(infos[last]["U"], infos[Y]["U"])):
+                continue
+            t = T.get((last, Y))
+            if t is None:
+                return None, False
+            if t != 0:
+                v = R.mul(R.scal(val, t), rho[Y])
+                new[Y] = R.add(new[Y], v) if Y in new else v
+        state = new
+    Q, P = state[c], R.const(F.zero)
+    for last, val in state.items():
+        if last == c:
+            continue
+        t = T.get((last, X))
+        if t is None:
+            return None, False
+        if t != 0:
+            P = R.add(P, R.scal(val, t))
+    vals = []
+    for j in range(R.d):
+        if Q[j] != 0:
+            vals.append(-P[j] / Q[j])
+        elif P[j] != 0:
+            return None, False
+    if not vals:
+        return None, False
+    return vals[0], all(v == vals[0] for v in vals)
+
+
+def closed_pair_block(nmax, F, A, q):
+    """The pair-pair block of T, B and N for all one-cell pairs present at |R| <= nmax, from the closed formulas only:
+    T at gap one from the adjacent residues (eq. adjres), at gap >= 2 from the root formula, B_cX = Lambda_c T_cX
+    q^{s_c - s_X} D_{s_c}/D_{s_X}, N_cc from the closed diagonal and N_cX from the chain relation
+        N_cX (Lambda_c - Lambda_X) = N_cc B_cX + sum_{X < Y < c} N_cY B_YX.
+    Returns (pairs, T, B, N, undefined, inconsistent) with dicts keyed by (c, X)."""
+    pairs = [c for c in channels_present(nmax) if pair_info(c) is not None]
+    info = {c: pair_info(c) for c in pairs}
+    below = [(c, X) for c in pairs for X in pairs
+             if sum(info[c]["U"]) > sum(info[X]["U"]) and I.contains(info[c]["U"], info[X]["U"])]
+    below.sort(key=lambda cx: sum(info[cx[0]]["U"]) - sum(info[cx[1]]["U"]))
+    T, Bf, Nf = {}, {}, {}
+    undefined, inconsistent = [], []
+    for c, X in below:
+        if sum(info[c]["U"]) - sum(info[X]["U"]) == 1:
+            r = adjacent_residue(c, X, F, A, q)
+            if r is None:
+                undefined.append((c, X))
+                continue
+            T[(c, X)] = r * q ** (2 * info[X]["s"])
+        else:
+            t, ok = root_T(c, X, T, F, q, pairs)
+            if t is None:
+                undefined.append((c, X))
+                continue
+            if not ok:
+                inconsistent.append((c, X))
+            T[(c, X)] = t
+        Bf[(c, X)] = (Lam(c, F, A, q) * T[(c, X)] * q ** (info[c]["s"] - info[X]["s"])
+                      * Dk(info[c]["s"], F, A, q) / Dk(info[X]["s"], F, A, q))
+    for c in pairs:
+        Nf[(c, c)] = khook_N(c, c, F, A, q)
+    for c, X in below:
+        if (c, X) not in Bf:
+            continue
+        s = Nf[(c, c)] * Bf[(c, X)]
+        for Y in pairs:
+            if (c, Y) in Bf and (Y, X) in Bf:
+                if (c, Y) not in Nf:
+                    s = None
+                    break
+                s = s + Nf[(c, Y)] * Bf[(Y, X)]
+        if s is None:
+            undefined.append((c, X))
+            continue
+        Nf[(c, X)] = s / (Lam(c, F, A, q) - Lam(X, F, A, q))
+    return pairs, T, Bf, Nf, undefined, inconsistent
+
+
+def check_roots(nmax=6, seed=1):
+    """Every pair column X of every one-cell pair row c of N and B (U_X inside U_c), at every gap, from the closed
+    formulas: adjacent residues at gap one, the root formula (root_T) at gap >= 2, N by the chain relation.  The
+    quotient-ring form must return a constant (consistency) and agree with the engine."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    orderB, B = build_B(pt, chans)
+    pos = {c: i for i, c in enumerate(order)}
+    pairs, T, Bf, Nf, undefined, inconsistent = closed_pair_block(nmax, F, A, q)
+    cleanset = set(clean)
+    counts, zeros, bad = {}, {}, []
+    for (c, X), v in Bf.items():
+        if c not in cleanset or X not in cleanset:
+            continue
+        g = sum(pair_info(c)["U"]) - sum(pair_info(X)["U"])
+        counts[g] = counts.get(g, 0) + 1
+        vB, vN = B[c].get(X, F.zero), N[pos[c]][pos[X]]
+        zeros[g] = zeros.get(g, 0) + (vB == 0)
+        if vB != v or (c, X) not in Nf or Nf[(c, X)] != vN:
+            bad.append((c, X))
+    und = [cx for cx in undefined if cx[0] in cleanset and cx[1] in cleanset]
+    return not (bad or und or inconsistent), [
+        "roots: %d one-cell pairs (|R| <= %d, %d clean); pair-pair entries of B and N by gap: %s (zeros %s) from the "
+        "adjacent residues and the root formula; non-constant %s; undefined %s; mismatches %s"
+        % (len(pairs), nmax, len([c for c in pairs if c in cleanset]),
+           " ".join("g%d:%d" % kv for kv in sorted(counts.items())), " ".join("%d" % zeros[g] for g in sorted(zeros)),
+           "none" if not inconsistent else inconsistent[:3], "none" if not und else und[:3],
+           "none" if not bad else bad[:4])]
+
+
+def fourrow_merged(c, mu, F, A, q):
+    """N_{c mu} + sum_{pairs X: U_X = mu} N_cX for a one-cell pair c and a single column mu inside U_c, from the four
+    closed single rows (eq. fourrow)."""
+    info = pair_info(c)
+    Z, Zp, U, V = c[1], c[2], info["U"], info["V"]
+    cq = q ** info["d"] - q ** (-info["d"])
+    den = Dk(2 * cont(info["b"]), F, A, q) * Dk(2 * cont(info["bp"]), F, A, q)
+    v = Dk(info["s"], F, A, q) ** 2 * (binom_N(Z, mu, F, A, q) + binom_N(Zp, mu, F, A, q))
+    v = v - cq * cq * (binom_N(U, mu, F, A, q) + binom_N(V, mu, F, A, q))
+    return v / (2 * den)
+
+
+def check_fullrow(nmax=6, seed=1):
+    """The whole row of a one-cell pair in N and in B from the closed formulas, every column: single columns of N
+    from the four-row formula minus the pair entries of the root formula at the resonant columns (N_{c mu} =
+    fourrow_merged - sum_{U_X = mu} N_cX), pair columns of N from the root formula, and then every single column of B
+    from N B = Lambda N,
+        B_{c mu} = ( Lambda_c N_{c mu} - sum_{nu single} N_{c nu} B^KNTZ_{nu mu} - sum_{Y pair < c} N_cY B_{Y mu} ) / N_cc,
+    the pair rows Y of smaller union first.  N_{c U_c} = B_{c U_c} = 0 come out automatically.  Compared with the
+    engine on every column of every clean one-cell pair."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    orderB, B = build_B(pt, chans)
+    pos = {c: i for i, c in enumerate(order)}
+    pairs, T, Bf, Nf, undefined, inconsistent = closed_pair_block(nmax, F, A, q)
+    info = {c: pair_info(c) for c in pairs}
+    singles = [X[1] for X in order if X[0] == "s" and X != VAC]
+    Nrow, Brow = {}, {}
+    for c in sorted(pairs, key=lambda c: (sum(info[c]["U"]), c)):
+        U = info[c]["U"]
+        cols = [mu for mu in singles if I.contains(U, mu)] + [()]
+        Nc = {}
+        for mu in cols:
+            v = fourrow_merged(c, mu, F, A, q)
+            for X in pairs:
+                if info[X]["U"] == mu and (c, X) in Nf:
+                    v = v - Nf[(c, X)]
+            Nc[mu] = v
+        Ncc = Nf[(c, c)]
+        Lc = Lam(c, F, A, q)
+        Bc = {}
+        for mu in cols:
+            s = Lc * Nc[mu]
+            for nu in cols:
+                if I.contains(nu, mu) and Nc[nu] != 0:
+                    s = s - Nc[nu] * (kntz_B(nu, mu, F, A, q) if nu != () else (F.one if mu == () else F.zero))
+            for Y in pairs:
+                if (c, Y) in Nf and Y in Brow and mu in Brow[Y]:
+                    s = s - Nf[(c, Y)] * Brow[Y][mu]
+            Bc[mu] = s / Ncc
+        Nrow[c], Brow[c] = Nc, Bc
+    cleanset = set(clean)
+    nN = nB = 0
+    bad = []
+    for c in pairs:
+        if c not in cleanset:
+            continue
+        for mu, v in Nrow[c].items():
+            X = VAC if mu == () else ("s", mu, mu)
+            nN += 1
+            if N[pos[c]][pos[X]] != v:
+                bad.append((c, mu, "N"))
+        for mu, v in Brow[c].items():
+            X = VAC if mu == () else ("s", mu, mu)
+            nB += 1
+            if B[c].get(X, F.zero) != v:
+                bad.append((c, mu, "B"))
+    return not (bad or inconsistent), [
+        "fullrow: %d clean one-cell pairs (|R| <= %d): every single column of N (%d entries, resonant columns and "
+        "U_c included) from the four-row formula and the root formula, and every single column of B (%d entries) from "
+        "N B = Lambda N with the KNTZ single rows: mismatches %s"
+        % (len([c for c in pairs if c in cleanset]), nmax, nN, nB, "none" if not bad else bad[:4])]
+
+
 CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check_f41, "sym": check_sym,
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
           "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
-          "adjres": check_adjres, "gap2": check_gap2}
+          "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow}
+
+
+def set_node_bound(nb):
+    """Impose the vanishing conditions on all diagrams with at most nb boxes (the engine's default is
+    max(7, |R_min| + 1)); the engine looks the node list up at call time."""
+    orig = I.nodes.__wrapped__
+    I.nodes = lambda c, extra_size=None: orig(c, nb if extra_size is None else extra_size)
 
 
 def main(argv=None):
@@ -1089,7 +1395,12 @@ def main(argv=None):
     ap.add_argument("checks", nargs="*", default=list(CHECKS))
     ap.add_argument("--nmax", type=int, default=6)
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--nb", type=int, default=None,
+                    help="node bound of the vanishing conditions (default: the engine's max(7, |R_min|+1)); "
+                         "--nb 10 makes every channel with |R| <= 7 full rank")
     a = ap.parse_args(argv)
+    if a.nb is not None:
+        set_node_bound(a.nb)
     allok = True
     for name in a.checks:
         fn = CHECKS[name]

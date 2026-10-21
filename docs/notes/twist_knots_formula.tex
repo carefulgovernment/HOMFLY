@@ -76,30 +76,36 @@ $A^aq^b$, quantum numbers $[n]$ and factors $D_k$ exactly for the \emph{top} cha
 (Section~\ref{sec:weights}); all other coefficients are such a product times a polynomial in $A^2$ of degree
 $\le |R|-|Z\cup Z'|$ which does not factorise.
 
-\item \textbf{Mostly closed: the pair-channel sector.}  Pair channels $\{Z,Z'\}$, $Z\ne Z'$, exist precisely for
-non-rectangular $R$.  For a one-cell pair $c=\{Z,Z'\}$ with $V=Z\cap Z'$, $U=Z\cup Z'$ (Section~\ref{sec:pairs}):
-(i) every single column of the row $N_c$ is given by the \emph{four-row formula} \eqref{eq:fourrow},
+\item \textbf{Closed: every one-cell pair channel, every column, every gap.}  Pair channels $\{Z,Z'\}$, $Z\ne Z'$,
+exist precisely for non-rectangular $R$.  For a one-cell pair $c=\{Z,Z'\}$ with $V=Z\cap Z'$, $U=Z\cup Z'$
+(Section~\ref{sec:pairs}): (i) every single column of the row $N_c$ is given by the \emph{four-row formula}
+\eqref{eq:fourrow},
 \[
 2N_{c\mu}=N_{Z\mu}+N_{Z'\mu}+\{q^d\}^2\,\frac{N_{Z\mu}+N_{Z'\mu}-N_{U\mu}-N_{V\mu}}{D_{2c(b)}\,D_{2c(b')}},
 \]
 the average of the two single rows $Z$, $Z'$ plus a divided second difference of the closed single rows over the
 square $V\subset Z,Z'\subset U$ (at a resonant column it gives the regular combination $N_{c\mu}+\sum_{U_X=\mu}N_{cX}$);
-(ii) every pair column $N_{cX}$ (hence $B_{cX}$, $E_{cX}$) between \emph{adjacent} pairs ($|U|=|U_X|+1$) is
-given by one product formula, the residue formula \eqref{eq:adjres}, whose non-landing case is the $K$-hook law
-\eqref{eq:khook}, and the pair columns at gap two ($|U|=|U_X|+2$) by the two-step formula \eqref{eq:gap2} built from
-the adjacent residues; (iii) for the twist matrix $B$ itself, every entry of the row $B_c$ outside the resonant columns
-is a closed combination of the three KNTZ rows of $U$, $Z$, $Z'$ (union formula \eqref{eq:union}), and the whole row is
-closed for the hook family $\{[k-1,1],[k]\}$ and its transpose \eqref{eq:hook}.  Consequently the twist-knot formula
-is completely closed for every $R$ with $|R|\le5$, for eight of the eleven diagrams with six boxes (all but $[4,2]$,
-$[3,2,1]$, $[2,2,1,1]$), and for all hooks $[r,1]$, $[2,1^{r-1}]$ and all rectangles.  \emph{Not closed}: the pair
-columns at gap three and more (first at seven boxes, e.g.\ $R=[5,1,1]$, $[4,3]$, $[3,3,1]$); they are determined by
-the chain relation of $N$ together with the pure-$q$ property of the residues through an explicit recursion, verified
-in the analysis up to nine boxes, but we have no closed per-entry formula beyond gap two.  And the two-cell pairs,
-first at six boxes ($\{[2,2],[4]\}$ in $[4,2]$, $\{[1,1,1],[3]\}$ in $[3,2,1]$, $\{[1^4],[2,2]\}$ in $[2,2,1,1]$): the
-resonant ones (a vertical against a horizontal domino) have no formula beyond their vacuum, $[1]$ and
-first-pair-column entries, the others an analysis-level grid expansion with one geometric input
-(Section~\ref{sec:pairs}), not re-checked by the script.  This is exactly where the ``one simple closed formula''
-stops.
+(ii) every pair column $N_{cX}$ (hence $B_{cX}$, $E_{cX}$), at \emph{any} gap $|U|-|U_X|$, is given by the
+\emph{root formula} \eqref{eq:roots}: the chain expansion of $N_{cX}$ must be regular at the roots of
+$\Lam_c=\Lam_X$ that are not zeros of a $D_k$, which fixes the pure-$q$ factor $T_{cX}$ of $B_{cX}$ as an explicit
+sum over chains of adjacent steps evaluated at those roots; the adjacent steps are the residue formula
+\eqref{eq:adjres} (a product), gap two is the $q$-symmetrised composition \eqref{eq:gap2}; (iii) the single columns of
+$B$ follow from $NB=\Lam N$ \eqref{eq:Bsingle}, and outside the resonant columns are a closed combination of the three
+KNTZ rows of $U$, $Z$, $Z'$ (union formula \eqref{eq:union}).  Consequently every entry of $N$, $\Et$, $E$, $B$ is
+closed for every channel that is a single or a one-cell pair, and the twist-knot formula is completely closed for every
+$R$ whose channels are of these two kinds: all $|R|\le5$, $8$ of the $11$ diagrams with six boxes, $11$ of $15$ with
+seven, $11$ of $22$ with eight, all hooks $[r,1]$, $[2,1^{r-1}]$ and all rectangles.  Verified by the script up to
+seven boxes (all $34$ one-cell pairs, gaps one to four) and in the analysis modulo $p$ up to ten boxes (gaps one to
+seven, $2629$ single and $1176$ pair columns at ten boxes alone), without a single mismatch; nothing is fitted.
+
+\item \textbf{Not closed: the two-cell pairs.}  They first appear at six boxes ($\{[2,2],[4]\}$ in $[4,2]$,
+$\{[1,1,1],[3]\}$ in $[3,2,1]$, $\{[1^4],[2,2]\}$ in $[2,2,1,1]$) and are the only channels of any $R$ not covered
+above.  The resonant ones (a vertical against a horizontal domino, eigenvalue identical to that of a single) have no
+formula beyond their vacuum, $[1]$ and first-pair-column entries; for the others the single columns of $N$ are an
+analysis-level grid expansion over $V\subseteq\lambda\subseteq U$ with one geometric input (Section~\ref{sec:pairs},
+not re-checked by the script), and their pair columns resist the root principle: the pair entries of $B$, normalised
+as in (ii), are not pure $q$ but polynomials of degree one to four in $A^2$ (analysis, nine exact rows).  This is
+exactly where the ``one simple closed formula'' stops.
 
 \item \textbf{Where it breaks.}  Up to seven boxes the vanishing conditions determine every row of $E$ once enough
 nodes are used; the rank deficiencies seen at seven and eight boxes with the engine's default node bound are an artefact
@@ -570,8 +576,74 @@ exact for $66$ entries up to seven boxes and modulo $p$ for $156$ entries at eig
 points, no failure.  Two more facts from the analysis: if both moved cells are shared ($V=V_X+\{e_1,\dots,e_m\}$) then
 at any gap $T_{cX}=B^{\rm KNTZ}_{U\,U_X}/\Lam_U$, the KNTZ matrix of the unions; and for gap $m\ge3$ the chain relation
 together with the pure-$q$ property of $T$ determines $T_{cX}$ uniquely (the right side of \eqref{eq:chain} must vanish
-at every root of $\Lam_c=\Lam_X$), which reproduces every non-adjacent entry up to nine boxes with no failure but
-is a recursion, not a closed formula: no per-chain weight generalising \eqref{eq:gap2} to gap three was found.
+at every root of $\Lam_c=\Lam_X$), which reproduces every non-adjacent entry up to nine boxes with no failure;
+Observation~\ref{obs:roots} turns this recursion into a closed formula at every gap.
+\end{observation}
+
+\begin{observation}[every gap: the root formula]\label{obs:roots}
+Let $X=\{W,W'\}<c$ be one-cell pairs with $U_X\subsetneq U$, $g=|U|-|U_X|$ the gap, and
+$\Lam_c/\Lam_X=A^{2g}q^{2a}$ with $a=\kappa_Z+\kappa_{Z'}-\kappa_W-\kappa_{W'}$.  Iterating the chain relation
+\eqref{eq:chain} gives the path expansion of the triangular inverse,
+\begin{equation}\label{eq:paths}
+N_{cX}=N_{cc}\,q^{s-s_X}\frac{D_s}{D_{s_X}}\sum_{c=Y_0>Y_1>\dots>Y_k=X}\ \prod_{i=1}^{k}T_{Y_{i-1}Y_i}\,
+\frac{\Lam_{Y_{i-1}}}{\Lam_c-\Lam_{Y_i}}\qquad(k\ge1),
+\end{equation}
+over all chains of one-cell pairs, with the pure-$q$ factors $T_{YY'}=r_{YY'}q^{2s_{Y'}}$ of the pair-pair block of
+$B$ (adjacent steps: the residue formula \eqref{eq:adjres}).  The term $k=1$ contains the unknown $T_{cX}$ times
+$\Lam_c/(\Lam_c-\Lam_X)$.  The row $N_c$ has poles only at the resonances $D_{s_Y}$, so the sum must be regular at
+every root $A^2=\zeta q^{-2a/g}$, $\zeta^g=1$, of $\Lam_c=\Lam_X$ except where $N_{cc}$ itself vanishes (the root
+$\zeta=1$ when $2a/g$ is an even integer, a zero of a $D_k$).  This determines $T_{cX}$:
+\begin{equation}\label{eq:roots}
+T_{cX}=-\frac1{g-1}\sum_{\zeta^g=1,\ \zeta\ne1}\ \sum_{k\ge2}\ \sum_{c=Y_0>\dots>Y_k=X}\ \prod_{i=1}^{k}T_{Y_{i-1}Y_i}
+\prod_{i=1}^{k-1}\frac{\rho_i}{1-\rho_i}\,\bigg|_{A^2=\zeta q^{-2a/g}},\qquad \rho_i=\frac{\Lam_{Y_i}}{\Lam_c},
+\end{equation}
+one and the same value at every root (this is the pure-$q$ property).  For $g=2$ there is one root, $A^2=-q^{-a}$,
+$\rho/(1-\rho)=-1/(1+q^{a_1-a_2})$, and \eqref{eq:roots} is \eqref{eq:gap2}.  Manifestly rational form, used by the
+script: with $y=A^{-2}$, $\rho_Y=y^{g_{cY}}q^{-2a_{cY}}$ ($g_{cY}$, $a_{cY}$ the gap and the exponent between $c$ and
+$Y$) and $\Psi(y)=q^{m_1\varphi(e)}\Phi_e(y^{g_1}q^{-m_1})$, $e=\gcd(g,2a)$, $g_1=g/e$, $m_1=2a/e$, $\Phi_e$ the
+cyclotomic polynomial (the factor of $y^g-q^{2a}$ whose roots are $\zeta q^{2a/g}$ with $\zeta$ a primitive $e$-th
+root of unity; it never contains a $D$-zero nor a resonance $\Lam_Y=\Lam_c$), the chain sum is $S=P/Q$ with
+$Q=\prod_Y(1-\rho_Y)$, and $P+T_{cX}\,Q\equiv0\pmod\Psi$ fixes $T_{cX}\in\mathbb Q(q)$ and overdetermines it by
+$\deg\Psi-1$ further equations (all satisfied on the data).  Then $B_{cX}=\Lam_cT_{cX}q^{s-s_X}D_s/D_{s_X}$ and
+$N_{cX}$ by \eqref{eq:chain}.  Checked by the script (\LMPH{roots}; at $|R|\le6$: $27$, $19$, $9$ entries of $B$ and
+$N$ at gaps $1$, $2$, $3$; \LMPH{--nmax 7}: $47$, $42$, $25$, $11$ at gaps $1$--$4$; \LMPH{--nmax 7 --nb 10}, i.e.\
+with the vanishing conditions imposed on all diagrams with at most ten boxes, where all $34$ one-cell pairs with
+$|U|\le7$ have full rank: $77$, $66$, $37$, $17$; no mismatch, every quotient-ring result a constant); in the analysis
+exact for the same $34$ rows, and modulo $p$ at two points for the $22$ rows with $|U|=8$ (gaps $1$--$5$: $79$, $90$,
+$70$, $38$, $22$ entries), the $41$ rows with $|U|=9$ (gaps $1$--$6$: $138$, $161$, $136$, $95$, $46$, $27$) and the
+$55$ rows with $|U|=10$ (gaps $1$--$7$: $251$, $273$, $257$, $189$, $121$, $54$, $31$; $T$, $B$ and $N$ each), plus the
+$\Et$ entries whose intermediate rows are rank-deficient in the engine and are supplied by the formula ($287$, $393$,
+$401$, $321$, $217$, $102$, $55$ at ten boxes), no failure.  Nothing is fitted; the formula was derived from the chain
+relation and the pole structure before the eight-, nine- and ten-box rows were used.  What was \emph{not} found is a
+per-chain weight in $\mathbb Q(q)$: the $\zeta$-average of a single chain is rational only when $e=g$, the
+$q$-shuffle form $\prod_k\bigl(\sum_{j\ge k}q^{a_k-a_j}\bigr)^{-1}$ over the orderings of the added cells is exact
+precisely when all maximal chains carry the same multiset of step exponents (at ten boxes $62$ of $165$ gap-three and
+$47$ of $128$ gap-four entries) and never otherwise, and $T_{cX}/M^{\rm KNTZ}_{U\,U_X}$ is not a product in general.
+\end{observation}
+
+\begin{observation}[the whole row of a one-cell pair is closed]\label{obs:fullrow}
+With \eqref{eq:roots} every pair column of a one-cell pair row of $N$ is closed, hence so is the split of the regular
+combinations in \eqref{eq:fourrow}: for every single $\mu\subseteq U$,
+\begin{equation}\label{eq:Nsingle}
+N_{c\mu}=\frac{D_s^2\,(N_{Z\mu}+N_{Z'\mu})-\{q^d\}^2\,(N_{U\mu}+N_{V\mu})}{2\,D_{2c(b)}D_{2c(b')}}
+-\sum_{X<c:\ U_X=\mu}N_{cX},
+\end{equation}
+and then every single column of $B$ from $NB=\Lam N$,
+\begin{equation}\label{eq:Bsingle}
+B_{c\mu}=\frac1{N_{cc}}\Big(\Lam_c\,N_{c\mu}-\sum_{\nu\supseteq\mu}N_{c\nu}\,B^{\rm KNTZ}_{\nu\mu}
+-\sum_{Y<c}N_{cY}\,B_{Y\mu}\Big),
+\end{equation}
+the rows $B_Y$ of the smaller pairs by the same formula ($N_{cU}=B_{cU}=0$ come out automatically; at the non-resonant
+columns \eqref{eq:Bsingle} agrees with the union formula \eqref{eq:union}, and it covers the resonant columns too).
+Together with \eqref{eq:tab} and \eqref{eq:kntz} every entry of $N$, $\Et$, $E$ and $B$ is now closed for every
+channel that is a single or a one-cell pair, at any gap, and the twist-knot formula \eqref{eq:channel} is closed for
+every $R$ all of whose channels are of these two kinds: all $|R|\le5$; at six boxes all but $[4,2]$, $[3,2,1]$,
+$[2,2,1,1]$; at seven all but $[5,2]$, $[4,2,1]$, $[3,2,1,1]$, $[2,2,1,1,1]$; at eight all but $[6,2]$, $[5,3]$,
+$[5,2,1]$, $[4,3,1]$, $[4,2,2]$, $[4,2,1,1]$, $[3,3,1,1]$, $[3,2,2,1]$, $[3,2,1,1,1]$, $[2,2,2,1,1]$, $[2,2,1^4]$
+(the diagrams containing two-cell pairs); all hooks and rectangles.  Checked by the script (\LMPH{fullrow}: every
+single column of $N$ and of $B$ of the $17$ pairs at $|R|\le6$, $179+179$ entries; $344+344$ with \LMPH{--nmax 7};
+$458+458$ with \LMPH{--nmax 7 --nb 10}; no mismatch); in the analysis modulo $p$ at two points for every one-cell pair
+at eight ($925$ columns), nine ($1633$) and ten boxes ($2629$), $N$ and $B$ each, no failure.
 \end{observation}
 
 \paragraph{What was tried and failed.}  (a) A product formula for the entries of $v_c$ (or of $B_c$, or of $E_c$)
@@ -623,9 +695,10 @@ the project's Formula~I; we did not find a closed expression for them.
 All checks are modulo $p=10^9+7$ at random $(A,q)$ unless stated otherwise;
 \LMPH{python3 scripts/twist\_formula\_check.py} runs them all (about one minute), \LMPH{tests/test\_twist\_formula.py}
 a fast subset.  Nothing is fitted anywhere: the only inputs are the vanishing conditions and the closed formulas
-\eqref{eq:kntz}, \eqref{eq:tab}, \eqref{eq:union}, \eqref{eq:hook}, \eqref{eq:Nvac}--\eqref{eq:Nadd}.  ``Analysis''
+\eqref{eq:kntz}, \eqref{eq:tab}, \eqref{eq:union}, \eqref{eq:hook}, \eqref{eq:Nvac}--\eqref{eq:Nadd}, \eqref{eq:fourrow},
+\eqref{eq:adjres}, \eqref{eq:roots}, \eqref{eq:Nsingle}, \eqref{eq:Bsingle}.  ``Analysis''
 refers to checks run outside the repository on the same engine (exact rows over $\mathbb Q(A,q)$ up to seven boxes,
-and rows modulo $p$ with the vanishing conditions imposed on all diagrams with at most $13$ boxes, up to nine boxes);
+and rows modulo $p$ with the vanishing conditions imposed on all diagrams with at most $13$ boxes, up to ten boxes);
 their numbers are quoted for completeness and are not reproduced by the script.
 
 \begin{center}
@@ -649,6 +722,8 @@ union formula \eqref{eq:union} (\LMPH{union}) & $472$ non-resonant entries of th
 hook family \eqref{eq:hook} and transposes (\LMPH{hook}) & $8$ rows, $k\le5$, at $|R|\le6$; analysis: exact $k\le6$, mod $p$ $k\le10$\\
 adjacent pair columns \eqref{eq:adjres} (\LMPH{adjres}) & $27$ entries of $N$ and $B$ at $|R|\le6$ ($10$ landing), $47$ with \LMPH{--nmax 7} ($18$ landing), no mismatch; analysis: exact $77$ entries ($\le7$ boxes), mod $p$ $156$ (8 boxes) $+$ $258$ (9 boxes), two points\\
 gap-two pair columns \eqref{eq:gap2}, \eqref{eq:chain} (\LMPH{gap2}) & $19$ entries of $B$ and $N$ at $|R|\le6$, $42$ with \LMPH{--nmax 7}, no mismatch; analysis: $66$ exact, $156+287$ mod $p$ (8, 9 boxes), two points\\
+pair columns at every gap \eqref{eq:roots} (\LMPH{roots}) & $B$ and $N$ at gaps $1,2,3$: $27$, $19$, $9$ entries at $|R|\le6$; gaps $1$--$4$: $47$, $42$, $25$, $11$ with \LMPH{--nmax 7} and $77$, $66$, $37$, $17$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: the same exact rows, mod $p$ two points at $8$, $9$, $10$ boxes, gaps up to $5$, $6$, $7$ ($299$, $603$, $1176$ entries), no failure\\
+whole one-cell pair rows \eqref{eq:Nsingle}, \eqref{eq:Bsingle} (\LMPH{fullrow}) & every single column of $N$ and $B$: $179+179$ at $|R|\le6$, $344+344$ with \LMPH{--nmax 7}, $458+458$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: $925$, $1633$, $2629$ columns at $8$, $9$, $10$ boxes, $N$ and $B$ each, two points, no failure\\
 four-row formula \eqref{eq:fourrow} (\LMPH{fourrow}) & $17$ pairs, $179$ single columns at $|R|\le6$ ($28$ pairs, $344$ columns with \LMPH{--nmax 7}), no mismatch; analysis: mod $p$ $869$ columns (8 boxes, two points), $1550$ columns (9 boxes)\\
 $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, implied $B$ entries $15/15$; analysis: exact $28$ pairs ($\le7$ boxes), mod $p$ $56$ pairs (8 boxes), $83$ pairs (9 boxes), no mismatch in the claimed classes\\
 \bottomrule
@@ -658,19 +733,15 @@ $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal
 \section{What is not closed, and where it breaks}
 
 \begin{enumerate}
-\item \textbf{Pair rows of $N$ / $B$ / $E$} (all non-rectangular $R$ except $[r,1]$, $[2,1^{r-1}]$): for one-cell
-pairs all single columns are closed \eqref{eq:fourrow}, all adjacent pair columns are closed \eqref{eq:adjres}, the
-row of $B$ is closed on all non-resonant columns \eqref{eq:union} and completely for the hook family \eqref{eq:hook}.
-The pair columns at gap two are closed as well \eqref{eq:gap2}.  Not closed: the pair entries at gap three
-and more ($|U|\ge|U_X|+3$, other than the first column), and with them the split of the regular combination
-$N_{c\mu}+\sum_{U_X=\mu}N_{cX}$ at those resonant columns; they are fixed by the recursion of
-Observation~\ref{obs:gap2} but not by a formula.  The first such entries occur at seven boxes ($R=[5,1,1]$, $[4,3]$,
-$[3,3,1]$, $[3,2,2]$, $\dots$; the hooks $[6,1]$, $[2,1^5]$ are covered by \eqref{eq:hook}).  The resonant two-cell
-pairs (vertical against horizontal domino) have rows with support outside $U$ and no formula beyond \eqref{eq:Nvac},
-\eqref{eq:Nfirst}; the first is $\{[1,1,1],[3]\}$ in $R=[3,2,1]$.  Equivalently, on the $N$ side, the correction
-$\Gamma_c(\mu)$ of \eqref{eq:Nadd} for $|\mu|\ge3$.  For the two-cell pairs only \eqref{eq:Nvac}, \eqref{eq:Nfirst}
-and the vacuum/$[1]$ identities (where not resonant) are known; their pair-column entries of $N$ are products at
-seven boxes (analysis), but no uniform law was found.
+\item \textbf{Two-cell pairs} (the diagrams listed in Observation~\ref{obs:fullrow}, from $[4,2]$, $[3,2,1]$,
+$[2,2,1,1]$ on): for the one-cell pairs every column of $N$, $\Et$, $E$, $B$ is closed at every gap
+(\eqref{eq:fourrow}, \eqref{eq:adjres}, \eqref{eq:roots}, \eqref{eq:Nsingle}, \eqref{eq:Bsingle}); for the two-cell
+pairs the resonant ones (vertical against horizontal domino, e.g.\ $\{[1,1,1],[3]\}$ in $R=[3,2,1]$) have rows with
+support outside $U$ and no formula beyond \eqref{eq:Nvac}, \eqref{eq:Nfirst}, the others an analysis-level grid
+expansion of the single columns with one geometric input (Section~\ref{sec:pairs}) and no formula for the pair
+columns, where the pure-$q$ property that underlies \eqref{eq:roots} fails (the normalised pair entries of $B$ are
+polynomials of degree one to four in $A^2$ over $\mathbb Q(q)$; analysis, nine exact rows).  Three-cell pairs first
+appear at nine boxes; nothing is known about them beyond the data.
 \item \textbf{Non-top evolution coefficients}: product $\times$ polynomial, polynomial not closed
 (Section~\ref{sec:weights}); already $w_{[1]}([2])$.
 \item \textbf{Resonances}: from $[3,2,1]$ on, the evolution form does not separate channels with equal eigenvalues;
@@ -889,13 +960,16 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 \section{How to reproduce}
 \begin{itemize}
 \item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
-(options \LMPH{--nmax}, \LMPH{--seed}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom pairn
-union hook khook fourrow adjres gap2}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow adjres gap2} runs
-the checks of Sections \ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends them to seven boxes).
+(options \LMPH{--nmax}, \LMPH{--seed}, \LMPH{--nb}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom
+pairn union hook khook fourrow adjres gap2 roots fullrow}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow adjres
+gap2 roots fullrow} runs the checks of Sections \ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends
+them to seven boxes, and \LMPH{--nmax 7 --nb 10} imposes the vanishing conditions on all diagrams with at most ten boxes,
+which makes every channel with $|R|\le7$ full rank).
 The closed formulas live in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{binom\_N} / \LMPH{tableau\_P}
 \eqref{eq:tab}, \LMPH{check\_union} \eqref{eq:union}, \LMPH{hook\_pair\_row} \eqref{eq:hook}, \LMPH{check\_pairn}
 \eqref{eq:Ndiag}--\eqref{eq:Nadd}, \LMPH{khook\_N} \eqref{eq:khook}, \LMPH{check\_fourrow} \eqref{eq:fourrow},
-\LMPH{adjacent\_residue} \eqref{eq:adjres} and \LMPH{check\_gap2} \eqref{eq:gap2}, \eqref{eq:chain}.
+\LMPH{adjacent\_residue} \eqref{eq:adjres}, \LMPH{check\_gap2} \eqref{eq:gap2}, \eqref{eq:chain}, \LMPH{root\_T} /
+\LMPH{closed\_pair\_block} \eqref{eq:roots}, \eqref{eq:paths} and \LMPH{check\_fullrow} \eqref{eq:Nsingle}, \eqref{eq:Bsingle}.
 \item \LMPH{python3 -m pytest tests/test\_twist\_formula.py} --- fast subset.
 \item \LMPH{data/twist\_weights/twist\_weights\_le6.json} --- all $w_X(R)$, $|R|\le6$, as numerator/denominator
 monomial lists in $x=A^2$, $y=q^2$ (exact, computed over $\mathbb Q(x,y)$ with python-flint from the vanishing
