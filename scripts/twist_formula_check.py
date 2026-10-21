@@ -43,8 +43,10 @@ checks:
           F[y]/(cyclotomic factor), from the adjacent residues only; B and N compared with the engine
   fullrow the whole one-cell pair rows of N and B: single columns of N from the four-row formula minus the root-formula
           pair entries at the resonant columns, single columns of B from N B = Lambda N with the KNTZ single rows
+  kernel  every single column of every pair row of N (one-cell and non-resonant two-cell pairs, merged basis) from one
+          sign-flip kernel over the states of the moved cells applied to the closed single rows
 
-usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow]
+usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel]
 """
 import argparse
 import gzip
@@ -1377,10 +1379,154 @@ def check_fullrow(nmax=6, seed=1):
         % (len([c for c in pairs if c in cleanset]), nmax, nN, nB, "none" if not bad else bad[:4])]
 
 
+# ---------------------------------------------------------------------------
+# all pair rows on single columns: the sign-flip kernel (one, two and more moved cells)
+# ---------------------------------------------------------------------------
+def pair_cells(c):
+    """(V, X, Y) for a pair c = {Z, Z'}: V = Z cap Z' and the moved cells X = Z minus V, Y = Z' minus V (as sorted lists)."""
+    Z, Zp = c[1], c[2]
+    n = max(len(Z), len(Zp))
+    Zz, Zpz = tuple(Z) + (0,) * (n - len(Z)), tuple(Zp) + (0,) * (n - len(Zp))
+    V = tuple(v for v in (min(a, b) for a, b in zip(Zz, Zpz)) if v)
+    bV = set(boxes(V))
+    return V, sorted(b for b in boxes(Z) if b not in bV), sorted(b for b in boxes(Zp) if b not in bV)
+
+
+def orient(cells):
+    """'row' / 'col' for cells on one line (a domino), None otherwise or for a single cell."""
+    if len(cells) < 2:
+        return None
+    if len(set(b[0] for b in cells)) == 1:
+        return "row"
+    if len(set(b[1] for b in cells)) == 1:
+        return "col"
+    return None
+
+
+def pair_kind(c):
+    """'1-cell', 'n-cell row/row', 'n-cell col/col', 'n-cell domino/separate', 'n-cell separate/separate' or
+    'n-cell resonant' (a vertical against a horizontal domino: Lambda_c equals the eigenvalue of a single)."""
+    V, X, Y = pair_cells(c)
+    n = len(X)
+    if n == 1:
+        return "1-cell"
+    oX, oY = orient(X), orient(Y)
+    if oX and oY:
+        return "%d-cell resonant" % n if oX != oY else "%d-cell %s/%s" % (n, oX, oY)
+    if oX or oY:
+        return "%d-cell domino/separate" % n
+    return "%d-cell separate/separate" % n
+
+
+def kernel_K(c, sig, F, A, q):
+    """The sign-flip kernel K_c(sigma) of a pair c = {V+X, V+Y} (n = |X| = |Y| moved cells on each side) for the sign
+    pattern sig (dict cell -> +-1), with u_e = z_e^{sig_e}, z_e = A q^{2c(e)}, {t} = t - 1/t:
+        K = (-1)^n prod_{(x,y) in P} {sqrt(u_y/u_x)} / prod_{e in X u Y} {u_e}
+              * prod_{a<b in X} C(u_a,u_b) * prod_{a<b in Y} C(u_a,u_b),      C(u_a,u_b) = {xi sqrt(u_a u_b)}/{sqrt(u_a u_b)},
+    xi = q^{-1} for a horizontal domino of c, q for a vertical one (the same on both sides; 1 without a domino, untested),
+    P = ends(X) x Y (for n = 1 the cell of X twice: the kernel of the four-row formula) when n <= 2 or no or all cells
+    of X carry +, P = X x ends(Y) when no or all cells of Y carry +; None for the middle states of n >= 3, which are
+    not given by a product.  All square roots are monomials."""
+    V, X, Y = pair_cells(c)
+    n = len(X)
+    xi = 0
+    for S in (X, Y):
+        o = orient(S)
+        if o:
+            xi = -1 if o == "row" else 1
+            break
+    k, kp = sum(1 for x in X if sig[x] == 1), sum(1 for y in Y if sig[y] == 1)
+    ends = lambda S: (min(S, key=cont), max(S, key=cont))
+    if n <= 2 or k in (0, n):
+        P = [(x, y) for x in ends(X) for y in Y]
+    elif kp in (0, n):
+        P = [(x, y) for x in X for y in ends(Y)]
+    else:
+        return None
+    curly_ = lambda t: t - F.one / t
+    v = F.one if n % 2 == 0 else -F.one
+    for x, y in P:                                   # sqrt(u_y/u_x) = A^{(s_y - s_x)/2} q^{s_y c(y) - s_x c(x)}
+        v = v * curly_(A ** ((sig[y] - sig[x]) // 2) * q ** (sig[y] * cont(y) - sig[x] * cont(x)))
+    for e in X + Y:
+        v = v / curly_((A * q ** (2 * cont(e))) ** sig[e])
+    for S in (X, Y):
+        for i in range(len(S)):
+            for j in range(i + 1, len(S)):
+                a, b = S[i], S[j]
+                s = A ** ((sig[a] + sig[b]) // 2) * q ** (sig[a] * cont(a) + sig[b] * cont(b))
+                v = v * curly_(q ** xi * s) / curly_(s)
+    return v
+
+
+def kernel_states(c):
+    """[(sig, lambda(sig))] over the sign patterns of the moved cells of c whose state V + {e: sig_e = +} is a diagram."""
+    import itertools
+    V, X, Y = pair_cells(c)
+    cells = X + Y
+    out = []
+    for signs in itertools.product((1, -1), repeat=len(cells)):
+        sig = dict(zip(cells, signs))
+        lam = add_cells(V, [e for e in cells if sig[e] == 1])
+        if lam is not None:
+            out.append((sig, lam))
+    return out
+
+
+def check_kernel(nmax=6, seed=1):
+    """Every single column mu of every pair row of N (merged basis: 2 N_{c mu} + 2 sum_{pairs W: U_W = mu} N_cW) from the
+    sign-flip kernel over the states of the moved cells,  2 R_c(mu) = sum_sigma K_c(sigma) N_{lambda(sigma) mu},  with the
+    closed single rows: one-cell pairs (the four-row formula) and the two-cell pairs that are not resonant.  The resonant
+    two-cell pairs (vertical against horizontal domino) are listed, not checked: their rows are not of this form."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    pos = {c: i for i, c in enumerate(order)}
+    unions = {}
+    for X in order:
+        if X[0] == "p":
+            unions.setdefault(I.union(X[1], X[2]), []).append(X)
+    counts, cols, bad, skipped, middle = {}, {}, [], [], []
+    for c in clean:
+        if c[0] != "p":
+            continue
+        kind = pair_kind(c)
+        if "resonant" in kind:
+            skipped.append(c)
+            continue
+        U = I.union(c[1], c[2])
+        states = kernel_states(c)
+        Ks = [(kernel_K(c, sig, F, A, q), lam) for sig, lam in states]
+        if any(K is None for K, lam in Ks):
+            middle.append(c)
+            continue
+        counts[kind] = counts.get(kind, 0) + 1
+        for X in order:
+            if X[0] != "s" or not I.contains(U, X[1]):
+                continue
+            mu = X[1]
+            lhs = 2 * N[pos[c]][pos[X]]
+            for W in unions.get(mu, []):
+                if W in pos:
+                    lhs = lhs + 2 * N[pos[c]][pos[W]]
+            rhs = F.zero
+            for K, lam in Ks:
+                if I.contains(lam, mu):
+                    rhs = rhs + K * binom_N(lam, mu, F, A, q)
+            cols[kind] = cols.get(kind, 0) + 1
+            if lhs != rhs:
+                bad.append((c, mu))
+    return not bad, ["kernel: pair rows of N on single columns (|R| <= %d) from the sign-flip kernel: %s; resonant two-cell "
+                     "pairs not covered: %d; pairs with middle states (n >= 3) not checked: %d; mismatches %s"
+                     % (nmax, ", ".join("%s %d pairs / %d columns" % (k, counts[k], cols.get(k, 0)) for k in sorted(counts)),
+                        len(skipped), len(middle), "none" if not bad else bad[:4])]
+
+
 CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check_f41, "sym": check_sym,
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
           "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
-          "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow}
+          "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow, "kernel": check_kernel}
 
 
 def set_node_bound(nb):

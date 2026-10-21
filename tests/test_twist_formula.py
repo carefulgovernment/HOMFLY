@@ -119,3 +119,9 @@ def test_full_one_cell_pair_rows():
     """Whole one-cell pair rows of N and B (every single column, resonant ones included) from the closed formulas."""
     ok, lines = T.check_fullrow(nmax=6, seed=18)
     assert ok, lines
+
+
+def test_sign_flip_kernel_pair_rows():
+    """Single columns of every one-cell and non-resonant two-cell pair row of N from the sign-flip kernel."""
+    ok, lines = T.check_kernel(nmax=6, seed=19)
+    assert ok, lines

@@ -98,14 +98,21 @@ seven, $11$ of $22$ with eight, all hooks $[r,1]$, $[2,1^{r-1}]$ and all rectang
 seven boxes (all $34$ one-cell pairs, gaps one to four) and in the analysis modulo $p$ up to ten boxes (gaps one to
 seven, $2629$ single and $1176$ pair columns at ten boxes alone), without a single mismatch; nothing is fitted.
 
-\item \textbf{Not closed: the two-cell pairs.}  They first appear at six boxes ($\{[2,2],[4]\}$ in $[4,2]$,
-$\{[1,1,1],[3]\}$ in $[3,2,1]$, $\{[1^4],[2,2]\}$ in $[2,2,1,1]$) and are the only channels of any $R$ not covered
-above.  The resonant ones (a vertical against a horizontal domino, eigenvalue identical to that of a single) have no
-formula beyond their vacuum, $[1]$ and first-pair-column entries; for the others the single columns of $N$ are an
-analysis-level grid expansion over $V\subseteq\lambda\subseteq U$ with one geometric input (Section~\ref{sec:pairs},
-not re-checked by the script), and their pair columns resist the root principle: the pair entries of $B$, normalised
-as in (ii), are not pure $q$ but polynomials of degree one to four in $A^2$ (analysis, nine exact rows).  This is
-exactly where the ``one simple closed formula'' stops.
+\item \textbf{One kernel for every pair row.}  All the pair rows of $N$ on single columns, for one-cell and
+multi-cell pairs alike, come from one sign-flip kernel \eqref{eq:kernel} applied to the closed single rows: a sum over
+the sign patterns of the moved cells of $c$, each state weighted by a product of brackets $\{\sqrt{u_y/u_x}\}$ between
+the two sides, $1/\{u_e\}$ per cell, and a domino factor within a side.  For one-cell pairs it is the four-row formula;
+for the two-cell pairs (first at six boxes: $\{[2,2],[4]\}$ in $[4,2]$, $\{[1,1,1],[3]\}$ in $[3,2,1]$,
+$\{[1^4],[2,2]\}$ in $[2,2,1,1]$) it is verified on every row with data up to ten boxes that is not resonant
+(domino/domino and domino/separate, $4\,166$ columns, no failure), and for the three-cell line pairs on their end
+states.  \textbf{Not closed.}  (i) The pair columns of the two-cell pair rows: the pure-$q$ property behind
+\eqref{eq:roots} fails there (the normalised pair entries of $B$ are polynomials of degree one to four in $A^2$;
+analysis, nine exact rows), so their split of the merged entries at the resonant columns has no formula.  (ii) The
+resonant two-cell pairs (a vertical against a horizontal domino, eigenvalue identical to that of a single): their rows
+live partly outside $U$ and are not a combination of single rows; the data do not separate the channels of such an
+eigenvalue class, so these rows are the engine's gauge (Observation~\ref{obs:kernel}).  (iii) The middle states of the
+three-cell pairs are fixed by the sum rules but are not products; separate/separate two-cell pairs have no data.  This
+is exactly where the ``one simple closed formula'' stops.
 
 \item \textbf{Where it breaks.}  Up to seven boxes the vanishing conditions determine every row of $E$ once enough
 nodes are used; the rank deficiencies seen at seven and eight boxes with the engine's default node bound are an artefact
@@ -646,6 +653,48 @@ $458+458$ with \LMPH{--nmax 7 --nb 10}; no mismatch); in the analysis modulo $p$
 at eight ($925$ columns), nine ($1633$) and ten boxes ($2629$), $N$ and $B$ each, no failure.
 \end{observation}
 
+\begin{observation}[one sign-flip kernel for every pair row]\label{obs:kernel}
+Let $c=\{Z,Z'\}$ be any pair, $V=Z\cap Z'$, $X=Z\setminus V$, $Y=Z'\setminus V$ the moved cells ($n=|X|=|Y|$), $z_e=Aq^{2c(e)}$,
+and for a sign pattern $\sigma\in\{\pm1\}^{X\cup Y}$ put $u_e=z_e^{\sigma_e}$ and $\lambda(\sigma)=V+\{e:\sigma_e=+1\}$.
+Then, in the merged basis ($R_c(\mu)=N_{c\mu}+\sum_{W:\,U_W=\mu}N_{cW}$), for every single column $\mu$,
+\begin{equation}\label{eq:kernel}
+2R_c(\mu)=\sum_{\sigma:\ \lambda(\sigma)\text{ a diagram}}K_c(\sigma)\,N_{\lambda(\sigma)\mu},\qquad
+K_c(\sigma)=(-1)^n\,\frac{\prod_{(x,y)\in P(\sigma)}\{\sqrt{u_y/u_x}\}}{\prod_{e\in X\cup Y}\{u_e\}}
+\prod_{S\in\{X,Y\}}\ \prod_{a<b\in S}\frac{\{\xi_c\sqrt{u_au_b}\}}{\{\sqrt{u_au_b}\}},
+\end{equation}
+with the closed single rows \eqref{eq:tab} on the right.  Here $\xi_c=\sqrt{z_{\rm in}/z_{\rm out}}$ over a domino of
+$c$ ($q^{-1}$ for a horizontal, $q$ for a vertical domino, the same factor on both sides; $1$ if $c$ has no domino),
+and $P(\sigma)=\mathrm{ends}(X)\times Y$ when $n\le2$ or when no or all cells of $X$ carry $+$, $P(\sigma)=X\times
+\mathrm{ends}(Y)$ when no or all cells of $Y$ carry $+$, $\mathrm{ends}(S)$ the two extreme cells of $S$ by content
+(for $n=1$ the single cell twice).  All square roots are monomials, $\sqrt{u_y/u_x}=A^{(\sigma_y-\sigma_x)/2}
+q^{\sigma_yc(y)-\sigma_xc(x)}$.  For $n=1$ this is the sign-flip form \eqref{eq:signflip} of the four-row formula; for
+$n=2$ it is the grid expansion of the two-cell observation above with the ``transverse direction'' replaced by the
+intrinsic domino shift $\xi_c$, so that no row/column input remains, and the sum rules $\sum_\sigma K=2$,
+$\sum_{\sigma_e=+}K=1$, $\sum_\sigma K/\prod_eu_e=2$ (the columns $\vac$, $[1]$ and $\Phi(-1)=\one$) hold identically.
+Checked by the script (\LMPH{kernel}: at $|R|\le6$ the $17$ one-cell pairs, $179$ columns, and the two non-resonant
+two-cell pairs, $24$ columns; \LMPH{--nmax 7 --nb 10}: $34$ one-cell pairs, $458$ columns, and the six non-resonant
+two-cell pairs (row/row, column/column, domino/separate), $92$ columns; no mismatch); in the analysis exact on the same
+rows and modulo $p$ at two points on every clean pair up to ten boxes: $10\,346$ one-cell, $1\,996$ domino/domino and
+$2\,170$ domino/separate columns, no failure (at ten boxes alone $2515$, $506$ and $620$ columns, $12$, $12$ and $20$
+two-cell pairs, the $31$ one-cell and $16$ two-cell pairs new at ten boxes included).  Nothing is fitted: the end-state
+products are the cell rule, the rest is forced by the sum rules.  Beyond this: (a) for the three-cell pairs the
+\emph{end} states ($k\in\{0,n\}$ or $k'\in\{0,n\}$) are given by \eqref{eq:kernel} and the four \emph{middle} states are
+determined by the sum rules (four unknowns, eight equations, consistent) but are not products; the resulting rows match
+the data on the four line pairs $\{[3,3],[6]\}$, $\{[1^6],[2,2,2]\}$ (nine boxes) and $\{[4,3],[7]\}$,
+$\{[1^7],[2,2,2,1]\}$ (ten boxes), $92$ columns, two points; no closed form for the middle states was found; (b) the
+separate/separate two-cell pairs (both sides two isolated cells) first occur at ten boxes, inside $R=[4,3,2,1]$, where
+their vanishing systems are rank-deficient: $\xi_c=1$ for them is a convention that no data test; (c) the
+\emph{resonant} two-cell pairs (vertical against horizontal domino) are outside \eqref{eq:kernel}: their merged rows are
+non-zero exactly on the singles $\mu$ with $U\subsetneq\mu\subsetneq R_{\min}$ ($R_{\min}=U$ plus the corner cell, e.g.\
+$\{[1,1,1],[3]\}$: $U=[3,1,1]$, $R_{\min}=[3,2,1]$, non-zero at $[2,2]$, $[2,2,1]$, $[3,2]$), which no combination of
+single rows $N_\lambda$, $\lambda\subseteq U$, can produce, and the unique expansion in all single rows violates the vacuum
+column (all $18$ such pairs with data up to ten boxes).  Each of them is $\Lam$-degenerate with the grid state $V$ plus the
+inner cells of both dominoes ($\{[1,1,1],[3]\}$ with $[2,1]$, $\{[2,1,1],[4]\}$ with $[3,1]$): the twist-knot data do
+not separate channels with identical eigenvalues, so the split of such a $\Lam$-class between its channels is the
+engine's gauge, and a formula for these rows would be a formula for that gauge; the gauge-invariant content of these
+classes was not extracted.
+\end{observation}
+
 \paragraph{What was tried and failed.}  (a) A product formula for the entries of $v_c$ (or of $B_c$, or of $E_c$)
 in terms of $D_k$, $[n]$ and monomials: false already for $\{[1,1,1],[2,1]\}$; by Observation~\ref{obs:union} the
 non-product entries are sums of three products at the non-resonant columns, and at the resonant columns they carry
@@ -696,7 +745,7 @@ All checks are modulo $p=10^9+7$ at random $(A,q)$ unless stated otherwise;
 \LMPH{python3 scripts/twist\_formula\_check.py} runs them all (about one minute), \LMPH{tests/test\_twist\_formula.py}
 a fast subset.  Nothing is fitted anywhere: the only inputs are the vanishing conditions and the closed formulas
 \eqref{eq:kntz}, \eqref{eq:tab}, \eqref{eq:union}, \eqref{eq:hook}, \eqref{eq:Nvac}--\eqref{eq:Nadd}, \eqref{eq:fourrow},
-\eqref{eq:adjres}, \eqref{eq:roots}, \eqref{eq:Nsingle}, \eqref{eq:Bsingle}.  ``Analysis''
+\eqref{eq:adjres}, \eqref{eq:roots}, \eqref{eq:Nsingle}, \eqref{eq:Bsingle}, \eqref{eq:kernel}.  ``Analysis''
 refers to checks run outside the repository on the same engine (exact rows over $\mathbb Q(A,q)$ up to seven boxes,
 and rows modulo $p$ with the vanishing conditions imposed on all diagrams with at most $13$ boxes, up to ten boxes);
 their numbers are quoted for completeness and are not reproduced by the script.
@@ -724,6 +773,7 @@ adjacent pair columns \eqref{eq:adjres} (\LMPH{adjres}) & $27$ entries of $N$ an
 gap-two pair columns \eqref{eq:gap2}, \eqref{eq:chain} (\LMPH{gap2}) & $19$ entries of $B$ and $N$ at $|R|\le6$, $42$ with \LMPH{--nmax 7}, no mismatch; analysis: $66$ exact, $156+287$ mod $p$ (8, 9 boxes), two points\\
 pair columns at every gap \eqref{eq:roots} (\LMPH{roots}) & $B$ and $N$ at gaps $1,2,3$: $27$, $19$, $9$ entries at $|R|\le6$; gaps $1$--$4$: $47$, $42$, $25$, $11$ with \LMPH{--nmax 7} and $77$, $66$, $37$, $17$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: the same exact rows, mod $p$ two points at $8$, $9$, $10$ boxes, gaps up to $5$, $6$, $7$ ($299$, $603$, $1176$ entries), no failure\\
 whole one-cell pair rows \eqref{eq:Nsingle}, \eqref{eq:Bsingle} (\LMPH{fullrow}) & every single column of $N$ and $B$: $179+179$ at $|R|\le6$, $344+344$ with \LMPH{--nmax 7}, $458+458$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: $925$, $1633$, $2629$ columns at $8$, $9$, $10$ boxes, $N$ and $B$ each, two points, no failure\\
+sign-flip kernel \eqref{eq:kernel} (\LMPH{kernel}) & one-cell pairs $179$ columns and non-resonant two-cell pairs $24$ columns at $|R|\le6$; $458$ and $92$ with \LMPH{--nmax 7 --nb 10}; no mismatch; analysis: $10\,346$ one-cell, $1\,996$ domino/domino, $2\,170$ domino/separate columns up to ten boxes, two points, no failure; three-cell line pairs $92$ columns (middle states from the sum rules)\\
 four-row formula \eqref{eq:fourrow} (\LMPH{fourrow}) & $17$ pairs, $179$ single columns at $|R|\le6$ ($28$ pairs, $344$ columns with \LMPH{--nmax 7}), no mismatch; analysis: mod $p$ $869$ columns (8 boxes, two points), $1550$ columns (9 boxes)\\
 $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, implied $B$ entries $15/15$; analysis: exact $28$ pairs ($\le7$ boxes), mod $p$ $56$ pairs (8 boxes), $83$ pairs (9 boxes), no mismatch in the claimed classes\\
 \bottomrule
@@ -735,13 +785,14 @@ $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal
 \begin{enumerate}
 \item \textbf{Two-cell pairs} (the diagrams listed in Observation~\ref{obs:fullrow}, from $[4,2]$, $[3,2,1]$,
 $[2,2,1,1]$ on): for the one-cell pairs every column of $N$, $\Et$, $E$, $B$ is closed at every gap
-(\eqref{eq:fourrow}, \eqref{eq:adjres}, \eqref{eq:roots}, \eqref{eq:Nsingle}, \eqref{eq:Bsingle}); for the two-cell
-pairs the resonant ones (vertical against horizontal domino, e.g.\ $\{[1,1,1],[3]\}$ in $R=[3,2,1]$) have rows with
-support outside $U$ and no formula beyond \eqref{eq:Nvac}, \eqref{eq:Nfirst}, the others an analysis-level grid
-expansion of the single columns with one geometric input (Section~\ref{sec:pairs}) and no formula for the pair
-columns, where the pure-$q$ property that underlies \eqref{eq:roots} fails (the normalised pair entries of $B$ are
-polynomials of degree one to four in $A^2$ over $\mathbb Q(q)$; analysis, nine exact rows).  Three-cell pairs first
-appear at nine boxes; nothing is known about them beyond the data.
+(\eqref{eq:fourrow}, \eqref{eq:adjres}, \eqref{eq:roots}, \eqref{eq:Nsingle}, \eqref{eq:Bsingle}), and the single
+columns of the non-resonant two-cell pair rows are closed by the kernel \eqref{eq:kernel}.  Not closed: the pair
+columns of the two-cell pair rows (the pure-$q$ property that underlies \eqref{eq:roots} fails: the normalised pair
+entries of $B$ are polynomials of degree one to four in $A^2$ over $\mathbb Q(q)$; analysis, nine exact rows), hence
+also the split of their merged entries at the resonant columns; the resonant two-cell pairs (vertical against
+horizontal domino, e.g.\ $\{[1,1,1],[3]\}$ in $R=[3,2,1]$), whose rows are not combinations of single rows and are the
+engine's gauge inside an eigenvalue class (Observation~\ref{obs:kernel}); the middle states of the three-cell pairs
+(sum rules only); the separate/separate pairs (no data).
 \item \textbf{Non-top evolution coefficients}: product $\times$ polynomial, polynomial not closed
 (Section~\ref{sec:weights}); already $w_{[1]}([2])$.
 \item \textbf{Resonances}: from $[3,2,1]$ on, the evolution form does not separate channels with equal eigenvalues;
@@ -961,15 +1012,16 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 \begin{itemize}
 \item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
 (options \LMPH{--nmax}, \LMPH{--seed}, \LMPH{--nb}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom
-pairn union hook khook fourrow adjres gap2 roots fullrow}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow adjres
-gap2 roots fullrow} runs the checks of Sections \ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends
+pairn union hook khook fourrow adjres gap2 roots fullrow kernel}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
+adjres gap2 roots fullrow kernel} runs the checks of Sections \ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends
 them to seven boxes, and \LMPH{--nmax 7 --nb 10} imposes the vanishing conditions on all diagrams with at most ten boxes,
 which makes every channel with $|R|\le7$ full rank).
 The closed formulas live in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{binom\_N} / \LMPH{tableau\_P}
 \eqref{eq:tab}, \LMPH{check\_union} \eqref{eq:union}, \LMPH{hook\_pair\_row} \eqref{eq:hook}, \LMPH{check\_pairn}
 \eqref{eq:Ndiag}--\eqref{eq:Nadd}, \LMPH{khook\_N} \eqref{eq:khook}, \LMPH{check\_fourrow} \eqref{eq:fourrow},
 \LMPH{adjacent\_residue} \eqref{eq:adjres}, \LMPH{check\_gap2} \eqref{eq:gap2}, \eqref{eq:chain}, \LMPH{root\_T} /
-\LMPH{closed\_pair\_block} \eqref{eq:roots}, \eqref{eq:paths} and \LMPH{check\_fullrow} \eqref{eq:Nsingle}, \eqref{eq:Bsingle}.
+\LMPH{closed\_pair\_block} \eqref{eq:roots}, \eqref{eq:paths}, \LMPH{check\_fullrow} \eqref{eq:Nsingle}, \eqref{eq:Bsingle} and
+\LMPH{kernel\_K} \eqref{eq:kernel}.
 \item \LMPH{python3 -m pytest tests/test\_twist\_formula.py} --- fast subset.
 \item \LMPH{data/twist\_weights/twist\_weights\_le6.json} --- all $w_X(R)$, $|R|\le6$, as numerator/denominator
 monomial lists in $x=A^2$, $y=q^2$ (exact, computed over $\mathbb Q(x,y)$ with python-flint from the vanishing
