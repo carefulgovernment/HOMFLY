@@ -25,8 +25,13 @@ checks:
   table   the tabulated exact weights data/twist_weights/twist_weights_le6.json vs the data
   pairs   structural identities of the pair rows of B (vacuum and [1] entries, diagonal, row sums)
   bmat    the tabulated exact twist matrix data/twist_weights/twist_matrix_le6.json vs B built from the engine
+  binom   the binomial matrix N = E~^{-1} (Lambda_c^m = sum_X N_cX Phi_X(m)): the closed reverse-tableau formula for
+          all single rows, N_c[vac] = 1 and the [1]-column formula for all rows
+  pairn   pair rows of N: the one-cell diagonal, the first pair column and the two-box columns [1,1], [2]
+  union   pair rows of B from the union diagram (one-cell pairs, all columns except the resonant ones)
+  hook    the closed rows of B for the hook family {[k-1,1],[k]} and its transpose
 
-usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [data kntz phi f41 sym table pairs bmat]
+usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [data kntz phi f41 sym table pairs bmat binom pairn union hook]
 """
 import argparse
 import gzip
@@ -201,13 +206,17 @@ def phi_product(lam, F, A, q):
     return v
 
 
-def build_B(pt, chans):
-    """Twist matrix B = E~ Lambda E~^{-1} on [vacuum] + chans (lower triangular in level order);
-    returns (order, {c: {X: B_cX}})."""
-    F = pt.F
+def _order(chans):
     # a linear extension of the order X < c (E_cX != 0 only for X < c): every diagram of R_min(X) is a proper
     # subdiagram of a diagram of R_min(c), so the largest diagram of R_min grows strictly
-    order = [VAC] + sorted(chans, key=lambda c: (max(sum(d) for d in I.rmin(c)), I.level(c), c[0] == "p", c))
+    return [VAC] + sorted(chans, key=lambda c: (max(sum(d) for d in I.rmin(c)), I.level(c), c[0] == "p", c))
+
+
+def build_EN(pt, chans):
+    """E~ = diag(1/phi(-1)) E with the vacuum column -sum, and its inverse N (both lower triangular) on
+    [vacuum] + chans; returns (order, Et, N) as lists of lists."""
+    F = pt.F
+    order = _order(chans)
     idx = {c: i for i, c in enumerate(order)}
     n = len(order)
     Et = [[F.zero] * n for _ in range(n)]
@@ -230,6 +239,15 @@ def build_B(pt, chans):
                 if Et[i][k] != 0 and Inv[k][j] != 0:
                     s = s + Et[i][k] * Inv[k][j]
             Inv[i][j] = -s / Et[i][i]
+    return order, Et, Inv
+
+
+def build_B(pt, chans):
+    """Twist matrix B = E~ Lambda E~^{-1} on [vacuum] + chans (lower triangular in level order);
+    returns (order, {c: {X: B_cX}})."""
+    F = pt.F
+    order, Et, Inv = build_EN(pt, chans)
+    n = len(order)
     L = [Lam(c, F, pt.A, pt.q) for c in order]
     B = {}
     for i, c in enumerate(order):
@@ -243,6 +261,114 @@ def build_B(pt, chans):
                 row[order[j]] = s
         B[c] = row
     return order, B
+
+
+def clean_channels(pt, chans):
+    """Channels whose vanishing system has full rank and whose support closure contains no rank-deficient channel
+    (the engine's gauge rows of the others are not reliable)."""
+    bad = set()
+    for c in chans:
+        pt.E_row(c)
+        r, n = pt._E[("rank", c)]
+        if r < n:
+            bad.add(c)
+    changed = True
+    while changed:
+        changed = False
+        for c in chans:
+            if c not in bad and any(X in bad for X in pt.E_row(c)):
+                bad.add(c)
+                changed = True
+    return [c for c in chans if c not in bad], sorted(bad)
+
+
+# ---------------------------------------------------------------------------
+# the binomial matrix N = E~^{-1}: closed single sector (reverse tableaux)
+# ---------------------------------------------------------------------------
+def qnum(n, F, q):
+    return (q ** n - q ** (-n)) / (q - q ** (-1)) if n >= 0 else -qnum(-n, F, q)
+
+
+def qfact(n, F, q):
+    v = F.one
+    for i in range(2, n + 1):
+        v = v * qnum(i, F, q)
+    return v
+
+
+def qbinom(n, m, F, q):
+    if m < 0 or m > n:
+        return F.zero
+    return qfact(n, F, q) / (qfact(m, F, q) * qfact(n - m, F, q))
+
+
+def Dk(k, F, A, q):
+    return A * q ** k - F.one / (A * q ** k)
+
+
+def reverse_tableaux(mu, n):
+    """Fillings T of the diagram mu (boxes (i, j), 0-based) with entries in 0..n-1, weakly decreasing along rows,
+    strictly decreasing down columns."""
+    bx = boxes(mu)
+    T = {}
+
+    def rec(k):
+        if k == len(bx):
+            yield dict(T)
+            return
+        i, j = bx[k]
+        hi = n - 1
+        if j > 0:
+            hi = min(hi, T[(i, j - 1)])
+        if i > 0:
+            hi = min(hi, T[(i - 1, j)] - 1)
+        for v in range(0, hi + 1):
+            T[(i, j)] = v
+            yield from rec(k + 1)
+        T.pop((i, j), None)
+    yield from rec(0)
+
+
+def tableau_P(lam, mu, F, A, q):
+    """P_mu(lambda) = sum over reverse tableaux T of shape mu, entries = rows of lambda, of
+    prod_{alpha in mu} [lambda_i - c(alpha)] D_{lambda_i - 2i - 1 + c(alpha)},  i = T(alpha), c = content of alpha."""
+    tot = F.zero
+    for T in reverse_tableaux(mu, len(lam)):
+        term = F.one
+        for (ia, ja), i in T.items():
+            c = ja - ia
+            term = term * qnum(lam[i] - c, F, q) * Dk(lam[i] - 2 * i - 1 + c, F, A, q)
+            if term == 0:
+                break
+        tot = tot + term
+    return tot
+
+
+def binom_N(lam, mu, F, A, q):
+    """Closed form of the single block of N:  N_{lambda mu} = (-A)^{-|mu|} q^{-kappa_mu} P_mu(lambda) / prod_b [h_mu(b)]."""
+    v = (-A) ** (-sum(mu)) * q ** (-kappa(mu)) if sum(mu) else F.one
+    for b in boxes(mu):
+        v = v / qnum(hook(mu, b), F, q)
+    return v * tableau_P(lam, mu, F, A, q)
+
+
+def one_cell(c):
+    """For a one-cell pair c = {Z, Z'} return (Z, Z', U, b, b') with b in Z minus Z', b' in Z' minus Z, else None."""
+    if c[0] != "p":
+        return None
+    Z, Zp = c[1], c[2]
+    U = I.union(Z, Zp)
+    if sum(U) != sum(Z) + 1:
+        return None
+    bZ = [b for b in boxes(Z) if b not in boxes(Zp)]
+    bZp = [b for b in boxes(Zp) if b not in boxes(Z)]
+    if len(bZ) != 1 or len(bZp) != 1:
+        return None
+    return Z, Zp, U, bZ[0], bZp[0]
+
+
+def cont(b):
+    return b[1] - b[0]
 
 
 def channels_present(nmax):
@@ -436,8 +562,190 @@ def check_bmat(nmax=6, seed=1, path=BTABLE):
     return not bad, ["bmat: tabulated twist matrix (%s) vs engine: %d rows, %d entries, mismatches: %s" % (os.path.basename(path), len(order) - 1, n, bad)]
 
 
+
+def check_binom(nmax=6, seed=1):
+    """N = E~^{-1} from the engine vs the closed reverse-tableau formula (single rows), plus N_c[vac] = 1 and
+    N_c[[1]] = -(1/2A) sum_{b in Z u Z'} D_{2c(b)} for every clean channel."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    idx = {c: i for i, c in enumerate(order)}
+    one = ("s", (1,), (1,))
+    n_single = bad_single = 0
+    bad_pair_entry, bad_vac, bad_one = [], [], []
+    for c in clean:
+        i = idx[c]
+        if N[i][0] != F.one:
+            bad_vac.append(c)
+        s1 = sum((Dk(2 * cont(b), F, A, q) for Z in (c[1], c[2]) for b in boxes(Z)), F.zero)
+        if N[i][idx[one]] != -s1 / (2 * A):
+            bad_one.append(c)
+        if c[0] != "s":
+            continue
+        for X in order[1:]:
+            v = N[i][idx[X]]
+            if X[0] == "p":
+                if v != 0:
+                    bad_pair_entry.append((c, X))
+                continue
+            n_single += 1
+            if v != binom_N(c[1], X[1], F, A, q):
+                bad_single += 1
+    lines = ["binom: N = E~^{-1} on %d channels (|R| <= %d), %d clean (excluded: %s)" % (len(order) - 1, nmax, len(clean), excluded),
+             "binom: single rows vs the reverse-tableau formula: %d entries, mismatches %d; pair entries in single rows: %s"
+             % (n_single, bad_single, "none" if not bad_pair_entry else bad_pair_entry[:3]),
+             "binom: N_c[vac] = 1: %s; N_c[[1]] = -(1/2A) sum_{Z u Z'} D_{2c}: %s"
+             % ("ok" if not bad_vac else bad_vac[:3], "ok" if not bad_one else bad_one[:3])]
+    return not (bad_single or bad_pair_entry or bad_vac or bad_one), lines
+
+
+def check_pairn(nmax=6, seed=1):
+    """Pair rows of N (clean one-cell pairs): diagonal, first pair column {[1,1],[2]}, columns [1,1] and [2]."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    idx = {c: i for i, c in enumerate(order)}
+    curlyq = q - q ** (-1)
+    p0 = ("p", (1, 1), (2,))
+    n_pairs = 0
+    bad_diag, bad_col, bad_two = [], [], []
+    for c in clean:
+        oc = one_cell(c)
+        if oc is None:
+            continue
+        Z, Zp, U, b, bp = oc
+        n_pairs += 1
+        i = idx[c]
+        d, s_ = cont(bp) - cont(b), cont(b) + cont(bp)
+        curly_d2 = (q ** d - q ** (-d)) ** 2
+        # diagonal: 2 N_cc = -(-A)^{-|U|} q^{-kappa_U} {q^d}^2 prod_{cells of U except b, b'} D_{a-l+2c}
+        prod = F.one
+        for x in boxes(U):
+            if x in (b, bp):
+                continue
+            a_, l_ = U[x[0]] - x[1] - 1, conjugate(U)[x[1]] - x[0] - 1
+            prod = prod * Dk(a_ - l_ + 2 * cont(x), F, A, q)
+        if 2 * N[i][i] != -((-A) ** (-sum(U))) * q ** (-kappa(U)) * curly_d2 * prod:
+            bad_diag.append(c)
+        # first pair column: N_{c,{[1,1],[2]}} = [d]^2 {q}^2 D_s^2 / (2 A^3 D_0)
+        if p0 in idx and idx[p0] < i:
+            want = qnum(d, F, q) ** 2 * curlyq ** 2 * Dk(s_, F, A, q) ** 2 / (2 * A ** 3 * Dk(0, F, A, q))
+            if N[i][idx[p0]] != want:
+                bad_col.append(c)
+        # columns [1,1], [2]:  2 N_{c,mu} (-A)^2 q^{kappa_mu} [2] = P_mu(Z) + P_mu(Z') - {q^d}^2
+        for mu in ((1, 1), (2,)):
+            X = ("s", mu, mu)
+            lhs = 2 * N[i][idx[X]] * A * A * q ** kappa(mu) * qnum(2, F, q)
+            if lhs != tableau_P(Z, mu, F, A, q) + tableau_P(Zp, mu, F, A, q) - curly_d2:
+                bad_two.append((c, mu))
+    lines = ["pairn: %d clean one-cell pairs (|R| <= %d): diagonal formula: %s; first pair column: %s; columns [1,1],[2] = P(Z)+P(Z')-{q^d}^2: %s"
+             % (n_pairs, nmax, "ok" if not bad_diag else bad_diag[:3], "ok" if not bad_col else bad_col[:3], "ok" if not bad_two else bad_two[:3])]
+    return not (bad_diag or bad_col or bad_two), lines
+
+
+def check_union(nmax=6, seed=1):
+    """One-cell pair rows of B from the KNTZ rows of U, Z, Z':
+    B_{c,X} = B_{U,X}/(A^2 q^{2s}) + Lambda_c (delta_{Xc} - delta_{XU}) + (A D_s/{q^d}) (B_{Z,X} - B_{Z',X})
+    for every column X that is neither a pair below c nor the union of one (there the row has poles)."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, B = build_B(pt, chans)
+    n_pairs = n_entries = 0
+    bad = []
+    for c in clean:
+        oc = one_cell(c)
+        if oc is None:
+            continue
+        Z, Zp, U, b, bp = oc
+        n_pairs += 1
+        d, s_ = cont(bp) - cont(b), cont(b) + cont(bp)
+        pairs_below = [X for X in B[c] if X[0] == "p" and X != c]
+        resonant = set(pairs_below) | set(I.single(I.union(X[1], X[2])) for X in pairs_below)
+        Lc = Lam(c, F, A, q)
+        for X in order:
+            if X[0] == "p" and X != c:
+                continue            # pair columns: resonant (below c) or zero
+            if X in resonant:
+                continue
+            n_entries += 1
+            want = F.zero
+            if X[0] == "s":
+                mu = X[1]
+                want = kntz_B(U, mu, F, A, q) / (A * A * q ** (2 * s_)) + A * Dk(s_, F, A, q) / (q ** d - q ** (-d)) * (kntz_B(Z, mu, F, A, q) - kntz_B(Zp, mu, F, A, q))
+                if X == I.single(U):
+                    want = want - Lc
+            else:
+                want = Lc
+            if B[c].get(X, F.zero) != want:
+                bad.append((c, X))
+    lines = ["union: %d clean one-cell pairs (|R| <= %d), %d non-resonant entries of B from the KNTZ rows of U, Z, Z': mismatches %s"
+             % (n_pairs, nmax, n_entries, "none" if not bad else bad[:4])]
+    return not bad, lines
+
+
+def hook_pair_row(k, F, A, q, transpose=False):
+    """Closed row of B for c = {[k-1,1],[k]} (U = [k,1]); transpose: {[2,1^{k-2}],[1^k]} via q -> -1/q."""
+    if transpose:
+        qq = -F.one / q
+        row = hook_pair_row(k, F, A, qq, False)
+        return {I.pair(conjugate(X[1]), conjugate(X[2])) if X[0] == "p" else
+                (I.single(conjugate(X[1])) if X != VAC else VAC): v for X, v in row.items()}
+    c = ("p", (k - 1, 1), (k,)) if k > 2 else ("p", (1, 1), (2,))
+    U = (k, 1)
+    Lc = A ** (2 * k) * q ** (2 * k * (k - 2))
+    LU = Lam(I.single(U), F, A, q)
+    cq = lambda n: q ** n - q ** (-n)
+    v = {}
+    for j in range(2, k + 1):
+        v[("s", (j,), (j,))] = (-1) ** (k - j + 1) * q ** (-(k - j) * (k - 1) - j) * qbinom(k - 2, j - 2, F, q) / cq(j)
+    v[("s", (1, 1), (1, 1))] = (-1) ** k * q ** (2 - (k - 1) * (k - 2)) / cq(2)
+    for j in range(2, k):
+        Xj = ("p", (j - 1, 1), (j,)) if j > 2 else ("p", (1, 1), (2,))
+        v[Xj] = (-1) ** (k - j) * qbinom(k - 2, j - 2, F, q) / (A * q ** ((k - j) * (k - 1) + j - 2) * Dk(j - 2, F, A, q))
+        v[("s", (j, 1), (j, 1))] = -A * A * q ** (2 * j - 4) * v[Xj] - q ** (2 * j + 2) * v[("s", (j + 1,), (j + 1,))]
+    row = {}
+    for mu in subdiagrams(U):
+        val = kntz_B(U, mu, F, A, q)
+        if val != 0:
+            row[I.single(mu) if mu else VAC] = val
+    row[I.single(U)] = row.get(I.single(U), F.zero) - LU
+    row[c] = row.get(c, F.zero) + Lc
+    for X, val in v.items():
+        row[X] = row.get(X, F.zero) + (LU - Lc) * val
+    return {X: val for X, val in row.items() if val != 0}
+
+
+def check_hook(nmax=6, seed=1):
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, B = build_B(pt, chans)
+    bad, n = [], 0
+    for k in range(2, nmax):
+        for tr in (False, True):
+            c = ("p", (k - 1, 1), (k,)) if k > 2 else ("p", (1, 1), (2,))
+            if tr:
+                c = I.pair(conjugate(c[1]), conjugate(c[2]))
+            if c not in clean or c not in B:
+                continue
+            row = hook_pair_row(k, F, A, q, tr)
+            n += 1
+            keys = set(row) | set(B[c])
+            if any(row.get(X, F.zero) != B[c].get(X, F.zero) for X in keys):
+                bad.append(c)
+    return not bad, ["hook: closed rows of B for {[k-1,1],[k]} and transposes, k = 2..%d: %d rows, mismatches %s" % (nmax - 1, n, "none" if not bad else bad)]
+
+
 CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check_f41, "sym": check_sym,
-          "table": check_table, "pairs": check_pairs, "bmat": check_bmat}
+          "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
+          "union": check_union, "hook": check_hook}
 
 
 def main(argv=None):

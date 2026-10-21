@@ -56,31 +56,45 @@ with an $R$-independent, knot-independent triangular ``twist matrix'' $B$ (Secti
 $\psi_X(R)$ are closed (quantum dimensions and Koike characters), and $E$ is the universal matrix of the interpolation
 formula of the repository (vanishing conditions).
 
-\item \textbf{Closed: the single-channel sector.}  The rows of $B$ labelled by single channels $[\lambda,\lambda]$ have
-the closed product form of Kameyama--Nawata--Tao--Zhang (KNTZ), eq.~\eqref{eq:kntz}; the corresponding rows of $E$ follow
-from it by an explicit recursion \eqref{eq:eigrec}, and $\varphi_\lambda(-1)$ is a product of $D$-factors
-\eqref{eq:phiprod}.  Verified exactly (over $\mathbb Q(A^2,q^2)$) for all $29$ diagrams $|\lambda|\le6$ and modulo a
-large prime for all $59$ single channels with $|\lambda|\le 8$ whose vanishing system has full rank.  For rectangular
-$R$ only single channels occur, so there the whole formula is closed (this is the KNTZ result).
+\item \textbf{Closed: the single-channel sector, in one formula.}  Let $N:=\Et^{-1}$ (the ``binomial matrix'',
+Section~\ref{sec:N}), so that $\Lam_c^{\,m}=\sum_X N_{cX}\,\Phi_X(m)$.  All rows of $N$ labelled by single channels
+$[\lambda,\lambda]$ are given by one tableau formula,
+\begin{equation}\label{eq:tabsum}
+N_{\lambda\mu}=\frac{(-A)^{-|\mu|}\,q^{-\kappa_\mu}}{\prod_{b\in\mu}[h_\mu(b)]}\;
+\sum_{T}\;\prod_{\alpha\in\mu}\,[\lambda_{T(\alpha)}-c(\alpha)]\;D_{\lambda_{T(\alpha)}+c(\alpha)-2T(\alpha)-1},
+\end{equation}
+the sum running over the reverse tableaux $T$ of shape $\mu$ with entries in $\{0,\dots,\ell(\lambda)-1\}$ (the rows of
+$\lambda$).  It contains the KNTZ twist matrix \eqref{eq:kntz} (the single rows of $B=\Et\Lam N$), the single rows of
+$E$, and the product formula \eqref{eq:phiprod} for $\varphi_\lambda(-1)=N_{\lambda\lambda}$.  Verified exactly (over
+$\mathbb Q(A,q)$) for all $841$ single entries with $|\lambda|\le6$, and modulo a large prime for every single entry
+determined by the vanishing conditions up to nine boxes ($4096$ entries at $|\lambda|\le8$, $7396$ at $|\lambda|\le9$;
+Section~\ref{sec:checks}).  For rectangular $R$ only single channels occur, so there the whole formula is closed
+(the KNTZ result, in a different form).
 
 \item \textbf{Closed: the top evolution coefficients.}  For every $R$ with $|R|\le 6$, $w_X(R)$ is a product of
 $A^aq^b$, quantum numbers $[n]$ and factors $D_k$ exactly for the \emph{top} channels $X=[Z,Z']$ with $Z\cup Z'=R$
 (Section~\ref{sec:weights}); all other coefficients are such a product times a polynomial in $A^2$ of degree
 $\le |R|-|Z\cup Z'|$ which does not factorise.
 
-\item \textbf{Not closed: the pair-channel sector.}  Pair channels $\{Z,Z'\}$, $Z\ne Z'$, exist precisely for
-non-rectangular $R$.  Their rows of $B$ (equivalently of $E$) are known exactly as rational functions for all $20$ pairs
-present at $|R|\le 6$ (17 one-cell pairs, 3 two-cell pairs) and satisfy the structural identities of
-Section~\ref{sec:pairs} (the vacuum and $[1]$ entries of a one-cell pair $\{Z,Z'\}$ equal the KNTZ entries of the union
-diagram $Z\cup Z'$, the rest is a correction proportional to $\Lam_{Z\cup Z'}-\Lam_c$), but \emph{no closed formula
-for these rows was found}; their entries are not products.  This is exactly where the ``one simple closed formula''
-stops.
+\item \textbf{Partly closed: the pair-channel sector.}  Pair channels $\{Z,Z'\}$, $Z\ne Z'$, exist precisely for
+non-rectangular $R$.  For a one-cell pair $c=\{Z,Z'\}$ with union $U=Z\cup Z'$ (Section~\ref{sec:pairs}):
+(i) every entry of the row $B_c$ outside the \emph{resonant} columns is a closed combination of the three KNTZ rows of
+$U$, $Z$, $Z'$ (union formula \eqref{eq:union}); (ii) the whole row is closed for the hook family
+$\{[k-1,1],[k]\}$ and its transpose \eqref{eq:hook}, so for $R=[r,1]$ and $R=[2,1^{r-1}]$ the twist-knot formula is
+completely closed; (iii) the normalisation $\varphi_c(-1)$, the vacuum, $[1]$, $[1,1]$, $[2]$ and first-pair-column
+entries of $N$ are closed.  \emph{Not closed}: the residues of $B_c$ at the resonances $\Lam_Y=\Lam_{U_Y}$ of the
+smaller pairs $Y<c$, one element of $\mathbb Q(q^2)$ per such pair ($123$ of them for the $28$ one-cell pairs with at
+most seven boxes, six of which are not products), i.e.\ the pair columns of the pair rows and the matching union
+columns; and the two-cell pairs beyond (iii).  This is exactly where the ``one simple closed formula'' stops.
 
-\item \textbf{Where it breaks.}  At $|R|=8$ the vanishing conditions no longer determine $E$: for $R=[4,3,1]$ and its
-transpose $[3,2,2,1]$ five channels have a rank deficiency of two and \eqref{eq:channel} with the default gauge (free
-unknowns set to zero) gives the wrong $H_R(4_1)$.  Replacing the single rows by the KNTZ rows does \emph{not} cure
-this: the missing information sits in the pair rows.  (The repository's strengthened Formula II on the other branch
-handles these cases by additional rules; that is outside this note.)
+\item \textbf{Where it breaks.}  Up to seven boxes the vanishing conditions determine every row of $E$ once enough
+nodes are used; the rank deficiencies seen at seven and eight boxes with the engine's default node bound are an artefact
+of that bound, with one exception: the five top channels of $R=[4,3,1]$ and the five of $[3,2,2,1]$ (eight boxes) keep a
+one-dimensional common kernel for every node bound, and no choice of the free parameter makes \eqref{eq:channel}
+reproduce $H_R(\Tw_m)$ for these two $R$ (with the default gauge already $H_R(4_1)$ is wrong).  There the twist-knot
+polynomial needs a term outside \eqref{eq:channel}; the repository's strengthened Formula II on the other branch
+supplies it by an additional rule, which is outside this note.  The same happens at nine boxes for the tops of
+$[5,3,1]$ and $[3,2,2,1,1]$.
 \end{itemize}
 
 Nothing in this note is proved.  The statements are conjectures checked on the data described in
@@ -235,7 +249,79 @@ modulo $p=10^9+7$ at random points for all $59$ singles with $|\lambda|\le8$ who
 $[3,2,1,1,1]$ the vanishing system is rank-deficient (by one or two); there the engine's gauge row and the KNTZ row
 differ, $\varphi_\lambda(-1)$ nevertheless agrees, and both choices give the same $H_R(4_1)$ wherever the formula
 works at all ($|R|=7$: $15/15$; $|R|=8$: $20/22$ either way).  The KNTZ row is the canonical choice for these
-channels.
+channels.  (With the vanishing conditions imposed on all diagrams with at most $13$ boxes the deficiency disappears
+for all of them except $[4,3,1]$, $[3,2,2,1]$, and the determined rows agree with KNTZ; see Section~\ref{sec:checks}.)
+
+\section{The binomial matrix and the closed single sector}\label{sec:N}
+
+The matrix $\Et$ of \eqref{eq:Phi} expands the ``exponentials'' $\Lam_X^m$ into the basis $\Phi_c(m)$; its inverse does
+the opposite.  Put
+\begin{equation}\label{eq:Ndef}
+N:=\Et^{-1}\quad\text{on }\{\vac\}\cup\Chan,\qquad\text{i.e.}\qquad \Lam_c^{\,m}=\sum_{X\le c}N_{cX}\,\Phi_X(m)\quad(m\in\mathbb Z),
+\end{equation}
+the ``binomial expansion'' of $\Lam_c^m$ (for $\Phi_X(m)$ is a polynomial-like basis: $\Phi_X(-1)=1$, $\Phi_X(0)=0$,
+$\Phi_\vac\equiv1$).  Since $\Et$ is unitriangular up to its diagonal, $N$ is triangular, $N_{cc}=1/\Et_{cc}=\varphi_c(-1)$,
+and $B=\Et\Lam N$.  Setting $m=-1$ in \eqref{eq:Ndef} gives $\Lam_c^{-1}=\sum_X N_{cX}$, setting $m=0$ gives
+$N_{c\vac}=1$ for every channel $c$.  The single rows of $N$ have no pair entries (all $|\lambda|\le 9$).  $N$ is the
+object with the simplest closed form:
+
+\begin{conjecture}[tableau formula for the single sector]\label{conj:tab}
+For single channels $\lambda$, $\mu$ and $\ell=\ell(\lambda)$ the number of rows of $\lambda$,
+\begin{equation}\label{eq:tab}
+N_{\lambda\mu}=\frac{(-A)^{-|\mu|}\,q^{-\kappa_\mu}}{\prod_{b\in\mu}[h_\mu(b)]}\;P_\mu(\lambda),\qquad
+P_\mu(\lambda)=\sum_{T}\;\prod_{\alpha\in\mu}w\bigl(T(\alpha),\alpha\bigr),\qquad
+w(i,\alpha)=[\lambda_i-c(\alpha)]\;D_{\lambda_i+c(\alpha)-2i-1},
+\end{equation}
+where $T$ runs over the reverse tableaux of shape $\mu$ with entries in $\{0,1,\dots,\ell-1\}$ (weakly decreasing along
+rows, strictly decreasing down columns), $i=T(\alpha)$ is a $0$-based row index of $\lambda$, $\lambda_i$ the length
+of that row, and $c(\alpha)$ the content of the box $\alpha$ of $\mu$.
+\end{conjecture}
+
+Equivalent forms of the weight: $w(i,\alpha)=\sum_{j=c(\alpha)}^{\lambda_i-1}D_{2(j-i)}$, the sum of $D_{2c(b)}$ over the
+boxes $b=(i,j)$ of row $i$ of $\lambda$ from column $c(\alpha)$ to the end of the row (the row is continued to the left
+by boxes of negative column index when $c(\alpha)<0$, and the sum is $-\sum_{j=\lambda_i}^{c(\alpha)-1}$ when
+$c(\alpha)>\lambda_i$); and
+\[
+w(i,\alpha)=\frac{(Z_i+Z_i^{-1})-(\zeta_{i\alpha}+\zeta_{i\alpha}^{-1})}{\{q\}},\qquad
+Z_i=Aq^{2\lambda_i-2i-1},\quad \zeta_{i\alpha}=Aq^{2c(\alpha)-2i-1},
+\]
+i.e.\ $\zeta_{i\alpha}$ is $Z_i$ with $\lambda_i$ replaced by $c(\alpha)$.  In this form $P_\mu$ is a tableau sum of
+interpolation type in the variables $Z_i=q^{2(\lambda_i+\rho_i)}$ (with $A=q^N$ absorbed into $\rho$), of the kind
+appearing in the combinatorial formulas for Okounkov's $BC$-type interpolation polynomials at $q=t$ and, in the
+classical limit, for the shifted Schur functions of Okounkov--Olshanski; we did not use this identification, it is noted
+for orientation only.  Consequences and special cases:
+\begin{itemize}
+\item $P_\mu(\lambda)=0$ unless $\mu\subseteq\lambda$ (the interpolation property; each weight $w(i,\alpha)$
+vanishes when $\lambda_i=c(\alpha)$), and $N_{\lambda\lambda}=\varphi_\lambda(-1)$ reproduces the product
+\eqref{eq:phiprod}: for $\mu=\lambda$ a single tableau survives, e.g.\ for $\lambda=[2,1]$ the tableau
+$T=\begin{smallmatrix}1&0\\0&\end{smallmatrix}$ with $P_{[2,1]}([2,1])=[3]D_{-2}D_0D_2$.
+\item First column: $N_{\lambda,[1]}=-\frac1A\sum_{b\in\lambda}D_{2c(b)}$ (the ``content sum'' of $\lambda$);
+$\mu=[2]$ and $\mu=[1,1]$:
+\[
+N_{\lambda,[2]}=\frac{1}{A^2q[2]}\sum_{i\ge i'}[\lambda_i]D_{\lambda_i-2i-1}\,[\lambda_{i'}-1]D_{\lambda_{i'}-2i'},\qquad
+N_{\lambda,[1,1]}=\frac{q}{A^2[2]}\sum_{i>i'}[\lambda_i]D_{\lambda_i-2i-1}\,[\lambda_{i'}+1]D_{\lambda_{i'}-2i'-2}.
+\]
+\item Row $[2,1]$: $N_{[2,1],[1]}=-[3]D_0/A$, $N_{[2,1],[2]}=[3]D_0D_2/(A^2q[2])$, $N_{[2,1],[1,1]}=q[3]D_{-2}D_0/(A^2[2])$,
+$N_{[2,1],[2,1]}=-D_{-2}D_0D_2/A^3$.
+\item For a hook $\lambda$ the sum collapses to a product,
+$N_{\lambda\mu}=(-A)^{-|\mu|}q^{-\kappa_\mu}\prod_{b\in\mu}\frac{[h_\lambda(b)]}{[h_\mu(b)]}D_{a_\lambda(b)-l_\lambda(b)+2c(b)}$
+(arms, legs and hooks measured in $\lambda$); for non-hook $\lambda$ this product is wrong already at
+$N_{[2,2],[1]}=-[2]^2D_0/A$ (the product would give $-[3]D_0/A$), and the tableau sum is needed.
+\item The single rows of $E$ and $B$ follow: $E_{\lambda\mu}=N_{\lambda\lambda}\,(N^{-1})_{\lambda\mu}$,
+$B=\Et\Lam N$; in particular \eqref{eq:kntz} is the statement that the single block of $\Et\Lam N$ is the KNTZ
+matrix, which we checked but did not derive.
+\end{itemize}
+
+\paragraph{Status.}  Identity of \eqref{eq:tab} with $N=\Et^{-1}$ built from the vanishing-condition rows: exact (over
+$\mathbb Q(A,q)$) for all $841$ single entries with $|\lambda|\le6$; for all single entries with $|\lambda|\le7$ except
+the two rows $[4,2,1]$, $[3,2,1,1]$, which the engine's default node bound leaves rank-deficient (their stored rows are
+gauge garbage); modulo $p=10^9+7$ at two random points for the single block of $N$ built from the rows determined by the
+vanishing conditions on all diagrams with at most $13$ boxes, $4096$ entries at $|\lambda|\le8$ and $7396$ entries
+at $|\lambda|\le9$, with no mismatch (the only excluded rows are the ten tops of $[4,3,1]$, $[3,2,2,1]$ and, at nine
+boxes, those of $[5,3,1]$, $[3,2,2,1,1]$ and four channels with two minimal diagrams).  The check \LMPH{binom} of the
+script re-runs the $|\lambda|\le6$ case modulo $p$.  Nothing in \eqref{eq:tab} was fitted: the formula was found on the exact
+rows with at most six boxes and then compared with the rows of seven, eight and nine boxes, which were not used in
+finding it.
 
 \section{The pair sector: what holds and what is missing}\label{sec:pairs}
 
@@ -268,18 +354,105 @@ one-cell pairs with $|U|=5,6$; $6$ for each two-cell pair).
 \begin{observation}[two-cell pairs]
 Only Observation~\ref{obs:all} holds in general.  The union identities $B_{c\vac}=B_{U\vac}$, $B_{c,[1]}=B_{U,[1]}$
 hold for $\{[1,1,1,1],[2,2]\}$ and $\{[2,2],[4]\}$ but fail for $\{[1,1,1],[3]\}$, whose eigenvalue $A^6$ is resonant
-with the single $[2,1]$.
+with the single $[2,1]$.  (Up to eight boxes, modulo $p$: they hold for all $56$ one-cell pairs and for $16$ of the $22$
+multi-cell pairs; the six failures $\{[1,1,1],[3]\}$, $\{[1^4],[3,1]\}$, $\{[2,1,1],[4]\}$, $\{[1^5],[3,1,1]\}$,
+$\{[2,1^3],[4,1]\}$, $\{[3,1,1],[5]\}$ are exactly the pairs in which $Z$ and $Z'$ differ by a vertical and a horizontal
+domino, i.e.\ the resonant ones.)
+\end{observation}
+
+\subsection*{One-cell pairs: what is closed}
+
+Throughout $c=\{Z,Z'\}$ is a one-cell pair, $Z=V+b$, $Z'=V+b'$, $c(b)<c(b')$, $s=c(b)+c(b')$, $d=c(b')-c(b)\ge2$,
+$U=Z\cup Z'$, and $x=A^2$, $y=q^2$.  A pair $Y=\{W,W'\}<c$ has its own $U_Y=W\cup W'$ and $s_Y$; the column $U_Y$ is called
+\emph{resonant} for $c$ because $\Lam_Y=\Lam_{U_Y}$ at $x=y^{-s_Y}$ (and then $\Phi_Y=\Phi_{U_Y}$).
+
+\begin{observation}[union formula; all non-resonant columns]\label{obs:union}
+For every column $X$ that is neither a pair $Y<c$ nor the union $U_Y$ of such a pair,
+\begin{equation}\label{eq:union}
+B_{cX}=\frac{B_{UX}}{A^2q^{2s}}+\Lam_c\bigl(\delta_{Xc}-\delta_{XU}\bigr)+\frac{A\,D_s}{\{q^d\}}\bigl(B_{ZX}-B_{Z'X}\bigr),
+\end{equation}
+with the three KNTZ rows \eqref{eq:kntz} of $U$, $Z$, $Z'$ on the right (their pair entries are zero).  These columns are
+the vacuum, $[1]$, $U$, $c$ itself and every single $\mu\subseteq U$ that is not the union of two incomparable
+subdiagrams of $U$; the entries at $X=\vac$, $[1]$ reduce to $B_{cX}=B_{UX}$ of Observation~\ref{obs:one}.  In terms of
+\eqref{eq:corr}: $v_c=f_c+\sum_{Y<c}r_{cY}\,\dfrac{e_Y-e_{U_Y}}{x-y^{-s_Y}}$ with the $x$-free part
+$f_c=e_U-M_U+\bigl(y^{-c(b')}M_Z-y^{c(b')-2c(b)}M_{Z'}\bigr)/(y^d-1)$, $M_\lambda:=B_\lambda/\Lam_\lambda$, and one
+residue $r_{cY}\in\mathbb Q(y)$ per pair $Y<c$; the pair column $Y$ and its union column $U_Y$ carry opposite residues, so
+$B_{cY}+B_{c,U_Y}$ is pole-free.  Checked exactly on all $28$ one-cell pairs with at most seven boxes ($1856$ entries)
+and modulo $p$ on all $41$ full-rank one-cell pairs with at most eight boxes ($5704$ entries) in the analysis; the
+script (\LMPH{union}) re-checks the $472$ non-resonant entries of the $17$ pairs with $|R|\le6$.
+\end{observation}
+
+\begin{observation}[the residues]\label{obs:res}
+The information in a one-cell pair row that is not given by \eqref{eq:union} is the list of residues $r_{cY}$, one per
+pair $Y<c$: $123$ elements of $\mathbb Q(y)$ for the $28$ one-cell pairs with at most seven boxes.  The first one is closed,
+$r_{c,\{[1,1],[2]\}}=(-1)^{|V|+1}q^{-2\kappa_V}$ (all $27$ pairs that have the column); the others depend on $c$ and $Y$
+jointly (not on $V$ and $Y$ alone, and not as a product $a_cb_Y$), and six of them are not products of quantum numbers
+and monomials, the smallest being $r_{cY}=q^2(q^6+q^2+1)$ for $c=\{[2,1,1,1],[2,2,1]\}$, $Y=\{[1,1,1],[2,1]\}$ and
+its transpose.  No rule for the $r_{cY}$ was found.  (Analysis only; not re-checked by the script.)
+\end{observation}
+
+\begin{observation}[hook family; whole rows closed]\label{obs:hook}
+For $c=\{[k-1,1],[k]\}$ ($U=[k,1]$, $\Lam_c=A^{2k}q^{2k(k-2)}$, $\Lam_U-\Lam_c=\Lam_cAq^{k-2}D_{k-2}$), with
+$\tilde X_j:=\{[j-1,1],[j]\}$ and $\binom{n}{m}_q=[n]!/([m]![n-m]!)$, the correction vector of \eqref{eq:corr} is
+\begin{equation}\label{eq:hook}
+\begin{aligned}
+v_c([j])&=\frac{(-1)^{k-j+1}\,q^{-(k-j)(k-1)-j}}{\{q^j\}}\binom{k-2}{j-2}_q\quad(2\le j\le k),\qquad
+v_c([1,1])=\frac{(-1)^k\,q^{2-(k-1)(k-2)}}{\{q^2\}},\\
+v_c(\tilde X_j)&=\frac{(-1)^{k-j}}{A\,q^{(k-j)(k-1)+j-2}D_{j-2}}\binom{k-2}{j-2}_q,\qquad
+v_c([j,1])=-A^2q^{2j-4}\,v_c(\tilde X_j)-q^{2j+2}\,v_c([j+1])\quad(2\le j\le k-1),
+\end{aligned}
+\end{equation}
+and $v_c=0$ at $\vac$, $[1]$, $U$, $c$.  The transposed family $\{[2,1^{k-2}],[1^k]\}$ follows by $q\to-1/q$ (the
+transposition symmetry $B_{c^TX^T}(A,q)=B_{cX}(A,-1/q)$, which holds on every row of $B$ at $|R|\le6$).  So for
+$R=[r,1]$ and $[2,1^{r-1}]$, whose channels are singles and these pairs only, the twist-knot formula is completely
+closed.  Found on $k\le5$, exact for $k=6$ (not used in finding it), and modulo $p$ for the engine rows of $R=[7,1]$,
+$[8,1]$, $[9,1]$, $[10,1]$, i.e.\ $k\le10$, in the analysis; the script (\LMPH{hook}) checks $k\le5$ and the transposes.
+Note the two-term structure of the columns $[j,1]$: one term with the resonance pole $D_{j-2}$ of the pair $\tilde X_j$,
+one with the quantum pole $\{q^{j+1}\}$; the residues of this family are
+$r_{c\tilde X_j}\propto\binom{k-2}{j-2}_q$, a quantum binomial, which is where the ansatz ``pair column
+$=$ monomial$/(\Lam_{U_Y}-\Lam_Y)$'' of earlier versions of this note went wrong.
+\end{observation}
+
+\begin{observation}[the binomial matrix on one-cell pairs]\label{obs:Npair}
+With $P^c_\mu:=2N_{c\mu}(-A)^{|\mu|}q^{\kappa_\mu}\prod_{b\in\mu}[h_\mu(b)]$ (the normalisation of \eqref{eq:tab}, with the
+factor $2$ for the two composites of the pair):
+\begin{align}
+N_{c\vac}&=1,\qquad N_{c,[1]}=-\frac1{2A}\sum_{b\in Z\sqcup Z'}D_{2c(b)}\qquad\text{(every channel, singles included)},\label{eq:Nvac}\\
+N_{cc}&=\varphi_c(-1)=-\frac12\,(-A)^{-|U|}q^{-\kappa_U}\{q^d\}^2\prod_{b\in U\setminus\{b,b'\}}D_{a_U(b)-l_U(b)+2c(b)}
+=-\frac{N_{UU}\,\{q^d\}^2}{2\,D_{2c(b)}D_{2c(b')}},\label{eq:Ndiag}\\
+N_{c,\{[1,1],[2]\}}&=\frac{[d]^2\{q\}^2D_s^2}{2A^3D_0},\label{eq:Nfirst}\\
+P^c_{[2]}&=P_{[2]}(Z)+P_{[2]}(Z')-\{q^d\}^2,\qquad P^c_{[1,1]}=P_{[1,1]}(Z)+P_{[1,1]}(Z')-\{q^d\}^2 .\label{eq:Nadd}
+\end{align}
+For the larger single columns the same additive structure holds with a correction
+$P^c_\mu=P_\mu(Z)+P_\mu(Z')-\{q^d\}^2\Gamma_c(\mu)$, where $\Gamma_c(\mu)$ is a Laurent polynomial in $A,q$ at the
+non-resonant columns (e.g.\ $\Gamma([1,1,1])=[2]D_{-3}$ for $\{[1,1,1],[2,1]\}$, $\Gamma([3])=[2]D_3$ for
+$\{[2,1],[3]\}$, $\Gamma([2,1])=([4]+[2])D_0$ for $\{[2,1,1],[3,1]\}$) and has the pole $D_{s_Y}$ at the resonant ones;
+no closed rule for $\Gamma_c(\mu)$ was found (it is the $N$-side of the residue problem).  Eqs.\ \eqref{eq:Nvac}--\eqref{eq:Nadd}
+are checked by the script (\LMPH{binom}, \LMPH{pairn}: $17$ pairs at $|R|\le6$); \eqref{eq:Ndiag} is exact for all $28$
+one-cell pairs up to seven boxes, \eqref{eq:Nfirst} for all $20$ pairs at $|R|\le6$ in the analysis (for the two-cell
+pairs $N_{c,\{[1,1],[2]\}}=\varphi_{\{[1,1],[2]\}}(-1)\,([3]D_{s/2}/D_0)^2$ with $s$ the content sum of the four moved boxes).
+Note that $\Lam_c=\Lam_V\,(Aq^{s})^2$: the pair has the eigenvalue of $V$ with one fictitious box of content $s/2$, and
+$D_s=D_{2\cdot s/2}$ is the ``content factor'' of that box in \eqref{eq:union}, \eqref{eq:Ndiag}, \eqref{eq:Nfirst}.
 \end{observation}
 
 \paragraph{What was tried and failed.}  (a) A product formula for the entries of $v_c$ (or of $B_c$, or of $E_c$)
-in terms of $D_k$, $[n]$ and monomials: false already for $\{[1,1,1],[2,1]\}$ (one non-product entry in each of
-$B_c$, $E_c$, $v_c$).  (b) A universal rule ``$v_{cX}=1/(1-\Lam_X/\Lam_c)$'' suggested by $\{[1,1],[2]\}$
-($v_{[1,1]}=1/(1-q^{-4})$, $v_{[2]}=1/(1-q^{4})$): false for every other pair.  (c) Divisibility of all corrections
-$B_{cX}-B_{UX}$ by $D_s$: true for $11$ of the $17$ one-cell pairs, false e.g.\ for $\{[2,1,1],[3,1]\}$.  (d) Pair
-columns of $v_c$ of the form monomial$/(\Lam_{U_X}-\Lam_X)$ ($U_X$ the union of the pair $X$): true for the four
-smallest one-cell pairs with pair columns, false from $\{[1,1,1,1],[2,1,1]\}$ on.  All $49$ rows of $B$ at $|R|\le6$ (singles and pairs) are
-tabulated exactly in \LMPH{data/twist\_weights/twist\_matrix\_le6.json} (check \LMPH{bmat} compares them with the
-engine), the twist weights built from them in Appendix~A / the JSON table; a closed form for the pair rows remains open.
+in terms of $D_k$, $[n]$ and monomials: false already for $\{[1,1,1],[2,1]\}$; by Observation~\ref{obs:union} the
+non-product entries are sums of three products at the non-resonant columns, and at the resonant columns they carry
+the residues.  (b) A universal rule ``$v_{cX}=1/(1-\Lam_X/\Lam_c)$'' suggested by $\{[1,1],[2]\}$: false for every
+other pair.  (c) Divisibility of all corrections $B_{cX}-B_{UX}$ by $D_s$: true for $11$ of the $17$ one-cell pairs,
+false e.g.\ for $\{[2,1,1],[3,1]\}$ (the correct statement is \eqref{eq:union}).  (d) Pair columns of $v_c$ of the form
+monomial$/(\Lam_{U_Y}-\Lam_Y)$: true only while the residue $r_{cY}$ is a monomial (Observations \ref{obs:res},
+\ref{obs:hook}).  (e) For the rows of $N$: the ``gl$(N)$ composite point'' (rows of $Z$, empty rows, negative rows of
+$Z'$) in the tableau sum \eqref{eq:tab}, and the average of the power sums of $Z$ and $Z'$: both wrong already at
+$\mu=[2]$.  (f) Splitting each weight $w$ into its $A$- and $A^{-1}$-parts and taking them from $Z$ and $Z'$
+respectively (the ``composite split'' of the tableau sum, summed over both orders) reproduces the shape of the
+correction, $\mp2\Gamma_c(\mu)$ at the pole-free columns, but not its coefficient $\{q^d\}^2$.  (g) The arborescent
+(Racah) calculus gives the pair rows exactly as the triangular factors of the gauge-invariant combination
+$\sum_{x,y}\bar S_{0x}\bar S_{xy}\bar S_{y0}/\bar S_{00}$ of the exclusive Racah matrix of $U$ ($20/20$ pair rows at
+$|R|\le6$), but $\bar S$ itself has no closed form for non-rectangular $U$, and the non-product entries sit inside it.
+All $49$ rows of $B$ at $|R|\le6$ (singles and pairs) are tabulated exactly in \LMPH{data/twist\_weights/twist\_matrix\_le6.json}
+(check \LMPH{bmat} compares them with the engine), the twist weights built from them in Appendix~A / the JSON table.
+
 
 \section{The evolution coefficients}\label{sec:weights}
 
@@ -309,8 +482,12 @@ the project's Formula~I; we did not find a closed expression for them.
 \section{Checks}\label{sec:checks}
 
 All checks are modulo $p=10^9+7$ at random $(A,q)$ unless stated otherwise;
-\LMPH{python3 scripts/twist\_formula\_check.py} runs them all (about three minutes), \LMPH{tests/test\_twist\_formula.py}
-a fast subset.  Nothing is fitted anywhere: the only inputs are the vanishing conditions and \eqref{eq:kntz}.
+\LMPH{python3 scripts/twist\_formula\_check.py} runs them all (about one minute), \LMPH{tests/test\_twist\_formula.py}
+a fast subset.  Nothing is fitted anywhere: the only inputs are the vanishing conditions and the closed formulas
+\eqref{eq:kntz}, \eqref{eq:tab}, \eqref{eq:union}, \eqref{eq:hook}, \eqref{eq:Nvac}--\eqref{eq:Nadd}.  ``Analysis''
+refers to checks run outside the repository on the same engine (exact rows over $\mathbb Q(A,q)$ up to seven boxes,
+and rows modulo $p$ with the vanishing conditions imposed on all diagrams with at most $13$ boxes, up to nine boxes);
+their numbers are quoted for completeness and are not reproduced by the script.
 
 \begin{center}
 \begin{tabular}{p{0.42\textwidth}p{0.52\textwidth}}
@@ -320,12 +497,17 @@ check & result\\
 \eqref{eq:channel} vs all data with $|R|\le6$ (\LMPH{data}) & $319/319$ ($29$ diagrams $\times$ ten knots and the unknot); exact over $\mathbb Q(A^2,q^2)$ as well\\
 tabulated weights (JSON) vs the same data (\LMPH{table}) & $319/319$\\
 $H_R(4_1)=1+\sum_cF_c(R)$ at $|R|=7$ (\LMPH{f41}) & $15/15$\\
-$H_R(4_1)$ at $|R|=8$ (\LMPH{f41}) & $20/22$; fails for $[4,3,1]$ and $[3,2,2,1]$, with and without KNTZ single rows\\
+$H_R(4_1)$ at $|R|=8$ (\LMPH{f41}) & $20/22$; fails for $[4,3,1]$ and $[3,2,2,1]$, with and without KNTZ single rows (and for every choice of the free parameter of their tops; analysis)\\
 symmetric $[7],[8],[9],[10]$, ten knots (\LMPH{sym}) & $40/40$\\
 KNTZ identity \eqref{eq:kntz} (\LMPH{kntz}) & exact for $29$ singles $|\lambda|\le6$; mod $p$ for $59$ full-rank singles $|\lambda|\le8$\\
 product formula \eqref{eq:phiprod} (\LMPH{phi}) & all $|\lambda|\le6$ exact, mod $p$ in the script\\
 pair rows: Observations \ref{obs:all}, \ref{obs:one} (\LMPH{pairs}) & $49$ channels at $|R|\le6$; $17/17$ one-cell pairs\\
 tabulated twist matrix vs engine (\LMPH{bmat}) & $49$ rows, all entries agree\\
+tableau formula \eqref{eq:tab} for the single rows of $N$ (\LMPH{binom}) & $841$ entries at $|\lambda|\le6$, no mismatch (exact in the analysis); single rows have no pair entries; $N_{c\vac}=1$ and \eqref{eq:Nvac} on all $49$ channels\\
+\eqref{eq:tab} beyond the script (analysis) & exact at $|\lambda|\le7$ except the two garbage rows; mod $p$, two points, rows determined at node bound $13$: $4096$ entries at $|\lambda|\le8$, $7396$ at $|\lambda|\le9$, no mismatch\\
+one-cell pairs of $N$: \eqref{eq:Ndiag}, \eqref{eq:Nfirst}, \eqref{eq:Nadd} (\LMPH{pairn}) & $17/17$ pairs at $|R|\le6$\\
+union formula \eqref{eq:union} (\LMPH{union}) & $472$ non-resonant entries of the $17$ pairs at $|R|\le6$, no mismatch; analysis: exact $1856$ entries ($28$ pairs, $\le7$ boxes), mod $p$ $5704$ entries ($41$ pairs, $\le8$ boxes)\\
+hook family \eqref{eq:hook} and transposes (\LMPH{hook}) & $8$ rows, $k\le5$, at $|R|\le6$; analysis: exact $k\le6$, mod $p$ $k\le10$\\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -333,18 +515,27 @@ tabulated twist matrix vs engine (\LMPH{bmat}) & $49$ rows, all entries agree\\
 \section{What is not closed, and where it breaks}
 
 \begin{enumerate}
-\item \textbf{Pair rows of $B$ / $E$} (all non-rectangular $R$): exact but not closed; see Section~\ref{sec:pairs}.
-Already for $R=[2,1]$ the single pair $\{[1,1],[2]\}$ has a fully factorised row, but $\{[1,1,1],[2,1]\}$ and
-$\{[2,1],[3]\}$ ($R=[2,1,1]$, $[3,1]$) do not.
+\item \textbf{Pair rows of $B$ / $E$ / $N$} (all non-rectangular $R$ except $[r,1]$, $[2,1^{r-1}]$): closed on
+all non-resonant columns \eqref{eq:union}, closed as whole rows for the hook family \eqref{eq:hook}; not closed at the
+resonant columns, where one residue $r_{cY}\in\mathbb Q(q^2)$ per smaller pair $Y<c$ is needed (Observation~\ref{obs:res}):
+the first pair for which such a residue is not a monomial is $\{[1,1,1,1],[2,1,1]\}$ (it is $[2]$), the first for
+which it is not a product is $\{[2,1,1,1],[2,2,1]\}$ (seven boxes).  Equivalently, on the $N$ side, the correction
+$\Gamma_c(\mu)$ of \eqref{eq:Nadd} for $|\mu|\ge3$.  For the two-cell pairs only \eqref{eq:Nvac}, \eqref{eq:Nfirst}
+and the vacuum/$[1]$ identities (where not resonant) are known.
 \item \textbf{Non-top evolution coefficients}: product $\times$ polynomial, polynomial not closed
 (Section~\ref{sec:weights}); already $w_{[1]}([2])$.
 \item \textbf{Resonances}: from $[3,2,1]$ on, the evolution form does not separate channels with equal eigenvalues;
 the channel form does.
-\item \textbf{Rank deficiency}: from seven boxes on, some vanishing systems have free parameters.  For single channels
-the KNTZ row fixes them; for pair channels nothing in this note does.  The first visible failure is $H_R(4_1)$ at
-$R=[4,3,1]$, $[3,2,2,1]$ (eight boxes), where the pairs $\{[3,3],[4,1,1]\}$, $\{[4,2,1],[4,3]\}$, $\{[3,3,1],[4,3]\}$,
-$\{[3,3,1],[4,2,1]\}$ (and their transposes) have two free parameters each.
-\item \textbf{Nothing is proved}: Conjectures \ref{conj:main}, \ref{conj:kntz} and Observations
+\item \textbf{Rank deficiency}: with the engine's default node bound, some vanishing systems have free parameters
+from seven boxes on.  This is an artefact of the node bound for all of them except the five top channels of $R=[4,3,1]$
+(the single $[4,3,1]$ and the pairs $\{[3,3],[4,1,1]\}$, $\{[4,2,1],[4,3]\}$, $\{[3,3,1],[4,3]\}$, $\{[3,3,1],[4,2,1]\}$)
+and the five of $[3,2,2,1]$: with the conditions on all diagrams with at most $13$ boxes every other row is determined
+(and agrees with \eqref{eq:tab}, \eqref{eq:union} where those apply), while these ten keep a common one-dimensional
+kernel.  No value of the free parameter makes \eqref{eq:channel} reproduce $H_R(\Tw_m)$ for these two $R$; the
+strengthened Formula II of the other branch adds a rank-one term built from the kernel vector, outside \eqref{eq:channel}.
+At nine boxes the same happens for the tops of $[5,3,1]$, $[3,2,2,1,1]$, and four channels with two minimal diagrams
+are not determined either.
+\item \textbf{Nothing is proved}: Conjectures \ref{conj:main}, \ref{conj:kntz}, \ref{conj:tab} and Observations
 \ref{obs:one}--\ref{obs:top} are statements verified on the data listed above only.
 \end{enumerate}
 
@@ -549,7 +740,11 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 \section{How to reproduce}
 \begin{itemize}
 \item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
-(options \LMPH{--nmax}, \LMPH{--seed}; individual checks \LMPH{data kntz phi f41 sym table pairs}).
+(options \LMPH{--nmax}, \LMPH{--seed}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom pairn
+union hook}; e.g.\ \LMPH{--nmax 6 binom pairn union hook} runs the checks of Sections \ref{sec:N}--\ref{sec:pairs} in
+under a minute).  The closed formulas live in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{binom\_N} /
+\LMPH{tableau\_P} \eqref{eq:tab}, \LMPH{check\_union} \eqref{eq:union}, \LMPH{hook\_pair\_row} \eqref{eq:hook} and
+\LMPH{check\_pairn} \eqref{eq:Ndiag}--\eqref{eq:Nadd}.
 \item \LMPH{python3 -m pytest tests/test\_twist\_formula.py} --- fast subset.
 \item \LMPH{data/twist\_weights/twist\_weights\_le6.json} --- all $w_X(R)$, $|R|\le6$, as numerator/denominator
 monomial lists in $x=A^2$, $y=q^2$ (exact, computed over $\mathbb Q(x,y)$ with python-flint from the vanishing
