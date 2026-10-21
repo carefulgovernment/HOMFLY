@@ -139,3 +139,15 @@ def test_closed_end_to_end():
     and one-cell pairs, against the data and Rosso-Jones."""
     ok, lines = T.check_closed(nmax=6, seed=21)
     assert ok, lines
+
+
+def test_vacuum_law():
+    """E~_{c,vac} = pi(R_min(c)) for every channel with one minimal diagram, and rho = (-1)^|R| pi prod {q^h}^2."""
+    ok, lines = T.check_vacuum(nmax=6, seed=22)
+    assert ok, lines
+
+
+def test_twocell_rows():
+    """Pair diagonals, first pair columns, and the partner / X* / zero entries of the non-resonant two-cell rows."""
+    ok, lines = T.check_twocell(nmax=6, seed=23)
+    assert ok, lines

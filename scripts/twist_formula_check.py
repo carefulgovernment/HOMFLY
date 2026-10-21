@@ -49,8 +49,12 @@ checks:
           for every channel c whose only minimal diagram is R (one rho for all top channels of R)
   closed  end to end from the closed formulas only: H_R(Tw_m) for every R whose channels are singles and one-cell
           pairs, from the closed rows of N (no vanishing condition solved), against the data and Rosso-Jones T(2,3)
+  vacuum  the vacuum law: E~_{c,vac} (the constant term of Phi_c(m)) = pi(R_min(c)) = prod_b A q^{c(b)} / D_{c(b)} for every
+          channel with one minimal diagram, and rho = (-1)^{|R|} pi prod_b {q^{h(b)}}^2
+  twocell the pair diagonal N_cc (one-cell and non-resonant two-cell pairs, hinge shift for domino/separate), the first pair
+          column Ebar_1^2/(2 A^3 D_0), and for the two-cell rows the partner (P) and X* (P*) entries of B and the zeros of N
 
-usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight closed]
+usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight closed vacuum twocell]
 """
 import argparse
 import gzip
@@ -1652,11 +1656,297 @@ def check_closed(nmax=6, seed=1, ms=range(-5, 6)):
         % (n_R, nmax, open_R, n_val, n_rj, "none" if not bad else bad[:4])]
 
 
+def pi_vac(R, F, A, q):
+    """pi(R) = prod_{b in R} 1 / (1 - A^{-2} q^{-2c(b)}) = prod_b A q^{c(b)} / D_{c(b)}."""
+    v = F.one
+    for b in boxes(R):
+        v = v * A * q ** cont(b) / Dk(cont(b), F, A, q)
+    return v
+
+
+def check_vacuum(nmax=6, seed=1):
+    """The vacuum law: E~_{c,vac} = -sum_{X != vac} E_cX / phi_c(-1) (the constant term of Phi_c(m) in the eigenvalue
+    expansion) equals pi(R_min(c)) for every channel c with one minimal diagram; and rho(R) = (-1)^{|R|} pi(R)
+    prod_b {q^{h(b)}}^2 (the top-weight law and the vacuum law carry the same R_min product)."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    clean, excluded = clean_channels(pt, channels_present(nmax))
+    n, bad = 0, []
+    for c in clean:
+        rm = I.rmin(c)
+        if len(rm) != 1:
+            continue
+        R = rm[0]
+        Etv = -sum(pt.E_row(c).values(), F.zero) / pt.phi(c, -1)
+        n += 1
+        if Etv != pi_vac(R, F, A, q):
+            bad.append(c)
+    rel_bad = []
+    for k in range(1, nmax + 1):
+        for R in partitions(k):
+            R = tuple(R)
+            h = F.one
+            for b in boxes(R):
+                h = h * curly(q ** hook(R, b)) ** 2
+            if rho_top(R, F, A, q) != (-1) ** k * pi_vac(R, F, A, q) * h:
+                rel_bad.append(R)
+    return not (bad or rel_bad), ["vacuum: E~_{c,vac} = pi(R_min(c)) for %d channels with one minimal diagram "
+                                  "(|R| <= %d): mismatches %s; rho = (-1)^|R| pi prod {q^h}^2: %s"
+                                  % (n, nmax, "none" if not bad else bad[:4], "ok" if not rel_bad else rel_bad[:4])]
+
+
+# --- the non-resonant two-cell pair rows: diagonal, first pair column, partners, X*, zero pattern ------------------
+def side_kind(cells):
+    """'h' / 'v' for a domino (two cells in one row / column), 's' for two separate cells, '1' for one cell, 'n' else."""
+    if len(cells) != 2:
+        return "1" if len(cells) == 1 else "n"
+    a, b = sorted(cells, key=cont)
+    if a[0] == b[0] and abs(a[1] - b[1]) == 1:
+        return "h"
+    if a[1] == b[1] and abs(a[0] - b[0]) == 1:
+        return "v"
+    return "s"
+
+
+def twocell_class(c):
+    """'row/row', 'col/col', 'dom/sep' for the non-resonant two-cell pairs, None otherwise."""
+    if c[0] != "p":
+        return None
+    V, X, Y = pair_cells(c)
+    if len(X) != 2:
+        return None
+    kx, ky = side_kind(X), side_kind(Y)
+    if (kx, ky) == ("h", "h"):
+        return "row/row"
+    if (kx, ky) == ("v", "v"):
+        return "col/col"
+    if "s" in (kx, ky) and (kx in "hv" or ky in "hv"):
+        return "dom/sep"
+    return None
+
+
+def pair_diag(c, F, A, q):
+    """The diagonal N_cc = phi_c(-1) of a pair with n moved cells per side (one-cell, non-resonant two-cell, lines):
+        N_cc = (-1)^n / 2 (-A)^{-|U|} q^{-kappa_U} prod_{x in ends(X), y in Y} {q^{c(y)-c(x)}} prod_{v in V} D_{idx_U(v)+delta(v)},
+    ends(X) = the two extreme cells of X by content (for n = 1 the cell twice: {q^d}^2), delta = 0 except at the hinge
+    (row of the upper-right, column of the lower-left cell) of the separate side of a domino/separate pair, where it is
+    -1 (horizontal domino) or +1 (vertical domino)."""
+    V, X, Y = pair_cells(c)
+    n = len(X)
+    U = I.union(c[1], c[2])
+    sk = (side_kind(X), side_kind(Y))
+    xi = -1 if "h" in sk else (1 if "v" in sk else 0)
+    hinge = {}
+    for cells, k in ((X, sk[0]), (Y, sk[1])):
+        if k == "s":
+            a, b = sorted(cells, key=cont)
+            hinge[(b[0], a[1])] = xi
+    ends = (min(X, key=cont), max(X, key=cont))
+    v = (F.one if n % 2 == 0 else -F.one) / 2 * (-A) ** (-sum(U)) * q ** (-kappa(U))
+    for x in ends:
+        for y in Y:
+            v = v * curly(q ** (cont(y) - cont(x)))
+    for b in boxes(V):
+        v = v * Dk(idx(U, b) + hinge.get(b, 0), F, A, q)
+    return v
+
+
+def first_pair_column(c, F, A, q):
+    """N_{c,{[1,1],[2]}} = Ebar_1(c)^2 / (2 A^3 D_0),  Ebar_1 = sum_{e in Z} (z_e + 1/z_e) - sum_{e in Z'} (z_e + 1/z_e)."""
+    Eb = F.zero
+    for lam, sg in ((c[1], 1), (c[2], -1)):
+        for e in boxes(lam):
+            z = A * q ** (2 * cont(e))
+            Eb = Eb + sg * (z + 1 / z)
+    return Eb * Eb / (2 * A ** 3 * Dk(0, F, A, q))
+
+
+def _is_diagram(cells):
+    S = set(cells)
+    return all((i == 0 or (i - 1, j) in S) and (j == 0 or (i, j - 1) in S) for i, j in S)
+
+
+def _shape(cells):
+    rows = {}
+    for i, j in cells:
+        rows[i] = rows.get(i, 0) + 1
+    return tuple(rows[i] for i in sorted(rows))
+
+
+def twocell_partners(c):
+    """[(type, r, m, x', y', X)]: the one-cell pairs X of the same weight as the two-cell pair c = {V+X_c, V+Y_c} obtained
+    by removing a moved cell r of one side and adding a moved cell m of the other side to it (type I: r in Y_c, m in X_c;
+    type II: r in X_c, m in Y_c); x', y' are the cells of X_c, Y_c that are neither r nor m."""
+    V, Xc, Yc = pair_cells(c)
+    Z, Zp = set(boxes(c[1])), set(boxes(c[2]))
+    out = []
+    for tp, S1, S2 in (("I", Yc, Xc), ("II", Xc, Yc)):
+        for r in S1:
+            for m in S2:
+                Zn, Zpn = (Z, (Zp - {r}) | {m}) if tp == "I" else ((Z - {r}) | {m}, Zp)
+                if not (_is_diagram(Zn) and _is_diagram(Zpn)):
+                    continue
+                xp = [x for x in Xc if x not in (r, m)][0]
+                yp = [y for y in Yc if y not in (r, m)][0]
+                out.append((tp, r, m, xp, yp, I.pair(_shape(Zn), _shape(Zpn))))
+    return out
+
+
+def partner_B(c, part, F, A, q):
+    """(P) B_cX / Lambda_c for a partner X of a non-resonant two-cell pair c (None if c has no boundary domino):
+        sigma A q^{c(m)} {q}^{-1} Q Dfac,  sigma = +1 (type I), -1 (type II); with the D-side the side whose cells are a
+        domino on the boundary (eps = +1 horizontal in row 0, -1 vertical in column 0), F-side the other one, s' and d'
+        the cells of the F- and D-side that stay:
+        r on F:  Q = [c(r)-c(s')+eps] / ([c(r)-c(s')][c(r)-c(d')]),  Dfac = D_{2c(d')} D_{c(d')+al} / D_{c(d')+c(r)+al},
+        m on F:  Q = [c(m)-c(s')-eps] / ([c(m)-c(s')][c(m)-c(d')]),  Dfac = D_{2c(m)-eps t} D_{c(m)+eps t} / D_{c(m)+c(d')-eps},
+    al = 0, t = 1 for two separate F-cells; for an F-domino with f1 its cell next to V: t = 1 + column(f1) (horizontal) or
+    1 + row(f1) (vertical), al = -3 eps when that coordinate is > 0.  q-numbers of content differences are taken with |n|."""
+    tp, r, m, xp, yp, X = part
+    V, Xc, Yc = pair_cells(c)
+    kx, ky = side_kind(Xc), side_kind(Yc)
+    onb = lambda cells, k: all(i == 0 for i, j in cells) if k == "h" else all(j == 0 for i, j in cells)
+    cand = [(nm, cells, k) for nm, cells, k in (("x", Xc, kx), ("y", Yc, ky)) if k in "hv" and onb(cells, k)]
+    if len(cand) != 1:
+        return None
+    dnm, Dcells, dk = cand[0]
+    eps = 1 if dk == "h" else -1
+    Fcells = Yc if dnm == "x" else Xc
+    fk = side_kind(Fcells)
+    sp, dp = (yp, xp) if dnm == "x" else (xp, yp)
+    al, t = 0, 1
+    if fk in "hv":
+        lo = min(Fcells, key=lambda b: (b[1], b[0]) if fk == "h" else (b[0], b[1]))
+        coord = lo[1] if fk == "h" else lo[0]
+        t, al = 1 + coord, (-3 * eps if coord > 0 else 0)
+    if r in Fcells:
+        a1, a2, a3 = cont(r) - cont(sp) + eps, cont(r) - cont(sp), cont(r) - cont(dp)
+        Dn, Dd = [2 * cont(dp), cont(dp) + al], [cont(dp) + cont(r) + al]
+    else:
+        a1, a2, a3 = cont(m) - cont(sp) - eps, cont(m) - cont(sp), cont(m) - cont(dp)
+        Dn, Dd = [2 * cont(m) - eps * t, cont(m) + eps * t], [cont(m) + cont(dp) - eps]
+    if a1 == 0:
+        return F.zero
+    v = (F.one if tp == "I" else -F.one) * A * q ** cont(m) / curly(q)
+    v = v * qnum(abs(a1), F, q) / (qnum(abs(a2), F, q) * qnum(abs(a3), F, q))
+    for k in Dn:
+        v = v * Dk(k, F, A, q)
+    for k in Dd:
+        v = v / Dk(k, F, A, q)
+    return v
+
+
+def xstar_B(c, F, A, q):
+    """(P*) the fifth top pair column of a domino/separate pair c: X* = {V+d1+s1, V+d1+s2} (d1 the domino cell next to V,
+    d2 the other one, s1, s2 the separate cells) and
+        B_cX*/Lambda_c = sigma A q^{c(d1)} {q}^{-1} [k-1][k+1] D_{c(d2)} / prod_{d in {d1,d2}, s in {s1,s2}} [c(d)-c(s)],
+    sigma = +1 if the domino is on the Z side of c, -1 on the Z' side, k = |c(s1) - c(s2)|.  Returns (X*, value) or None."""
+    if twocell_class(c) != "dom/sep":
+        return None
+    V, Xc, Yc = pair_cells(c)
+    dside = "x" if side_kind(Xc) in "hv" else "y"
+    Dc, Sc = (Xc, Yc) if dside == "x" else (Yc, Xc)
+    bV = set(boxes(V))
+    for d1 in Dc:
+        if not _is_diagram(bV | {d1}):
+            continue
+        A1, B1 = bV | {d1, Sc[0]}, bV | {d1, Sc[1]}
+        if not (_is_diagram(A1) and _is_diagram(B1)):
+            continue
+        d2 = [e for e in Dc if e != d1][0]
+        k = abs(cont(Sc[0]) - cont(Sc[1]))
+        Xs = I.pair(_shape(A1), _shape(B1))
+        if k <= 1:
+            return Xs, F.zero
+        v = (F.one if dside == "x" else -F.one) * A * q ** cont(d1) / curly(q)
+        v = v * qnum(k - 1, F, q) * qnum(k + 1, F, q) * Dk(cont(d2), F, A, q)
+        for d in (d1, d2):
+            for s in Sc:
+                v = v / qnum(abs(cont(d) - cont(s)), F, q)
+        return Xs, v
+    return None
+
+
+def twocell_zero(c, Y):
+    """(Z) N_cY = 0 predicted for a non-resonant two-cell pair c: a single containing >= 3 of the 4 moved cells of c; a
+    one-cell pair whose V contains >= 2 moved cells of c; a resonant two-cell pair; a two-cell pair not contained in c
+    side by side in either orientation; every pair with >= 3 moved cells per side."""
+    V, Xc, Yc = pair_cells(c)
+    mv = set(Xc) | set(Yc)
+    if Y[0] == "s":
+        return Y != VAC and len(set(boxes(Y[1])) & mv) >= 3
+    VY, XY, YY = pair_cells(Y)
+    if len(XY) == 1:
+        return len(set(boxes(VY)) & mv) >= 2
+    if len(XY) == 2:
+        if twocell_class(Y) is None:
+            return True
+        Zc, Zpc, Zw, Zpw = set(boxes(c[1])), set(boxes(c[2])), set(boxes(Y[1])), set(boxes(Y[2]))
+        return not ((Zw <= Zc and Zpw <= Zpc) or (Zw <= Zpc and Zpw <= Zc))
+    return True
+
+
+def check_twocell(nmax=6, seed=1):
+    """The non-resonant two-cell pair rows of N and B (and the pair diagonals and first pair columns of all pairs):
+    (D) N_cc by pair_diag for every clean pair (one-cell and non-resonant two-cell); the first pair column
+    N_{c,{[1,1],[2]}} = Ebar_1(c)^2/(2A^3 D_0) for the same pairs; for the two-cell rows (P) B_cX at every partner, (P*) at
+    X* (domino/separate rows), and the zero pattern (Z) of the N row, against N, B built from the engine rows."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    pos = {c: i for i, c in enumerate(order)}
+    _, B = build_B(pt, chans)
+    first = ("p", (1, 1), (2,))
+    cnt = {"diag": 0, "first": 0, "P": 0, "P*": 0, "zero": 0, "rows": 0}
+    bad = []
+    for c in clean:
+        if c[0] != "p":
+            continue
+        kind = pair_kind(c)
+        if kind != "1-cell" and twocell_class(c) is None:
+            continue
+        i = pos[c]
+        cnt["diag"] += 1
+        if N[i][i] != pair_diag(c, F, A, q):
+            bad.append(("diag", c))
+        if c != first:
+            cnt["first"] += 1
+            if N[i][pos[first]] != first_pair_column(c, F, A, q):
+                bad.append(("first", c))
+        if kind == "1-cell":
+            continue
+        cnt["rows"] += 1
+        L = Lam(c, F, A, q)
+        for part in twocell_partners(c):
+            X = part[5]
+            val = partner_B(c, part, F, A, q)
+            if val is None or X not in pos:
+                continue
+            cnt["P"] += 1
+            if B[c].get(X, F.zero) != L * val:
+                bad.append(("P", c, X))
+        xs = xstar_B(c, F, A, q)
+        if xs is not None and xs[0] in pos:
+            cnt["P*"] += 1
+            if B[c].get(xs[0], F.zero) != L * xs[1]:
+                bad.append(("P*", c, xs[0]))
+        for Y in order[:i]:
+            if Y != VAC and twocell_zero(c, Y):
+                cnt["zero"] += 1
+                if N[i][pos[Y]] != 0:
+                    bad.append(("Z", c, Y))
+    return not bad, ["twocell: |R| <= %d: diagonal (D) %d pairs, first pair column %d pairs, two-cell rows %d: partners "
+                     "(P) %d, X* (P*) %d, predicted zeros (Z) %d; mismatches %s"
+                     % (nmax, cnt["diag"], cnt["first"], cnt["rows"], cnt["P"], cnt["P*"], cnt["zero"],
+                        "none" if not bad else bad[:4])]
+
+
 CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check_f41, "sym": check_sym,
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
           "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
           "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow, "kernel": check_kernel,
-          "topweight": check_topweight, "closed": check_closed}
+          "topweight": check_topweight, "closed": check_closed, "vacuum": check_vacuum, "twocell": check_twocell}
 
 
 def set_node_bound(nb):

@@ -1,7 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage[margin=2.2cm]{geometry}
-\usepackage{booktabs,array}
+\usepackage{booktabs,array,longtable}
 \usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
 \allowdisplaybreaks
 \newtheorem{conjecture}{Conjecture}
@@ -15,8 +15,12 @@
 \newcommand{\Chan}{\mathcal C}
 \newcommand{\Rbar}{\bar R}
 \newcommand{\LMPH}[1]{\texttt{#1}}
+\newcommand{\chih}{\hat\chi}
+\newcommand{\cf}[2]{\bigl[#1\,{:}\,#2\bigr]}
+\newcommand{\Gh}{\mathcal G}
+\newcommand{\cbin}[2]{\genfrac{[}{]}{0pt}{}{#1}{#2}}
 
-\title{Twist knots in arbitrary representations:\\ the evolution formula, its universal coefficients,\\ and what is (and is not) closed}
+\title{Twist knots in arbitrary representations:\\ a universal formula, its closed pieces,\\ and what is (and is not) closed}
 \author{}
 \date{October 2026}
 
@@ -31,7 +35,40 @@ We consider the twist knots $K_n$ (Conway notation $[n\,2]$)
 \]
 as the family $\Tw_m$ of antiparallel double braids with $m$ full twists (Section~\ref{sec:conv}), and ask for the
 reduced colored HOMFLY polynomial $H_R(\Tw_m)$ in a non-rectangular representation $R$, explicit in the twist
-parameter.  The answer we can state and verify is the following.
+parameter.
+
+\paragraph{The universal formula.}  The answer is one conjectural formula for every $R$ and every $m\in\mathbb Z$
+(Conjecture~\ref{conj:U}, Section~\ref{sec:universal}):
+\begin{equation}\label{eq:Usum}
+\boxed{\;H_R(\Tw_m)=\sum_{c\in\{\vac\}\cup\Chan(R)}Z_c\,\cf Rc\,\Phi_c(m)\;}
+\qquad\Bigl(+\sum_{g\in\Gh(R)}Z_g\,\cf Rg\,\Phi_g(m)\Bigr),
+\end{equation}
+where the second sum is present only when $R$ contains a ghost diagram.
+The first sum runs over the vacuum and the channels $c$ of $R\otimes\Rbar$, i.e.\ the composites $[Z,Z']$ with $Z,Z'\subseteq R$
+(a conjugate pair $[Z,Z']$, $[Z',Z]$ counted once).  Each term is a product of three factors: a \emph{colour binomial}
+$\cf Rc$, which depends only on $R$; a \emph{twist binomial} $\Phi_c(m)$, which depends only on $m$; and a constant $Z_c$ of
+the channel.  Both binomials come from one lower triangular matrix $N$, the \emph{binomial matrix}, which expands the
+normalised composite characters $\chih_X(R)=\chi_X(R)/d_X$ and the powers of the twist eigenvalues
+$\Lam_X=A^{2|Z|}q^{2(\kappa_Z+\kappa_{Z'})}$ in the same way (a two-sided binomial theorem):
+\begin{equation}\label{eq:twobinomS}
+\chih_X(R)=\sum_cN_{Xc}\,\rho(R_c)\,\cf Rc,\qquad\qquad \Lam_X^{\,m}=\sum_cN_{Xc}\,\Phi_c(m),
+\end{equation}
+with $R_c$ the minimal diagram of $c$ and $\rho$ the closed product \eqref{eq:topweight}.  Three normalisations fix $N$
+(away from the ghost directions of Section~\ref{sec:ghosts}): $\cf Rc=0$ whenever $c$ is absent from $R\otimes\Rbar$,
+$\Phi_c(-1)=1$, and $\cf{R_c}c=1$; the last one is a law and not a choice (the top-weight law).  The constants are products
+of quantum numbers and factors $D_k=Aq^k-A^{-1}q^{-k}$ for every channel whose diagonal $N_{cc}$ is closed (Table~\ref{tab:N}),
+\begin{gather*}
+Z_c=d_c\,N_{cc}\,\rho(R_c),\qquad\text{e.g.}\quad Z_{[1]}=D_1D_{-1},\qquad Z_{[k]}=\prod_{i=0}^{k-1}D_{k+i}D_{i-1},\\
+Z_{[2,1]}=D_{-3}D_{-2}D_{-1}D_1D_2D_3,\qquad Z_{\{[1,1],[2]\}}=-[3]^2\{q\}^4D_{-2}D_2,
+\end{gather*}
+and $Z_c$ is the contribution of $c$ to the figure-eight polynomial at $R=R_c$: at $m=-1$ the formula reads
+$H_R(4_1)=\sum_cZ_c\cf Rc$.  For $R=[r]$ the colour binomial is a quantum binomial,
+$\cf{[r]}{[k]}=\binom rk_q\prod_{i<k}D_{r+i}/D_{k+i}$, and for rectangular $R$ (singles only) \eqref{eq:Usum} is the
+cyclotomic expansion of Kameyama--Nawata--Tao--Zhang (Section~\ref{sec:single}).  For non-rectangular $R$ the pair channels
+$\{Z,Z'\}$, $Z\ne Z'$, are the new terms.  The ghost terms occur only when $R$ contains a ghost diagram (the first are
+$[4,3,1]$ and $[3,2,2,1]$, at eight boxes); they have the same three-factor form, and $Z_g$ is fixed by the trefoil
+(Section~\ref{sec:ghosts}).  Table~\ref{tab:N} lists the closed rule for every block of $N$ and the blocks that are still
+open.  The items below give the pieces in the order in which they were found.
 
 \begin{itemize}
 \item \textbf{Explicit in $m$ (evolution form).}  For every $R$,
@@ -80,7 +117,9 @@ w_c(R)=d_c\,(-A)^{|R|}\,q^{\kappa_R}\prod_{b\in R}\frac{\{q^{h(b)}\}^2}{D_{c(b)}
 \]
 $d_c$ the quantum dimension of the composite(s) of $c$: the ratio $w_c(R)/d_c$ depends on $R$ only.  It holds for every
 channel whose only minimal diagram is $R$ ($399$ channels of all kinds with a row up to ten boxes, two points; exact up
-to six boxes).
+to six boxes).  The minimal diagram also fixes the constant term of the twist binomial, $\Phi_c(m)=\pi(R_c)+\sum_{X\ne\vac}
+\Et_{cX}\Lam_X^m$ with $\pi(R)=\prod_{b\in R}Aq^{c(b)}/D_{c(b)}$, and $\rho=(-1)^{|R|}\pi\prod_b\{q^{h(b)}\}^2$ (vacuum law,
+Observation~\ref{obs:vacuum}; all $380$ clean channels up to eleven boxes, two points).
 
 \item \textbf{Closed: every one-cell pair channel, every column, every gap.}  Pair channels $\{Z,Z'\}$, $Z\ne Z'$,
 exist precisely for non-rectangular $R$.  For a one-cell pair $c=\{Z,Z'\}$ with $V=Z\cap Z'$, $U=Z\cup Z'$
@@ -102,7 +141,12 @@ closed for every channel that is a single or a one-cell pair, and the twist-knot
 $R$ whose channels are of these two kinds: all $|R|\le5$, $8$ of the $11$ diagrams with six boxes, $11$ of $15$ with
 seven, $11$ of $22$ with eight, all hooks $[r,1]$, $[2,1^{r-1}]$ and all rectangles.  Verified by the script up to
 seven boxes (all $34$ one-cell pairs, gaps one to four) and in the analysis modulo $p$ up to ten boxes (gaps one to
-seven, $2629$ single and $1176$ pair columns at ten boxes alone), without a single mismatch; nothing is fitted.
+seven, $2629$ single and $1176$ pair columns at ten boxes alone), without a single mismatch; nothing is fitted.  End to
+end, $H_R(\Tw_m)$ built from these closed rows alone (no vanishing condition solved) agrees with every stored polynomial
+and with Rosso--Jones for all $76$ such diagrams up to ten boxes (check \LMPH{closed}), and with Rosso--Jones for the $72$
+such diagrams with $11$ to $14$ boxes (analysis).  The root average has a per-entry form for most columns: the pure-$q$
+factor $T_{cX}$ is a product of two Okounkov binomial coefficients at zonal parameters for every column $X$ of a certain
+``axis'' type, which includes all $X$ with $|U_X|\le5$ (Observation~\ref{obs:zonal}).
 
 \item \textbf{One kernel for every pair row.}  All the pair rows of $N$ on single columns, for one-cell and
 multi-cell pairs alike, come from one sign-flip kernel \eqref{eq:kernel} applied to the closed single rows: a sum over
@@ -110,25 +154,36 @@ the sign patterns of the moved cells of $c$, each state weighted by a product of
 the two sides, $1/\{u_e\}$ per cell, and a domino factor within a side.  For one-cell pairs it is the four-row formula;
 for the two-cell pairs (first at six boxes: $\{[2,2],[4]\}$ in $[4,2]$, $\{[1,1,1],[3]\}$ in $[3,2,1]$,
 $\{[1^4],[2,2]\}$ in $[2,2,1,1]$) it is verified on every row with data up to ten boxes that is not resonant
-(domino/domino and domino/separate, $4\,166$ columns, no failure), and for the three-cell line pairs on their end
-states.  \textbf{Not closed.}  (i) The pair columns of the two-cell pair rows: the pure-$q$ property behind
-\eqref{eq:roots} fails there (the normalised pair entries of $B$ are polynomials of degree one to four in $A^2$;
-analysis, nine exact rows), so their split of the merged entries at the resonant columns has no formula.  (ii) The
-resonant two-cell pairs (a vertical against a horizontal domino, eigenvalue identical to that of a single): their rows
-live partly outside $U$ and are not a combination of single rows.  They are not a gauge: the vanishing conditions fix
-them uniquely; only the twist-knot polynomials cannot separate the channels of such an eigenvalue class, so they test
-the class sum and not the rows one by one (Observation~\ref{obs:kernel}).  (iii) The middle states of the
-three-cell pairs are fixed by the sum rules but are not products; separate/separate two-cell pairs have no data.  This
-is exactly where the ``one simple closed formula'' stops.
+(domino/domino and domino/separate, $4\,166$ columns, no failure), and for the line pairs (both sides a row, or both a
+column, of $n$ cells) on every state in which one side has at most one of its cells present or at most one absent, for
+every $n$.  The rest of a
+non-resonant two-cell row is closed as follows (Observation~\ref{obs:twocell}): the diagonal $N_{cc}$ and the first pair
+column are products for every pair with at most two moved cells per side; the pair columns of the weight of $c$ (two or
+four ``partners'' and one more column) are products; the columns of larger weight vanish; and the columns of smaller
+weight, which are not products in general, are the unique solution of an explicit linear system (a filtration by the
+composite power sums plus a zero pattern).  The resonant two-cell pairs (a vertical against a horizontal domino,
+eigenvalue identical to that of a single) are closed in the same way: their single columns live partly outside $U$, on
+$[V,R_{\min}]$, and are given by an extended kernel there; their pair columns solve the same kind of system with the
+filtration one weight higher, plus three heavy columns that are products (Observation~\ref{obs:resrows}).  Both
+filtrations are cases of one rule that holds for every row: $\Et_c$ annihilates the even composite power-sum
+polynomials of weight $<|R_{\min}(c)|-n_c$, $n_c$ the number of moved cells per side.  \textbf{Not closed.}  (i) An
+entry-by-entry formula for the columns that are fixed only by these linear systems.  (ii) The deep states of the line
+pairs with $n\ge6$ (first at $18$ boxes), pairs with sides of $n\ge3$ cells that are not lines, the pair columns of the
+rows with $n\ge3$, and separate/separate two-cell pairs (no data).
 
-\item \textbf{Where it breaks.}  Up to seven boxes the vanishing conditions determine every row of $E$ once enough
-nodes are used; the rank deficiencies seen at seven and eight boxes with the engine's default node bound are an artefact
-of that bound, with one exception: the five top channels of $R=[4,3,1]$ and the five of $[3,2,2,1]$ (eight boxes) keep a
-one-dimensional common kernel for every node bound, and no choice of the free parameter makes \eqref{eq:channel}
-reproduce $H_R(\Tw_m)$ for these two $R$ (with the default gauge already $H_R(4_1)$ is wrong).  There the twist-knot
-polynomial needs a term outside \eqref{eq:channel}; the repository's strengthened Formula II on the other branch
-supplies it by an additional rule, which is outside this note.  The same happens at nine boxes for the tops of
-$[5,3,1]$ and $[3,2,2,1,1]$.
+\item \textbf{Ghosts: where the channel form stops, and how the formula continues.}  Up to seven boxes the vanishing
+conditions determine every row of $E$ once enough nodes are used; the rank deficiencies seen at seven and eight boxes with
+the engine's default node bound are an artefact of that bound, with one exception: the five top channels of $R=[4,3,1]$
+and the five of $[3,2,2,1]$ (eight boxes) keep a one-dimensional common kernel for every node bound, and no choice of the
+free parameter makes \eqref{eq:channel} reproduce $H_R(\Tw_m)$ for these two $R$ (with the default gauge already
+$H_R(4_1)$ is wrong).  The kernel is a \emph{ghost}: a combination of characters that vanishes on every $R$ not containing
+$U=[4,3,1]$ and belongs to no channel.  It adds one term of the same three-factor form to \eqref{eq:Usum}, whose constant
+$Z_g$ is fixed by the trefoil (Rosso--Jones at $m=1$, $R=U$); nothing is fitted.  With this term the formula agrees with
+the strengthened Formula II of the other branch for all $137$ diagrams up to ten boxes except $[4,3,2,1]$ ($m=-4,\dots,4$,
+two points), in particular with the stored $H_R(4_1)$ of $[4,3,1]$ and $[3,2,2,1]$ (Section~\ref{sec:ghosts}).  Which
+diagrams carry ghosts is a combinatorial rule checked up to $14$ boxes: never for at most two corners, always for four or
+more, and by the Kerov gaps for three corners.  Open: diagrams with two or more ghosts (first $[6,4,1]$ and $[5,4,2]$ at
+eleven boxes) and the four-corner diagrams ($[4,3,2,1]$, ten ghosts, at ten boxes).
 \end{itemize}
 
 Nothing in this note is proved.  The statements are conjectures checked on the data described in
@@ -391,7 +446,9 @@ hold for $\{[1,1,1,1],[2,2]\}$ and $\{[2,2],[4]\}$ but fail for $\{[1,1,1],[3]\}
 with the single $[2,1]$.  (Up to eight boxes, modulo $p$: they hold for all $56$ one-cell pairs and for $16$ of the $22$
 multi-cell pairs; the six failures $\{[1,1,1],[3]\}$, $\{[1^4],[3,1]\}$, $\{[2,1,1],[4]\}$, $\{[1^5],[3,1,1]\}$,
 $\{[2,1^3],[4,1]\}$, $\{[3,1,1],[5]\}$ are exactly the pairs in which $Z$ and $Z'$ differ by a vertical and a horizontal
-domino, i.e.\ the resonant ones.)  In the analysis (two independent implementations, not re-checked by the
+domino, i.e.\ the resonant ones.  For them the identities hold with the union replaced by the minimal diagram:
+$B_{c\vac}=B_{R_{\min}\vac}$ and $B_{c,[1]}=B_{R_{\min},[1]}$ for every clean pair up to eleven boxes, $221$ non-resonant and
+$21$ resonant, two points.)  In the analysis (two independent implementations, not re-checked by the
 script), the single columns of every non-resonant two-cell pair row of $N$ are a combination of the closed single
 rows of the diagrams between $V$ and $U$, the pair analogue of \eqref{eq:signflip}: with $X=Z\setminus V$,
 $Y=Z'\setminus V$ ($|X|=|Y|=n\le2$), $z_e=Aq^{2c(e)}$, $u_e=z_e^{\pm1}$ according to whether $e\in\lambda$ or not,
@@ -635,6 +692,40 @@ precisely when all maximal chains carry the same multiset of step exponents (at 
 $47$ of $128$ gap-four entries) and never otherwise, and $T_{cX}/M^{\rm KNTZ}_{U\,U_X}$ is not a product in general.
 \end{observation}
 
+\begin{observation}[the pair-pair block as an interpolation matrix; zonal binomials]\label{obs:zonal}
+The root average \eqref{eq:roots} has a per-entry form on most columns.  For a one-cell pair $c=\{V+b,V+b'\}$ remove the
+two particles at $c(b)$, $c(b')$ from the Maya diagram $\{V_j-j\}$ of $V$ and read the rest as a partition $R(c)$ of
+charge $-2$, $\{R_j-j-2\}=\{V_j-j\}\setminus\{c(b),c(b')\}$ (the \emph{row core}); the \emph{column core} is
+$K(c)=R(c^T)$.  Then $|R|+|K|=2(|V|-1)$, and $(R,K)$ determines $c$.  With $y=q^2$ put
+$F_X(c):=(-1)^{|V_c|+|V_X|}y^{\kappa(V_c)-\kappa(V_X)}\,T_{cX}$, so that $F_X(X)=1$.
+\begin{itemize}
+\item[(I)] For every column $X$, $F_X$ is the unique element of the space $\Pi_d$, $d=|U_X|-3$, spanned by the functions
+$c\mapsto f_\nu(R(c))\,m_{ab}(y^{c(b)},y^{c(b')})$ with $|\nu|+a+b\le d$ ($f_\nu(R)=s_{R'/\nu'}(p^\circ)/s_{R'}(p^\circ)$,
+$m_{ab}$ the monomial symmetric polynomial in two variables), that is $1$ at $X$ and $0$ at every other pair $Y$ with
+$|U_Y|\le|U_X|$.  So $T$ is an interpolation matrix on the lattice of pairs, the pair analogue of the interpolation
+property of \eqref{eq:tab}; the zeros $T_{cX}=0$ for $U_X\not\subseteq U_c$ come out by themselves.
+\item[(II)] If both cores of $X$ are of axis type, $(R(X)/2,K(X)/2)=(\mu,\nu)$ with $(\mu,\nu)$ one of (at most two columns,
+$\varnothing$), ($\varnothing$, at most two columns), (one column, one column), the interpolant is one product:
+\begin{equation}\label{eq:zonal}
+T_{cX}=(-1)^{|V_c|+|V_X|}\,q^{2\kappa(V_X)-2\kappa(V_c)}\;
+\cbin{R(c)/2}{\mu}_{y^2,\,y}\;\cbin{K(c)/2}{\nu}_{y^{-2},\,y^{-1}},
+\end{equation}
+where $\cbin\lambda\mu_{q_M,t_M}=P^*_\mu(\lambda)/P^*_\mu(\mu)$ is Okounkov's binomial coefficient (the interpolation
+Macdonald polynomial of Knop--Sahi--Okounkov, here at the zonal parameters $q_M=t_M^2$), evaluated at the half-integral
+point $R(c)/2$ and given explicitly by Okounkov's tableau formula.  Every pair with $|U|\le5$ is of axis type.  Examples, at
+every gap: $T_{c,\{[1,1],[2]\}}=(-1)^{|V_c|+1}q^{-2\kappa(V_c)}$ and
+$T_{c,\{[1,1,1],[2,1]\}}=(-1)^{|V_c|}q^{-2-2\kappa(V_c)}\sum_{v\ge0}q^{-2v}\,(q^{2R_v(c)}-1)/(q^4-1)$.
+\end{itemize}
+The block also has the symmetries $T_{c^TX^T}(q)=T_{cX}(1/q)$ and
+$(T^{-1})_{cX}=(-1)^gq^{2\kappa(U_X)-2\kappa(U_c)}T_{cX}(1/q)$.  For the columns that are not of axis type the product form
+provably fails: $F_X(c)$ is not of the form $f(R_c)g(K_c)$ ($2767$ non-zero $2\times2$ minors in $89$ columns, every one
+involving a pair with $|U_c|\ge12$, so no data below twelve boxes can see it); (I) remains.  Checked in the analysis, not
+by the script: (I) exactly on all $197$ pair entries up to seven boxes, modulo $p$ at two points on every engine entry up
+to eleven boxes ($3983$ at eleven boxes), and on the $98\,343$ entries with $|U_c|\le14$ generated by the root principle,
+plus $365\,259$ predicted zeros; (II) on the $26\,826$ axis-type entries among them ($2245$ of the $3983$ engine entries
+at eleven boxes); no failure.  Nothing is fitted in (I): its conditions use only $T_{XX}=1$ and $T_{YX}=0$.
+\end{observation}
+
 \begin{observation}[the whole row of a one-cell pair is closed]\label{obs:fullrow}
 With \eqref{eq:roots} every pair column of a one-cell pair row of $N$ is closed, hence so is the split of the regular
 combinations in \eqref{eq:fourrow}: for every single $\mu\subseteq U$,
@@ -684,22 +775,139 @@ two-cell pairs (row/row, column/column, domino/separate), $92$ columns; no misma
 rows and modulo $p$ at two points on every clean pair up to ten boxes: $10\,346$ one-cell, $1\,996$ domino/domino and
 $2\,170$ domino/separate columns, no failure (at ten boxes alone $2515$, $506$ and $620$ columns, $12$, $12$ and $20$
 two-cell pairs, the $31$ one-cell and $16$ two-cell pairs new at ten boxes included).  Nothing is fitted: the end-state
-products are the cell rule, the rest is forced by the sum rules.  Beyond this: (a) for the three-cell pairs the
-\emph{end} states ($k\in\{0,n\}$ or $k'\in\{0,n\}$) are given by \eqref{eq:kernel} and the four \emph{middle} states are
-determined by the sum rules (four unknowns, eight equations, consistent) but are not products; the resulting rows match
-the data on the four line pairs $\{[3,3],[6]\}$, $\{[1^6],[2,2,2]\}$ (nine boxes) and $\{[4,3],[7]\}$,
-$\{[1^7],[2,2,2,1]\}$ (ten boxes), $92$ columns, two points; no closed form for the middle states was found; (b) the
+products are the cell rule, the rest is forced by the sum rules.  Beyond this: (a) for the \emph{line} pairs ($X$ and
+$Y$ both rows, or both columns, of $n$ cells) the states are labelled by the numbers $(k,k')$ of present cells (initial
+segments in the order of addition), and the kernel is closed for every $n$ on every state with
+$\min(k,n-k,k',n-k')\le1$.  With $x_1,y_1$ the first cells of $X,Y$, $Q=q$ for rows and $q^{-1}$ for columns,
+$X_k=\mathrm{BC}(z_{x_1}Q^{2k-1})$, $Y_k=\mathrm{BC}(z_{y_1}Q^{2k-1})$, write
+$K_c(k,k')=(-1)^n[n]!^2\{q\}^{2n}\,\mathrm{Num}(k,k')\big/\bigl(\prod_{j\ne k}(X_k-X_j)\prod_{j\ne k'}(Y_{k'}-Y_j)\bigr)$;
+with $P=Aq^{c(x_1)+c(y_1)}$, $g=q^{c(y_1)-c(x_1)}$, $U=\mathrm{BC}(P^2Q^{n+k+k'-2})$, $V=\mathrm{BC}(g^2Q^{k'-k})$,
+$B_a=\mathrm{BC}(Q^a)$ and $\Pi_{m,l}(U)=\prod_{i=0}^{l-1}(U-B_{m+2i})$, the whole ring $k=1$ is one formula,
+\begin{equation}\label{eq:ring}
+\binom nj_q\mathrm{Num}(1,j)=(U-B_{n-1-j})(V-B_{j-1})\sum_{l=0}^{2}\binom2l_q\binom{n-2}{j-l}_q\,
+\Pi_{n+3-j,\,j-l}(U)\,\Pi_{j+3-2l,\,n-2-j+l}(V)
+\end{equation}
+for $0\le j\le n$, and the symmetries $\mathrm{Num}_{k,k'}=\mathrm{Num}_{k',k}=\mathrm{Num}_{n-k',n-k}$,
+$\mathrm{Num}_{n-k,k'}(U,V)=\mathrm{Num}_{k,k'}(V,U)$ carry it to the rings $k=n-1$, $k'=1$, $k'=n-1$ (the end states,
+$k$ or $k'\in\{0,n\}$, are the products of \eqref{eq:kernel}).  For $n=3$ this is every state: the four middle states of
+the three-cell line pairs, which the sum rules fix, are closed too.  The deep states ($2\le k,k'\le n-2$) are closed for
+$n=4$, tabulated exactly for $n=5$, and not closed from $n=6$ on (first at $18$ boxes; $40$ of the $49$ states of
+$\{[6,6],[12]\}$ are covered).  Checked in the analysis modulo $p$ at two points, no failure: three-cell line pairs on
+E9--E11 ($29$ pairs, $705$ columns), and own engine rows for $n=4$ ($195$ columns, all $125$ states), $n=5$ ($156$
+columns, $108$ states) and the covered states of $n=6$; Eq.~\eqref{eq:ring} was found on $n\le5$ and predicted the
+$n=6$ ring states before they were compared (its pieces were found on $n\le5$).  Pairs whose sides of $n\ge3$ cells are not lines are open (the ends
+rule of \eqref{eq:kernel} is inconsistent with the data for $\{[3,3,1],[6,1]\}$); (b) the
 separate/separate two-cell pairs (both sides two isolated cells) first occur at ten boxes, inside $R=[4,3,2,1]$, where
 their vanishing systems are rank-deficient: $\xi_c=1$ for them is a convention that no data test; (c) the
-\emph{resonant} two-cell pairs (vertical against horizontal domino) are outside \eqref{eq:kernel}: their merged rows are
-non-zero exactly on the singles $\mu$ with $U\subsetneq\mu\subsetneq R_{\min}$ ($R_{\min}=U$ plus the corner cell, e.g.\
-$\{[1,1,1],[3]\}$: $U=[3,1,1]$, $R_{\min}=[3,2,1]$, non-zero at $[2,2]$, $[2,2,1]$, $[3,2]$), which no combination of
-single rows $N_\lambda$, $\lambda\subseteq U$, can produce, and the unique expansion in all single rows violates the vacuum
-column (all $18$ such pairs with data up to ten boxes).  Each of them is $\Lam$-degenerate with the grid state $V$ plus the
-inner cells of both dominoes ($\{[1,1,1],[3]\}$ with $[2,1]$, $\{[2,1,1],[4]\}$ with $[3,1]$).  The twist-knot
-polynomials alone do not separate channels with identical eigenvalues, so they test only the sum over such a
-$\Lam$-class; the rows themselves are nevertheless not a gauge, since the vanishing conditions determine them
-uniquely, and a closed formula for them is open.
+\emph{resonant} two-cell pairs (a vertical against a horizontal domino; all of them are hook pairs, $V=[a+1,1^b]$,
+$Z=[a+1,1^{b+2}]$, $Z'=[a+3,1^b]$, $R_{\min}=U+(1,1)$) are outside \eqref{eq:kernel}: their merged rows are non-zero also
+on singles $\mu\not\subseteq U$ (e.g.\ $\{[1,1,1],[3]\}$: $U=[3,1,1]$, $R_{\min}=[3,2,1]$, non-zero at $[2,2]$, $[2,2,1]$,
+$[3,2]$), which no combination of single rows $N_\lambda$, $\lambda\subseteq U$, can produce.  The same kind of kernel
+works on the larger interval $[V,R_{\min}]$.  Merge every resonant pair column into its $R_{\min}$ instead of its union;
+then $2R_c(\mu)=\sum_{V\subseteq\lambda\subseteq R_{\min}}K_c(\lambda)N_{\lambda\mu}$, where $K_c$ is a product of the type
+\eqref{eq:kernel} on the states $\lambda$ for which $\lambda+(1,1)$ is not a diagram (each domino with its own shift, $q$
+for the vertical and $q^{-1}$ for the horizontal one); on the other grid states $\lambda$ a partner relation
+$K_c(\lambda+(1,1))=\rho(\lambda)\bigl(K_c(\lambda)-E(\lambda)\bigr)$ with closed $\rho$ and $E$ ties $\lambda$ to
+$\lambda+(1,1)$, and eight sum rules (the vacuum column, $m=\pm1$, one rule per moved cell,
+$\sum_{\lambda\ni(1,1)}K_c=0$) plus one closed extra relation for $a,b\ge1$ fix the rest, with no free constant.  Checked on all $21$ resonant pairs with one minimal diagram up to eleven boxes
+($11\,883$ single columns; exact on the three pairs up to seven boxes, modulo $p$ at two points and at $4300$ points of
+scan lines through them), no failure; it gives $N_{cc}=K_c(R_{\min})\,N_{R_{\min}R_{\min}}/2$.  Each resonant pair is
+$\Lam$-degenerate with the grid state $V$ plus the inner cells of both dominoes ($\{[1,1,1],[3]\}$ with $[2,1]$,
+$\{[2,1,1],[4]\}$ with $[3,1]$).  The twist-knot polynomials alone do not separate channels with identical eigenvalues,
+so they test only the sum over such a $\Lam$-class; the rows themselves are nevertheless not a gauge, since the
+vanishing conditions determine them uniquely.  Their pair columns are fixed by the conditions of
+Observation~\ref{obs:resrows}.
+\end{observation}
+
+\begin{observation}[the rest of a non-resonant two-cell row]\label{obs:twocell}
+Let $c=\{V+x_1+x_2,\ V+y_1+y_2\}$ be a non-resonant two-cell pair (row/row, column/column or domino/separate),
+$\mathrm{wt}\,c=|Z|$, and sort the columns $Y<c$ by weight ($|Z_Y|$ for a pair, $|\mu|$ for a single).
+\begin{itemize}
+\item[(D)] Diagonal, for every pair with $n\le2$ moved cells per side and for the line pairs of any $n$:
+\begin{equation}\label{eq:pdiag}
+N_{cc}=\frac{(-1)^n}{2}\,(-A)^{-|U|}q^{-\kappa_U}\prod_{x\in\mathrm{ends}(X),\ y\in Y}\{q^{c(y)-c(x)}\}
+\prod_{v\in V}D_{a_U(v)-l_U(v)+2c(v)+\delta(v)},
+\end{equation}
+$\mathrm{ends}(X)$ as in \eqref{eq:kernel}, $\delta=0$ except at the hinge of the separate side of a domino/separate pair
+(the row of its upper-right and the column of its lower-left cell), where $\delta=-1$ for a horizontal and $+1$ for a
+vertical domino.  For $n=1$ this is \eqref{eq:Ndiag}; e.g.\ $N_{cc}=\frac12A^{-6}q^{-5}\{q^2\}\{q^3\}^2\{q^4\}D_2D_3$ for
+$\{[2,2],[4]\}$.  First pair column, for the same pairs: $N_{c,\{[1,1],[2]\}}=\bar E_1(c)^2/(2A^3D_0)$ with
+$\bar E_1=\sum_{e\in Z}(z_e+z_e^{-1})-\sum_{e\in Z'}(z_e+z_e^{-1})$.
+\item[(Z)] Zeros: $N_{cY}=0$ for a single containing at least three of the four moved cells (so for every single of
+larger weight), a one-cell pair whose $V_Y$ contains at least two moved cells of $c$, a resonant pair, a two-cell pair
+not contained in $c$ side by side, and every pair with three or more moved cells per side.
+\item[(P)] The non-zero pair columns of weight $\mathrm{wt}\,c$ are the \emph{partners} $X=\{Z,Z'-r+m\}$ ($r\in Y$,
+$m\in X$, $\sigma=+1$) and $X=\{Z-r+m,Z'\}$ ($r\in X$, $m\in Y$, $\sigma=-1$) whose sides are diagrams, and for a
+domino/separate pair one more column $X^*=\{V+d_1+s_1,V+d_1+s_2\}$ ($d_1$ the domino cell next to $V$, $d_2$ the other,
+$s_1,s_2$ the separate cells).  No channel lies between them and $c$, so $N_{cX}=N_{cc}B_{cX}/(\Lam_c-\Lam_X)$, and
+$B_{cX}/\Lam_c$ is a product.  With the $D$-side the side of $c$ that is a domino on the boundary ($\epsilon=+1$ in row $0$,
+$-1$ in column $0$), the $F$-side the other one, and $s'$, $d'$ the cells of the $F$- and $D$-side that stay,
+\[
+\frac{B_{cX}}{\Lam_c}=\sigma\,\frac{Aq^{c(m)}}{\{q\}}\times
+\begin{cases}
+\dfrac{[c(r)-c(s')+\epsilon]}{[c(r)-c(s')]\,[c(r)-c(d')]}\;\dfrac{D_{2c(d')}\,D_{c(d')+\alpha}}{D_{c(d')+c(r)+\alpha}} & (r\text{ on the $F$-side}),\\[12pt]
+\dfrac{[c(m)-c(s')-\epsilon]}{[c(m)-c(s')]\,[c(m)-c(d')]}\;\dfrac{D_{2c(m)-\epsilon t}\,D_{c(m)+\epsilon t}}{D_{c(m)+c(d')-\epsilon}} & (m\text{ on the $F$-side}),
+\end{cases}
+\]
+quantum numbers of content differences taken with $|n|$; $t=1$, $\alpha=0$ when the $F$-side is two separate cells,
+and for an $F$-domino with $f_1$ its cell next to $V$: $t=1+{}$the column (horizontal) or row (vertical) of $f_1$, and
+$\alpha=-3\epsilon$ if that coordinate is positive, else $0$.  For the extra column,
+\[
+\frac{B_{cX^*}}{\Lam_c}=\pm\frac{Aq^{c(d_1)}}{\{q\}}\,\frac{[k-1]\,[k+1]\,D_{c(d_2)}}{\prod_{d\in\{d_1,d_2\},\,s\in\{s_1,s_2\}}[c(d)-c(s)]},
+\qquad k=|c(s_1)-c(s_2)|,
+\]
+with $+$ when the domino is on the $Z$ side.
+\item[(K)] The singles of weight $\mathrm{wt}\,c$: the merged kernel value \eqref{eq:kernel} minus the light pair columns
+$W$ with $U_W=\mu$.
+\item[(F)] The light columns (weight $<\mathrm{wt}\,c$, pairs and singles) are the unique solution of the zeros (Z) and the
+\emph{filtration}: the row $\Et_c$ annihilates every polynomial $f$ of weight $<\mathrm{wt}\,c$ in the composite power
+sums $\bar O_k=\sum_{e\in Z\sqcup Z'}\{z_e^k\}$ and $\bar E_k=\sum_{e\in Z}(z_e^k+z_e^{-k})-\sum_{e\in Z'}(z_e^k+z_e^{-k})$
+(weight $k$) that is even in the $\bar E$'s, $\sum_Y\Et_{cY}f(Y)=0$ (a case of the uniform filtration of
+Observation~\ref{obs:resrows}).  This is one linear system per row at each point
+$(A,q)$, with closed coefficients and no kernel needed; it is sharp (at weight $\mathrm{wt}\,c$ it fails), and it also fixes
+the light part of every clean one-cell and three-cell row, but of only one of the $21$ resonant rows at eleven boxes.
+\end{itemize}
+The light columns are not products in general, e.g.\ for $c=\{[2,2],[4]\}$, $X=\{[2,1],[3]\}$ (with $x=A^2$, $y=q^2$)
+$B_{cX}/\Lam_c=x(y+1)(xy^2-1)(y^3+y^2+1)/(y^2(xy-1))$; no entry-by-entry formula for them was found.  $B$ follows from
+$NB=\Lam N$.  Checked by the script (\LMPH{twocell}: at $|R|\le6$ (D) on $19$ pairs, the first column on $18$, and the two
+two-cell rows, $4$ partners and $7$ zeros; with \LMPH{--nmax 7 --nb 10} $40$, $39$, six rows, $16$ partners, $2$ columns
+$X^*$, $43$ zeros; with \LMPH{--nmax 8 --nb 12} $72$, $71$, $16$ rows, $44$ partners, $6$ columns $X^*$, $285$ zeros; no
+mismatch); in the analysis exact on the six rows up to seven boxes and modulo $p$ at two points on all $44$ (ten boxes)
+and $62$ (eleven boxes, $18$ of them new) clean non-resonant two-cell rows: (D) $62/62$, partners $184$, $X^*$ $30$, zeros
+$618$, and the full rows from (D), (P), (K), (F), (Z), no failure.  The shifts $t$, $\alpha$ for an $F$-domino rest on the
+fewest cases.
+\end{observation}
+
+\begin{observation}[the resonant rows, and one filtration for every row]\label{obs:resrows}
+For the resonant pairs of Observation~\ref{obs:kernel}(c) ($V=[a+1,1^b]$, $X=\{x_0,x_1\}$ the vertical domino under the
+first column, $Y=\{y_0,y_1\}$ the horizontal domino after the first row, $k=(1,1)$, $R_{\min}=U+k$) put
+$\lambda_{11}=V+x_0+y_0$, the single with $\Lam_{\lambda_{11}}=\Lam_c$.  Given the lower rows, the whole row of $N$ is fixed
+by closed conditions:
+\begin{itemize}
+\item[(F$'$)] the filtration of Observation~\ref{obs:twocell} one weight higher: $\Et_c$ annihilates the $\bar E$-even
+polynomials of weight $\le\mathrm{wt}\,c$, and not those of weight $\mathrm{wt}\,c+1$;
+\item[(Z$'$)] zeros: a single is zero iff it contains two of the blocks $X$, $Y$, $\{k\}$; a one-cell pair $W$ iff $V_W$
+contains $\{x_0,x_1\}$, $\{y_0,y_1\}$, $\{x_0,k\}$ or $\{y_0,k\}$; a two-cell pair iff $V_W$ contains $x_0$ or $y_0$;
+every other column is non-zero;
+\item[(H)] the only non-zero columns of larger weight are the three singles $\lambda_{11}+e$ and the three pairs
+$W_{ab}=\{\lambda_{11}+a,\lambda_{11}+b\}$, $\{a,b,e\}=\{x_1,y_1,k\}$, and the latter are products with the resonance in
+the denominator,
+\[
+N_{c,W_{ab}}=N_{cc}\,\frac{Aq^{c(e)}\,D_{2c(a)}\,D_{2c(b)}}{\{q^{c(e)-c(a)}\}\,\{q^{c(e)-c(b)}\}\,D_{c(x_1)+c(y_1)}};
+\]
+\item[(D), (K$'$)] the diagonal and the merged single columns from the extended kernel of Observation~\ref{obs:kernel}(c).
+\end{itemize}
+For all $21$ resonant pairs with one minimal diagram up to eleven boxes the system has a unique solution, equal to the
+engine row at every column (two points, engine rows at eight to eleven boxes; on the three rows up to seven boxes every
+condition holds exactly), and $B$ follows from $NB=\Lam N$.  (F$'$) and (Z$'$) alone fix $18$ of the $21$ rows; (H) is
+needed in the three rows where a lower resonant column merges into the same single as $W_{ab}$.  The two filtrations are
+cases of one rule, observed on every clean row up to eleven boxes ($1019$ rows per point: singles, one-cell pairs, all
+kinds of two-cell pairs, three-cell line pairs): \emph{$\Et_c$ annihilates every $\bar E$-even polynomial of weight
+$<|R_{\min}(c)|-n_c$, and not all of those of that weight}, with $n_c$ the number of moved cells per side ($n_c=0$ for a
+single, where this is the interpolation property).  As for the light columns of Observation~\ref{obs:twocell}, the light
+and top columns found this way are not products in general (the top column $\{[2,1,1],[2,2]\}$ of $\{[1^4],[3,1]\}$ has
+the irreducible factor $A^2q^6-A^2q^4-A^2+q^8+q^4-q^2$).  The zero pattern (Z$'$) was read off at eleven boxes, so the
+eleven-box rows are not an independent check of it; (H) was read off the three exact rows and checked on the other $18$.
 \end{observation}
 
 \paragraph{What was tried and failed.}  (a) A product formula for the entries of $v_c$ (or of $B_c$, or of $E_c$)
@@ -755,6 +963,23 @@ with two minimal diagrams that have a row at ten boxes ($\{[3,2,1,1],[5,2]\}$, $
 of their minimal diagrams only: there the unsplit row of the vanishing conditions is a sum of two terms.
 \end{observation}
 
+\begin{observation}[vacuum law: the constant term of the twist binomial]\label{obs:vacuum}
+For every channel $c$ with a single minimal diagram $R=R_{\min}(c)$ the constant term of $\Phi_c(m)$ in its eigenvalue
+expansion \eqref{eq:Phi}, $\Phi_c(m)=\Et_{c\vac}+\sum_{X\ne\vac}\Et_{cX}\Lam_X^{\,m}$, is
+\begin{equation}\label{eq:vacuum}
+\Et_{c\vac}=-\sum_{X\ne\vac}\Et_{cX}=\pi(R),\qquad
+\pi(R)=\prod_{b\in R}\frac1{1-A^{-2}q^{-2c(b)}}=\prod_{b\in R}\frac{Aq^{c(b)}}{D_{c(b)}},
+\end{equation}
+and $\rho(R)=(-1)^{|R|}\,\pi(R)\prod_{b\in R}\{q^{h(b)}\}^2$.  So the minimal diagram fixes both ends of the channel: the
+colour normalisation \eqref{eq:topweight} and the constant term of the twist binomial are the same product up to the
+squared hook factor.  For the resonant pairs $R_{\min}\ne U$,
+and the law holds with $R_{\min}$: a resonant pair behaves like the single $R_{\min}$ in every global quantity checked
+($\Et_{c\vac}$, $B_{c\vac}$, $B_{c,[1]}$).  Checked by the script (\LMPH{vacuum}: $49$ channels at $|R|\le6$, $87$ with
+\LMPH{--nmax 7 --nb 10}, $142$ with \LMPH{--nmax 8 --nb 12}, and the relation to $\rho$ for every $R$; no mismatch); in
+the analysis modulo $p$ at two points on every clean channel of the stored engine rows up to eleven boxes, $380$ channels
+($138$ singles, $221$ non-resonant and $21$ resonant pairs), no failure.
+\end{observation}
+
 Examples (full tables for $[2,1]$, $[3,1]$, $[2,1,1]$ in Appendix~A.1; all $29$ diagrams in the JSON table):
 \begin{align*}
 w_{[2,1]}([2,1])&=-\frac{A^3D_{-3}D_{-1}D_1D_3}{D_0}, &
@@ -770,26 +995,196 @@ The factor $2$ in the pair weights is the two conjugate composites $[Z,Z']$, $[Z
 polynomial parts are the explicit form of the ``$K^R_{\mu\nu}(x)\in\mathbb Q(q)[x]$, $\deg_x\le|R|-|\mu\cup\nu|$'' of
 the project's Formula~I; we did not find a closed expression for them.
 
+\section{The universal formula}\label{sec:universal}
+
+We now put the pieces together.  Append the vacuum to the channels ($\Lam_\vac=1$, $d_\vac=1$, $R_\vac=\varnothing$,
+$\rho(\varnothing)=1$) and let $N=\Et^{-1}$ be the binomial matrix of Section~\ref{sec:N} on $\{\vac\}\cup\Chan$, lower
+triangular for the order $X<c$.  Write $\chih_X(R)=\psi_X(R)+1=\chi_X(R)/d_X$ for the normalised Koike character of the
+composite(s) of $X$ at $q^{2(R+\rho)}$ ($\chih_\vac=1$), and define the \emph{colour binomial} and the \emph{twist
+binomial} of a channel $c$ with minimal diagram $R_c$ by
+\begin{equation}\label{eq:binomdef}
+\rho(R_c)\,\cf Rc:=\sum_X\Et_{cX}\,\chih_X(R)=\Psi_c(R),\qquad\qquad \Phi_c(m)=\sum_X\Et_{cX}\,\Lam_X^{\,m}.
+\end{equation}
+
+\begin{conjecture}[universal twist-knot formula]\label{conj:U}
+For every diagram $R$ and every $m\in\mathbb Z$,
+\begin{equation}\label{eq:U}
+H_R(\Tw_m)=\sum_{c\in\{\vac\}\cup\Chan(R)}Z_c\,\cf Rc\,\Phi_c(m)\;+\sum_{g\in\Gh(R)}Z_g\,\cf Rg\,\Phi_g(m),\qquad
+Z_c=d_c\,N_{cc}\,\rho(R_c).
+\end{equation}
+Here $N$ is the lower triangular matrix for which the two expansions
+\begin{equation}\label{eq:twobinom}
+\chih_X(R)=\sum_cN_{Xc}\,\rho(R_c)\,\cf Rc,\qquad\qquad \Lam_X^{\,m}=\sum_cN_{Xc}\,\Phi_c(m)\qquad(\text{all }X,\ R,\ m)
+\end{equation}
+hold with (i) $\cf Rc=0$ whenever $c$ is absent from $R\otimes\Rbar$ (the vanishing conditions; at $R=\varnothing$ this
+gives $N_{X\vac}=1$, i.e.\ $\Phi_c(0)=\delta_{c\vac}$) and (ii) $\Phi_c(-1)=1$, i.e.\ $\sum_cN_{Xc}=\Lam_X^{-1}$.  Then
+(iii) $\cf{R_c}c=1$ (the top-weight law \eqref{eq:topweight}).  The second sum runs over the ghosts of the ghost diagrams
+$U\subseteq R$ (Section~\ref{sec:ghosts}); it is empty unless $R$ contains one of $[4,3,1]$, $[3,2,2,1]$, $[5,3,1]$,
+$[3,2,2,1,1]$, \dots
+\end{conjecture}
+
+Conditions (i) and (ii) determine the rows of $\Et=N^{-1}$ (each row up to the ghost directions, which the zero rule of
+Section~\ref{sec:ghosts} fixes), so \eqref{eq:twobinom} \emph{defines} $N$ and both binomials; the content of the
+conjecture is that the constants are $Z_c=d_cN_{cc}\rho(R_c)$, that the ghost terms are the only additions, and the closed
+rules for $N$ (Table~\ref{tab:N}).  Remarks:
+\begin{itemize}
+\item[(a)] Without the ghost terms \eqref{eq:U} is the channel formula \eqref{eq:channel} rewritten, since
+\[
+Z_c\,\cf Rc=d_cN_{cc}\Psi_c(R)=d_c\sum_XE_{cX}\psi_X(R)=F_c(R),
+\]
+and the vacuum term is the $1$.  What is new is the reading as one binomial matrix on both sides, the two normalisation
+laws at $R_c$, \eqref{eq:topweight} and \eqref{eq:vacuum}, and the closed pieces of $N$.
+\item[(b)] Symmetric form.  With the vectors $\chih(R)=(\chih_X(R))_X$ and $\Lam^m=(\Lam_X^m)_X$,
+\[
+H_R(\Tw_m)=\chih(R)^{T}\,G\,\Lam^{m},\qquad G=N^{-T}\,\mathrm{diag}(d_cN_{cc})\,N^{-1},
+\]
+a universal symmetric matrix (independent of $R$, $m$ and the knot); the evolution coefficients of \eqref{eq:evol} are
+$w_Y(R)=\sum_X\chih_X(R)\,G_{XY}$.
+\item[(c)] Special values.  $m=0$: $\Phi_c(0)=\delta_{c\vac}$, $H=1$.  $m=-1$: $H_R(4_1)=\sum_cZ_c\cf Rc$, so $Z_c$ is the
+contribution of $c$ to the figure-eight polynomial at $R=R_c$.  $m=1$: $\Phi_c(1)=B_{c\vac}=B_{R_c\vac}
+=(-1)^{|R_c|}A^{2|R_c|}q^{2\kappa(R_c)}$ (Observation~\ref{obs:one}, and the two-cell observation for $R_c=R_{\min}\ne U$),
+so
+\[
+H_R(3_1)=\sum_c(-1)^{|R_c|}A^{2|R_c|}q^{2\kappa(R_c)}\,Z_c\,\cf Rc\qquad(\text{no ghosts}),
+\]
+the trefoil as a sum of monomials times figure-eight terms (checked against the data for all $29$ diagrams with
+$|R|\le6$; Rosso--Jones is the check beyond).
+\item[(d)] The constants are products wherever $N_{cc}$ is: for singles $Z_\lambda=d_\lambda\prod_{b\in\lambda}
+D_{a(b)-l(b)+2c(b)}\{q^{h(b)}\}^2/D_{c(b)}$ by \eqref{eq:phiprod}, e.g.\ $Z_{[k]}=\prod_{i<k}D_{k+i}D_{i-1}$,
+$Z_{[2,1]}=D_{-3}D_{-2}D_{-1}D_1D_2D_3$; for pairs by \eqref{eq:pdiag}, e.g.\ $Z_{\{[1,1],[2]\}}=-[3]^2\{q\}^4D_{-2}D_2$.
+\item[(e)] Colour binomials.  For one-row $R$, $\cf{[r]}{[k]}=\binom rk_q\prod_{i<k}D_{r+i}/D_{k+i}$ (checked $r\le7$), and
+\eqref{eq:U} at $m=-1$ is the cyclotomic formula $H_{[r]}(4_1)=\sum_k\binom rk_q\prod_{i<k}D_{r+i}D_{i-1}$.  The first
+binomial is bilinear in the content sums of $R$,
+\[
+\cf R{[1]}=\frac{\psi_{[1]}(R)}{\{q\}^2}=\frac{D_0\sum_{b\in R}D_{2c(b)}-\{q\}^2\sum_{b,b'\in R}q^{2c(b)-2c(b')}}{D_1D_{-1}}
+\]
+(checked on all $44$ diagrams up to seven boxes).  In general $\cf Rc$ is given by \eqref{eq:binomdef} from the closed rows of $N$ and the
+closed characters; we did not find a tableau formula for it in the variables of $R$.  For a channel with several minimal
+diagrams the row of the vanishing conditions splits into one term per minimal diagram inside $R$
+(Observation~\ref{obs:topweight}); \eqref{eq:U} then has one term per minimal diagram.
+\item[(f)] Rectangular $R$ have only single channels and no ghosts, and \eqref{eq:U} is the cyclotomic expansion of KNTZ.
+\end{itemize}
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{p{0.30\textwidth}p{0.40\textwidth}p{0.22\textwidth}}
+\toprule
+block of $N$ (row $c$, column $X$) & closed rule & checked\\
+\midrule
+single rows, all columns & tableau formula \eqref{eq:tab} & exact $\le6$, mod $p$ $\le9$ boxes\\
+diagonal $N_{cc}$ & \eqref{eq:phiprod} (singles); \eqref{eq:pdiag} (pairs with $\le2$ moved cells per side, lines);
+$K_c(R_{\min})N_{R_{\min}R_{\min}}/2$ (resonant) & mod $p$ $\le11$ boxes\\
+columns $\vac$, $[1]$, $\{[1,1],[2]\}$ & $N_{c\vac}=1$, \eqref{eq:Nvac}, $\bar E_1(c)^2/(2A^3D_0)$ (Obs.~\ref{obs:twocell}) & all channels with data\\
+one-cell pair rows, single columns & four-row formula \eqref{eq:fourrow}, \eqref{eq:Nsingle} & mod $p$ $\le10$ boxes\\
+one-cell pair rows, pair columns & adjacent residues \eqref{eq:adjres} and root formula \eqref{eq:roots}; per entry:
+zonal binomials \eqref{eq:zonal} on axis columns, interpolation (I) on all & mod $p$ $\le11$ boxes, generated $\le14$\\
+two-cell rows (non-resonant), single columns & sign-flip kernel \eqref{eq:kernel} & mod $p$ $\le11$ boxes\\
+two-cell rows (non-resonant), pair columns & top: products (P), $X^*$; heavier: $0$; light: unique solution of (F)$+$(Z)
+(Obs.~\ref{obs:twocell}) & mod $p$ $\le11$ boxes\\
+line pair rows ($n$ cells), single columns & \eqref{eq:kernel} on the end states, \eqref{eq:ring} on the rings; deep
+states: $n=4$ closed, $n=5$ tables & mod $p$, $n\le6$\\
+resonant two-cell rows, single columns & extended kernel on $[V,R_{\min}]$ (Obs.~\ref{obs:kernel}(c)) & mod $p$ $\le11$ boxes\\
+resonant two-cell rows, pair columns & heavier: products (H); light and top: unique solution of (F$'$)$+$(Z$'$)
+(Obs.~\ref{obs:resrows}) & mod $p$ $\le11$ boxes\\
+ghost directions & zero rule for the tops, ghost term with $Z_g$ from the trefoil (Section~\ref{sec:ghosts}) & $\le10$ boxes
+except $[4,3,2,1]$\\
+\midrule
+\multicolumn{3}{p{0.95\textwidth}}{\textbf{Not closed:} an entry-by-entry formula for the columns fixed only by a linear
+system (the light columns of the two-cell rows, the light and top columns of the resonant rows); the pair columns of the
+rows with three or more moved cells per side; sides of $n\ge3$ cells that are not lines; deep states of line pairs with
+$n\ge6$; separate/separate pairs (no data); ghost diagrams with two or more ghosts (from $[6,4,1]$, $[5,4,2]$ at eleven
+boxes) and the four-corner diagrams (from $[4,3,2,1]$).}\\
+\bottomrule
+\end{tabular}
+\caption{The binomial matrix $N$ block by block.  ``Checked'' gives the largest range checked (two points modulo
+$p=10^9+7$ unless exact); Section~\ref{sec:checks} says which of these checks the script re-runs.}
+\label{tab:N}
+\end{table}
+
+\subsection{The ghost layer}\label{sec:ghosts}
+
+For a diagram $U$ let $I_U$ be the space of functions $f=\sum_Xf_X\psi_X$ (the sum over the channels present at $R=U$)
+that vanish at every colour $S\not\supseteq U$.  Every channel whose minimal diagram (or one of whose minimal diagrams) is
+$U$ gives an element of $I_U$, and
+\[
+\dim I_U=\#\{\text{tops of }U\}+\#\{\text{co-tops of }U\}+\mathrm{ex}(U),
+\]
+tops being the channels with $R_{\min}=U$ and co-tops those with several minimal diagrams, one of them $U$.  The
+$\mathrm{ex}(U)$ remaining elements, normalised to have zero coefficient on every top and co-top, are the \emph{ghosts} of
+$U$: combinations of characters that vanish on every $R\not\supseteq U$ and belong to no channel.  When
+$\mathrm{ex}(U)\ge1$ the vanishing conditions leave the rows of some of the tops of $U$ free along the ghosts.  These rows
+are fixed by the \emph{zero rule} (coefficient $0$ at $\{[1,1,1],[3]\}$ for a pair top and at $\{[1,1],[2]\}$ for a single
+top; for $[4,3,1]$ these are exactly the rows given by the closed formulas), and for $\mathrm{ex}(U)=1$ the ghost
+$k=k_U$ enters \eqref{eq:U} as one more term of the same form:
+\begin{equation}\label{eq:ghost}
+\cf Rg=\frac{\sum_Xk_X\,\psi_X(R)}{\sum_Xk_X\,\psi_X(U)},\qquad
+\Phi_g(m)=\frac{\sum_Xk_X\,(\Lam_X^{\,m}-1)}{\sum_Xk_X\,(\Lam_X^{-1}-1)},\qquad
+Z_g=\frac{H_U^{\rm RJ}(3_1)-H_U^{\circ}(\Tw_1)}{\Phi_g(1)},
+\end{equation}
+with $H^{\rm RJ}_U(3_1)$ the Rosso--Jones value for the trefoil $\Tw_1$ and $H^\circ_U$ the formula without the ghost term
+of $U$.  At $R=U$, $m=1$ the ghost term is the only unknown, so the trefoil fixes $Z_g$, and every other value of $R$ and
+$m$ is a prediction; as for the channels, $\cf Ug=1=\Phi_g(-1)$.
+\begin{itemize}
+\item \textbf{Which diagrams.}  Ghosts occur never for diagrams with at most two corners, always for four or more corners,
+and for three corners according to the Kerov gaps $(r_1,s_1,r_2,s_2,r_3,s_3)$ ($r_i$ the number of rows of the $i$-th block
+of equal rows, $s_i$ the step after it): if $r_2=s_2=1$, iff ($s_1,s_3\ge2$) or ($r_1,r_3\ge2$); if $r_2=1<s_2$, unless
+$r_1=1$, $r_3\ge2$, $s_3=1$; if $s_2=1<r_2$, unless $s_3=1$, $s_1\ge2$, $r_1=1$; if $r_2,s_2\ge2$, always.  The first ghost
+diagrams are $[4,3,1]$ (eight boxes), $[5,3,1]$ (nine), $[6,3,1]$, $[5,4,1]$, $[5,3,2]$ and the four-corner $[4,3,2,1]$
+(ten), and their transposes.  The rule was found on the census of $\mathrm{ex}(U)$ up to $13$ boxes and checked on all $135$
+diagrams with $14$ boxes (a first rule found on $\le12$ boxes failed at $13$).  For three corners the ghost lives, modulo
+the ghosts of smaller ghost diagrams, exactly on the channels whose minimal diagram is a proper vertex of the Boolean
+cube $[U-\mathrm{corners}(U),U)$ (nine diagrams up to eleven boxes).
+\item \textbf{Checks}, with $Z_g$ from \eqref{eq:ghost} and nothing fitted: the formula agrees with the strengthened
+Formula~II of the other branch for all $137$ diagrams with $|R|\le10$ except $[4,3,2,1]$, $m=-4,\dots,4$, two points; at
+$m=-1$ this includes the stored $H_R(4_1)$ of $[4,3,1]$ and $[3,2,2,1]$, where \eqref{eq:channel} alone fails.  The
+exact eight-box twist-knot polynomials of the other branch ($50$ files, $m=-5,\dots,5$) agree at a third point; they come
+from the same engine and are independent only at $m=\pm1$.  The trefoil value of $Z_g$ equals the engine's
+constants for $[4,3,1]$, $[5,3,1]$, $[5,4,1]$, $[6,3,1]$, $[5,3,2]$ (obtained there from figure-eight data) and its
+conjectured family at $[7,3,1]$, $[8,3,1]$,
+\[
+Z_{[a,3,1]}=-\{q\}^{10}\,\frac{[a+2]\,[4]}{[a-4]!}\prod_{b\in[a,3,1]}[h(b)]\;D_{-3}D_{-2}D_{-1}\prod_{k=1}^{a-4}D_k
+\prod_{k=a-1}^{2a-3}D_k ;
+\]
+and the predicted $H_U(\Tw_m)$ for $U=[7,3,1]$, $[6,3,2]$, $[7,3,2]$ are Laurent polynomials in $A$ on the twist-knot
+windows for $m=-1,\pm2,3$, while without the ghost term or with $2Z_g$ they are not ($[6,3,2]$ at all four $m$,
+$[7,3,2]$ at $m=2,3$).  $Z_g$ is not a product in general: $Z_{[6,3,2]}$ has a pole at $D_1$.
+\item \textbf{Open.}  Ghost diagrams with $\mathrm{ex}(U)\ge2$ (first $[6,4,1]$, $[5,4,2]$ at eleven boxes), where the
+zero rule leaves free directions and the trefoil gives fewer equations than there are constants; the four-corner
+diagrams ($[4,3,2,1]$ with ten ghosts, $[5,3,2,1]$ with eleven); the values of $\mathrm{ex}(U)$; a closed form for the
+coefficients of $k_U$.
+\end{itemize}
+
+\subsection{Status}
+
+From the closed rules alone (no vanishing condition solved), \eqref{eq:U} reproduces every stored polynomial and
+Rosso--Jones for all $76$ diagrams up to ten boxes whose channels are singles and one-cell pairs (check \LMPH{closed},
+$320$ stored values and $76$ Rosso--Jones values), Rosso--Jones for the $72$ such diagrams with $11$ to $14$ boxes, and the
+$260$ stored values of the $26$ such diagrams up to six boxes exactly over $\mathbb Q(A,q)$ (analysis).  With the kernel
+single columns and engine pair columns, all $117$ diagrams up to ten boxes that have a row for every channel agree with all
+data.  With the ghost layer and the rows from the vanishing conditions, all diagrams up to ten boxes except $[4,3,2,1]$
+agree with the strengthened engine.  What remains open is the last row of Table~\ref{tab:N}.
+
 \section{Checks}\label{sec:checks}
 
-All checks are modulo $p=10^9+7$ at random $(A,q)$ unless stated otherwise;
-\LMPH{python3 scripts/twist\_formula\_check.py} runs them all (about one minute), \LMPH{tests/test\_twist\_formula.py}
-a fast subset.  Nothing is fitted anywhere: the only inputs are the vanishing conditions and the closed formulas
+\LMPH{scripts/twist\_formula\_check.py} runs all checks (a few minutes) and \LMPH{tests/test\_twist\_formula.py} a fast
+subset; they are modulo $p=10^9+7$ at random $(A,q)$ unless stated otherwise.  Nothing is fitted anywhere: the only inputs are the vanishing conditions and the closed formulas
 \eqref{eq:kntz}, \eqref{eq:tab}, \eqref{eq:union}, \eqref{eq:hook}, \eqref{eq:Nvac}--\eqref{eq:Nadd}, \eqref{eq:fourrow},
-\eqref{eq:adjres}, \eqref{eq:roots}, \eqref{eq:Nsingle}, \eqref{eq:Bsingle}, \eqref{eq:kernel}, \eqref{eq:topweight}.  ``Analysis''
+\eqref{eq:adjres}, \eqref{eq:roots}, \eqref{eq:Nsingle}, \eqref{eq:Bsingle}, \eqref{eq:kernel}, \eqref{eq:topweight},
+\eqref{eq:vacuum}, \eqref{eq:pdiag} and the formulas of Observation~\ref{obs:twocell}.  ``Analysis''
 refers to checks run outside the repository on the same engine (exact rows over $\mathbb Q(A,q)$ up to seven boxes,
 and rows modulo $p$ with the vanishing conditions imposed on all diagrams with at most $13$ boxes, up to ten boxes);
 their numbers are quoted for completeness and are not reproduced by the script.
 
-\begin{center}
-\begin{tabular}{p{0.42\textwidth}p{0.52\textwidth}}
+\begin{longtable}{p{0.42\textwidth}p{0.52\textwidth}}
 \toprule
 check & result\\
 \midrule
+\endhead
 \eqref{eq:channel} vs all data with $|R|\le6$ (\LMPH{data}) & $319/319$ ($29$ diagrams $\times$ ten knots and the unknot); exact over $\mathbb Q(A^2,q^2)$ as well\\
 tabulated weights (JSON) vs the same data (\LMPH{table}) & $319/319$\\
 $H_R(4_1)=1+\sum_cF_c(R)$ at $|R|=7$ (\LMPH{f41}) & $15/15$\\
-$H_R(4_1)$ at $|R|=8$ (\LMPH{f41}) & $20/22$; fails for $[4,3,1]$ and $[3,2,2,1]$, with and without KNTZ single rows (and for every choice of the free parameter of their tops; analysis)\\
+$H_R(4_1)$ at $|R|=8$ (\LMPH{f41}) & $20/22$; fails for $[4,3,1]$ and $[3,2,2,1]$, with and without KNTZ single rows (and for every choice of the free parameter of their tops; analysis); $22/22$ with the ghost term (analysis, Section~\ref{sec:ghosts})\\
 symmetric $[7],[8],[9],[10]$, ten knots (\LMPH{sym}) & $40/40$\\
 KNTZ identity \eqref{eq:kntz} (\LMPH{kntz}) & exact for $29$ singles $|\lambda|\le6$; mod $p$ for $59$ full-rank singles $|\lambda|\le8$\\
 product formula \eqref{eq:phiprod} (\LMPH{phi}) & all $|\lambda|\le6$ exact, mod $p$ in the script\\
@@ -806,26 +1201,32 @@ pair columns at every gap \eqref{eq:roots} (\LMPH{roots}) & $B$ and $N$ at gaps 
 whole one-cell pair rows \eqref{eq:Nsingle}, \eqref{eq:Bsingle} (\LMPH{fullrow}) & every single column of $N$ and $B$: $179+179$ at $|R|\le6$, $344+344$ with \LMPH{--nmax 7}, $458+458$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: $925$, $1633$, $2629$ columns at $8$, $9$, $10$ boxes, $N$ and $B$ each, two points, no failure\\
 sign-flip kernel \eqref{eq:kernel} (\LMPH{kernel}) & one-cell pairs $179$ columns and non-resonant two-cell pairs $24$ columns at $|R|\le6$; $458$ and $92$ with \LMPH{--nmax 7 --nb 10}; no mismatch; analysis: $10\,346$ one-cell, $1\,996$ domino/domino, $2\,170$ domino/separate columns up to ten boxes, two points, no failure; three-cell line pairs $92$ columns (middle states from the sum rules)\\
 top-weight law \eqref{eq:topweight} (\LMPH{topweight}) & every channel with one minimal diagram: $49$ at $|R|\le6$ (exact in the analysis), $87$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: $399$ channels up to ten boxes, two points, no failure\\
+vacuum law \eqref{eq:vacuum} (\LMPH{vacuum}) & every channel with one minimal diagram: $49$ at $|R|\le6$, $87$ with \LMPH{--nmax 7 --nb 10}, $142$ with \LMPH{--nmax 8 --nb 12}, no mismatch; analysis: all $380$ clean channels of the engine rows up to eleven boxes, two points\\
+two-cell rows: \eqref{eq:pdiag}, first pair column, (P), $X^*$, (Z) (\LMPH{twocell}) & at $|R|\le6$: $19$, $18$ pairs, $4$ partners, $7$ zeros; \LMPH{--nmax 8 --nb 12}: $72$, $71$ pairs, $16$ two-cell rows, $44$ partners, $6$ columns $X^*$, $285$ zeros; no mismatch; analysis: whole rows, $62$ rows at eleven boxes, two points\\
+end to end from the closed rows only, \eqref{eq:U} without ghosts (\LMPH{closed}) & \LMPH{--nmax 10}: all $76$ diagrams whose channels are singles and one-cell pairs, $320$ stored values and $76$ Rosso--Jones values, no mismatch; analysis: $72$ such diagrams with $11$--$14$ boxes (Rosso--Jones), $26$ diagrams $\le6$ exactly\\
+pair-pair block: interpolation (I), zonal binomials \eqref{eq:zonal} (analysis) & (I) on every engine entry up to eleven boxes and $98\,343$ generated entries $\le14$ boxes; \eqref{eq:zonal} on $26\,826$ axis-type entries; no failure\\
+resonant rows, Observation~\ref{obs:resrows} (analysis) & all $21$ resonant pairs with one minimal diagram up to eleven boxes: unique solution $=$ engine row at every column, two points; exact identities on the three rows $\le7$ boxes; uniform filtration on $1019$ clean rows per point\\
+ghost layer \eqref{eq:ghost} (analysis) & with $Z_g$ from the trefoil: all $137$ diagrams $\le10$ boxes except $[4,3,2,1]$ against the strengthened engine, $m=-4,\dots,4$, two points\\
 four-row formula \eqref{eq:fourrow} (\LMPH{fourrow}) & $17$ pairs, $179$ single columns at $|R|\le6$ ($28$ pairs, $344$ columns with \LMPH{--nmax 7}), no mismatch; analysis: mod $p$ $869$ columns (8 boxes, two points), $1550$ columns (9 boxes)\\
 $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, implied $B$ entries $15/15$; analysis: exact $28$ pairs ($\le7$ boxes), mod $p$ $56$ pairs (8 boxes), $83$ pairs (9 boxes), no mismatch in the claimed classes\\
 \bottomrule
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{What is not closed, and where it breaks}
 
 \begin{enumerate}
-\item \textbf{Two-cell pairs} (the diagrams listed in Observation~\ref{obs:fullrow}, from $[4,2]$, $[3,2,1]$,
+\item \textbf{Multi-cell pairs} (the diagrams listed in Observation~\ref{obs:fullrow}, from $[4,2]$, $[3,2,1]$,
 $[2,2,1,1]$ on): for the one-cell pairs every column of $N$, $\Et$, $E$, $B$ is closed at every gap
-(\eqref{eq:fourrow}, \eqref{eq:adjres}, \eqref{eq:roots}, \eqref{eq:Nsingle}, \eqref{eq:Bsingle}), and the single
-columns of the non-resonant two-cell pair rows are closed by the kernel \eqref{eq:kernel}.  Not closed: the pair
-columns of the two-cell pair rows (the pure-$q$ property that underlies \eqref{eq:roots} fails: the normalised pair
-entries of $B$ are polynomials of degree one to four in $A^2$ over $\mathbb Q(q)$; analysis, nine exact rows), hence
-also the split of their merged entries at the resonant columns; the resonant two-cell pairs (vertical against
-horizontal domino, e.g.\ $\{[1,1,1],[3]\}$ in $R=[3,2,1]$), whose rows are not combinations of single rows (they are
-fixed by the vanishing conditions, while the twist-knot data test only their eigenvalue class,
-Observation~\ref{obs:kernel}); the middle states of the three-cell pairs
-(sum rules only); the separate/separate pairs (no data).
+(\eqref{eq:fourrow}, \eqref{eq:adjres}, \eqref{eq:roots}, \eqref{eq:Nsingle}, \eqref{eq:Bsingle}).  For the non-resonant
+two-cell pairs the single columns (kernel \eqref{eq:kernel}), the diagonal, the first pair column, the pair columns of
+the top weight and the zeros are closed (Observation~\ref{obs:twocell}); the light columns are fixed by an explicit
+linear system, but there is no entry-by-entry formula for them (they are not products; the pure-$q$ property behind
+\eqref{eq:roots} fails there).  The resonant two-cell pairs (vertical against horizontal domino, e.g.\ $\{[1,1,1],[3]\}$
+in $R=[3,2,1]$) have closed single columns on $[V,R_{\min}]$, products in the heavy pair columns, and the other pair
+columns fixed by a linear system of the same kind (Observation~\ref{obs:resrows}); they are fixed by the vanishing
+conditions, while the twist-knot data test only their eigenvalue class (Observation~\ref{obs:kernel}).  Line pairs are
+closed on the single columns except the deep states for $n\ge6$; pairs whose sides of $n\ge3$ cells are not lines, the
+pair columns of all rows with $n\ge3$, and the separate/separate pairs (no data) are open.
 \item \textbf{Non-top evolution coefficients}: product $\times$ polynomial, polynomial not closed
 (Section~\ref{sec:weights}); already $w_{[1]}([2])$.
 \item \textbf{Resonances}: from $[3,2,1]$ on, the evolution form does not separate channels with equal eigenvalues;
@@ -836,11 +1237,13 @@ from seven boxes on.  This is an artefact of the node bound for all of them exce
 and the five of $[3,2,2,1]$: with the conditions on all diagrams with at most $13$ boxes every other row is determined
 (and agrees with \eqref{eq:tab}, \eqref{eq:union} where those apply), while these ten keep a common one-dimensional
 kernel.  No value of the free parameter makes \eqref{eq:channel} reproduce $H_R(\Tw_m)$ for these two $R$; the
-strengthened Formula II of the other branch adds a rank-one term built from the kernel vector, outside \eqref{eq:channel}.
-At nine boxes the same happens for the tops of $[5,3,1]$, $[3,2,2,1,1]$, and four channels with two minimal diagrams
-are not determined either.
-\item \textbf{Nothing is proved}: Conjectures \ref{conj:main}, \ref{conj:kntz}, \ref{conj:tab} and Observations
-\ref{obs:one}--\ref{obs:top} are statements verified on the data listed above only.
+missing term is the ghost term of \eqref{eq:U}, a rank-one term built from the kernel vector, with its constant fixed by
+the trefoil (Section~\ref{sec:ghosts}; the strengthened Formula II of the other branch contains the same term).  At nine
+boxes the same happens for the tops of $[5,3,1]$, $[3,2,2,1,1]$, and four channels with two minimal diagrams are not
+determined either.  With the ghost terms everything up to ten boxes is accounted for except $[4,3,2,1]$; open are the
+ghost diagrams with two or more ghosts (from eleven boxes) and the four-corner diagrams.
+\item \textbf{Nothing is proved}: Conjectures \ref{conj:main}, \ref{conj:kntz}, \ref{conj:tab}, \ref{conj:U} and all
+Observations are statements verified on the data listed above only.
 \end{enumerate}
 
 \appendix
@@ -1045,7 +1448,7 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 \begin{itemize}
 \item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
 (options \LMPH{--nmax}, \LMPH{--seed}, \LMPH{--nb}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom
-pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
+pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight closed vacuum twocell}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
 adjres gap2 roots fullrow kernel} runs the checks of Sections \ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends
 them to seven boxes, and \LMPH{--nmax 7 --nb 10} imposes the vanishing conditions on all diagrams with at most ten boxes,
 which makes every channel with $|R|\le7$ full rank).
@@ -1054,7 +1457,10 @@ The closed formulas live in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{
 \eqref{eq:Ndiag}--\eqref{eq:Nadd}, \LMPH{khook\_N} \eqref{eq:khook}, \LMPH{check\_fourrow} \eqref{eq:fourrow},
 \LMPH{adjacent\_residue} \eqref{eq:adjres}, \LMPH{check\_gap2} \eqref{eq:gap2}, \eqref{eq:chain}, \LMPH{root\_T} /
 \LMPH{closed\_pair\_block} \eqref{eq:roots}, \eqref{eq:paths}, \LMPH{check\_fullrow} \eqref{eq:Nsingle}, \eqref{eq:Bsingle} and
-\LMPH{kernel\_K} \eqref{eq:kernel}, \LMPH{rho\_top} \eqref{eq:topweight}.
+\LMPH{kernel\_K} \eqref{eq:kernel}, \LMPH{rho\_top} \eqref{eq:topweight}, \LMPH{pi\_vac} \eqref{eq:vacuum},
+\LMPH{pair\_diag} \eqref{eq:pdiag}, \LMPH{first\_pair\_column}, \LMPH{partner\_B}, \LMPH{xstar\_B} and \LMPH{twocell\_zero}
+(Observation~\ref{obs:twocell}), and \LMPH{closed\_N} / \LMPH{closed\_H}, which build $N$ from the closed rules and
+evaluate \eqref{eq:U}.  \LMPH{--nmax 10 closed} is the end-to-end check (about two minutes).
 \item \LMPH{python3 -m pytest tests/test\_twist\_formula.py} --- fast subset.
 \item \LMPH{data/twist\_weights/twist\_weights\_le6.json} --- all $w_X(R)$, $|R|\le6$, as numerator/denominator
 monomial lists in $x=A^2$, $y=q^2$ (exact, computed over $\mathbb Q(x,y)$ with python-flint from the vanishing
