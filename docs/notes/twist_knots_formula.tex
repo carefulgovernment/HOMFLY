@@ -177,12 +177,16 @@ enlarged by the lower resonant and cross-oriented two-cell columns, whose coordi
 heavy columns are products (Observation~\ref{obs:resrows}).  Both filtrations are cases of one rule that holds for every
 row: $\Et_c$ annihilates the even composite power-sum polynomials of weight $<|R_{\min}(c)|-n_c$, $n_c$ the number of
 moved cells per side.  From weight $10$ on the power sums satisfy relations on the channels (the first is
-$\bar E_1s_{333}$), and (L) holds on their restriction, with exactly the right number of nodes up to weight $14$.  The
+$\bar E_1s_{333}$), and (L) holds on their restriction, with exactly the right number of nodes up to weight $14$.  Some
+columns are closed outright: the hook pair columns and the one-row and one-column singles are $\mathrm{Alt}$ and
+$\mathrm{Sym}$ products of windowed elementary and complete functions of the composite particles, on both families, and
+the weight-four two-cell columns and the weight-ten relation are super Schur functions of the moved cells, $12s_{22}$
+and $\bar E_1s_{333}$ (Observation~\ref{obs:interp}).  The
 diagonal of every three-cell pair with one effective shape, and of every pair with a line side, is one hook product over
 $V$ with hinge shifts, and a line row has as heavy pair columns exactly its chain pairs, the two nearest of them closed
 products for every $n$ (Observation~\ref{obs:threecell}).
-\textbf{Not closed.}  (i) A combinatorial formula for the Lagrange basis, and the three-cell block of the three-cell line
-rows.  (ii) The deep states of the line pairs with $n\ge6$ (first at $18$ boxes); for rows with $n\ge3$ moved cells per
+\textbf{Not closed.}  (i) A combinatorial formula for the other columns of the Lagrange basis (first the one-cell
+columns not of axis type), and the three-cell block of the three-cell line rows.  (ii) The deep states of the line pairs with $n\ge6$ (first at $18$ boxes); for rows with $n\ge3$ moved cells per
 side, the heavy pair columns other than the line partners, the pair columns of the rows that are not line rows, half of
 the kernel states of a domino plus a separate cell against a line, bent sides beyond the diagonal, and the anomalous
 pairs ($m_c(U)=0$); separate/separate two-cell pairs (no data).
@@ -197,8 +201,10 @@ $U=[4,3,1]$ and belongs to no channel.  It adds one term of the same three-facto
 $Z_g$ is fixed by the trefoil (Rosso--Jones at $m=1$, $R=U$); nothing is fitted.  With this term the formula agrees with
 the strengthened Formula II of the other branch for all $137$ diagrams up to ten boxes except $[4,3,2,1]$ ($m=-4,\dots,4$,
 two points), in particular with the stored $H_R(4_1)$ of $[4,3,1]$ and $[3,2,2,1]$ (Section~\ref{sec:ghosts}).  Which
-diagrams carry ghosts is a combinatorial rule checked up to $14$ boxes: never for at most two corners, always for four or
-more, and by the Kerov gaps for three corners.  Open: diagrams with two or more ghosts (first $[6,4,1]$ and $[5,4,2]$ at
+diagrams carry ghosts is a combinatorial rule checked up to $18$ boxes: never for at most two corners, always for four or
+more, and by the Kerov gaps for three corners.  Their number has an exact form, one super-Cauchy identity per corner, and
+is closed for three rows with a gap at most two or $s_3=3$; for three corners the leading part of the ghost is closed, the
+composite square of a cross product of the corner contents.  Open: diagrams with two or more ghosts (first $[6,4,1]$ and $[5,4,2]$ at
 eleven boxes) and the four-corner diagrams ($[4,3,2,1]$, ten ghosts, at ten boxes).  For these the tops are still fixed,
 by the top-weight law with its multiplicities, so at $R=U$ exactly $\mathrm{ex}(U)$ numbers are open (ten for
 $[4,3,2,1]$, where everything else agrees with the closed block of the other branch).  At every colour $R\supseteq U$ the
@@ -939,7 +945,8 @@ N_{c,\{[2,1],[3]\}}=\frac{\bar E_1\bigl(2\beta(q)\beta(Aq^2)\bar E_1-\{q\}\bar E
 and $N_{c,\{[1,1,1],[2,1]\}}=-q^2\bar E_1\bigl(2\beta(q)\beta(Aq^{-2})\bar E_1+\{q\}\bar E_1\bar O_1-\beta(q)\bar E_2\bigr)
 /(4A^4\{q^2\}D_{-1})$, with $\beta(u)=u+u^{-1}$.  From weight $10$ on the monomials are not independent on the
 channels: at $w=10$ a family has $616$ nodes for $\dim\Pi_{10}=617$, and the missing direction is the relation
-$f_0=\bar E_1\,s_{333}(X|Y)=s_{433}+s_{3331}$, which vanishes on every channel with at most two moved cells per side.
+$f_0=\bar E_1\,s_{333}(X|Y)=s_{433}+s_{3331}$, which vanishes on every channel with at most two moved cells per side
+(on the three-cell channels it is $\bar E_1\prod_{x,y}(x-y)$, Observation~\ref{obs:interp}).
 Here $X$, $Y$ are the values $z_e+z_e^{-1}$ at the moved cells of the two sides, with super power sums
 $p_j(X|Y)=\sum_{i<j/2}\binom ji\bar E_{j-2i}$, and $s_{333}$ vanishes in $(2|2)$ variables.  So (L) holds verbatim with
 $\Pi_w$ restricted to the channels: the graded dimension of the restriction, $\sum_jp(j)\,\iota(w-j)$ with
@@ -956,8 +963,9 @@ vanishing conditions; they enter only the rows above these nodes, and there are 
 three-cell rows need a larger space (Observation~\ref{obs:resrows}).
 \end{itemize}
 The light columns are not products in general, e.g.\ for $c=\{[2,2],[4]\}$, $X=\{[2,1],[3]\}$ (with $x=A^2$, $y=q^2$)
-$B_{cX}/\Lam_c=x(y+1)(xy^2-1)(y^3+y^2+1)/(y^2(xy-1))$; (L) gives them as determinants, and no product or tableau formula
-for the Lagrange basis is known.  $B$ follows from $NB=\Lam N$.  (L) is checked by the script (\LMPH{lagrange}: the node
+$B_{cX}/\Lam_c=x(y+1)(xy^2-1)(y^3+y^2+1)/(y^2(xy-1))$; (L) gives them as determinants.  Some columns of the Lagrange
+basis are closed (the hook pairs, the one-row and one-column singles, the two-column axis columns, weight four;
+Observation~\ref{obs:interp}); for the others no closed formula is known.  $B$ follows from $NB=\Lam N$.  (L) is checked by the script (\LMPH{lagrange}: the node
 count to weight $10$; at $|R|\le6$ every light entry of the $48$ clean single, one-cell and two-cell rows, $1770$ entries,
 $776$ non-zero; with \LMPH{--nmax 8 --nb 12} $136$ rows, $13\,656$ entries, $4232$ non-zero; the top values read from the
 engine rows; the weight-three columns; no mismatch) and in the analysis on $188\,555$ light entries ($40\,258$ non-zero)
@@ -974,6 +982,70 @@ mismatch); in the analysis exact on the six rows up to seven boxes and modulo $p
 and $62$ (eleven boxes, $18$ of them new) clean non-resonant two-cell rows: (D) $62/62$, partners $184$, $X^*$ $30$, zeros
 $618$, and the full rows from (D), (P), (K), (F), (Z), no failure.  The shifts $t$, $\alpha$ for an $F$-domino rest on the
 fewest cases.
+\end{observation}
+
+\begin{observation}[closed light columns: windowed elementary functions of the composite particles]\label{obs:interp}
+Several columns of (L) have a closed form.  For a channel $c=\{Z,Z'\}$ (a single has $Z=Z'$) put $x_m=Aq^{2m-1}$,
+$\beta_m=\mathrm{BC}(x_m)$, and let
+\[
+\hat E_c(t)=\prod_{i\ge0}\frac{(1+t\,x_{Z_i-i})(1+t/x_{Z'_i-i})}{(1+t\,x_{-i})(1+t/x_{-i})},\qquad
+\hat H_c(t)=\frac1{\hat E_c(-t)}
+\]
+be the generating functions of the particles $x_{Z_i-i}$ of $Z$ and the inverse particles of $Z'$, normalised by the
+vacuum (a cell of content $m$ moves a particle from $m$ to $m+1$).  For a finite set $W$ of integers (a \emph{window})
+put $E^W_c(t)=\hat E_c(t)\prod_{j\in W}(1+t\beta_{-j}+t^2)$ and $H^W_c(t)=\hat H_c(t)\prod_{j\in W}(1-t\beta_{j+1}+t^2)$,
+$e^W_r=[t^r]E^W_c$, $h^W_r=[t^r]H^W_c$, $[n]=\{0,\dots,n-1\}$, and $(\mathrm{Alt}\,f)(Z,Z')=f(Z,Z')-f(Z',Z)$,
+$(\mathrm{Sym}\,f)(Z,Z')=f(Z,Z')+f(Z',Z)$; $\mathrm{Alt}\,e^W_1$ does not depend on $W$ and is written $\alpha_1$.  For
+$\ell(Z),\ell(Z')\le n$, $E^{[n]}_c$ is the elementary generating function of $2n$ numbers $y$ with product $1$, and
+$e_r(1/y)=e_{2n-r}(y)$ gives $\mathrm{Alt}\,e^{[n]}_n(c)=0$; likewise $\mathrm{Alt}\,h^{[n]}_n(c)=0$ for $Z_0,Z'_0\le n$.
+This is the vanishing of the factorial Schur functions of Okounkov--Olshanski in composite form, and it gives the zero
+patterns below.  Each formula reads $N_{cY}=N_{YY}F_Y(c)/F_Y(Y)$, with the closed diagonal $N_{YY}$.
+\begin{itemize}
+\item[(H)] Hook pairs $X_{k,m}=\{(m+1,1^{k+1}),(m+2,1^k)\}$, $k,m\ge0$:
+$F=\mathrm{Alt}\,e^{[k+1]}_{k+1}\cdot\mathrm{Alt}\,h^{[m+1]}_{m+1}$, on every row of both families of (L) (vacuum,
+singles, one-cell and non-resonant two-cell pairs).  The explicit columns of weight two and three in (L) are the cases
+$(k,m)=(0,0),(0,1),(1,0)$.
+\item[(S)] The singles $1^w$ and $(w)$: $F_{1^w}=\mathrm{Sym}(e^{[w-1]}_w-e^{[w-1]}_{w-2})$, and $F_{(w)}$ the same
+with $h$, on both families.
+\item[(Z)] One-cell rows against one-cell columns of axis type, $(R(X),K(X))=(2\mu,2\nu)$ (Observation~\ref{obs:zonal}):
+$N_{cX}=N_{XX}\,(\bar E_1(c)/\bar E_1(X))^2\cbin{R(c)/2}{\mu}^{BC}\cbin{K(c)/2}{\nu}^{BC}$, with Okounkov's
+binomial coefficients of $BC$ type at $(s;q_M,t_M)=(Aq^{-5};q^4,q^2)$ and $(Aq^5;q^{-4},q^{-2})$, the analogue of
+\eqref{eq:zonal} for $N$.
+\item[(J)] Two-column axis columns, $\mu=2^{k'}1^{k-k'}$, $\nu=\varnothing$ (and the transposes, with $h$): on the singles
+and the family of the same orientation, the unique element of $\mathrm{span}\{\mathrm{Alt}\,e_i\,\mathrm{Alt}\,e_j\}$
+that restricts to $\bar E_1^2\cbin{R/2}{\mu}^{BC}$ on the one-cell pairs.  For $k'=1$ explicitly, with
+$\alpha^W_r=\mathrm{Alt}\,e^W_r$ and $(Q,T)=(q^4,q^2)$,
+\[
+F=\alpha^{[k+1]}_{k+1}\,\alpha^{\{k,k+1\}}_2+c_k\,\alpha^{[k+2]}_{k+2}\,\alpha_1,\qquad
+c_k=-\frac{(1-Q)(1-T^{k+1})}{(1-T)(1-QT^k)},
+\]
+where $c_k$ is the coefficient of $e_{k+1}$ in Macdonald's $P_{(2,1^{k-1})}(Q,T)=e_ke_1+c_ke_{k+1}$.
+\item[(G)] The two-cell columns of weight four, $\{[2,2],[4]\}$ ($h$) and $\{[1^4],[2,2]\}$ ($v$), on the singles and
+their own family: $F=\bar E_1^4+3\bar E_2^2-4\bar E_1\bar E_3-12\bar E_1^2=12\,s_{22}(\beta_X/\beta_Y)$.
+\end{itemize}
+The last form uses the moved cells.  With $\beta_e=\mathrm{BC}(z_e)$ at the cells of $X=Z\setminus V$ and $Y=Z'\setminus
+V$, the super power sums are $p_k(\beta_X/\beta_Y)=\sum_{j<k/2}\binom kj\bar E_{k-2j}$, so every super Schur function
+$s_\lambda(\beta_X/\beta_Y)$ is a polynomial in the $\bar E$, and by Berele--Regev it vanishes in $(n|n)$ variables when
+$\lambda\supseteq((n+1)^{n+1})$ and equals $\prod_{x,y}(\beta_x-\beta_y)$ for $\lambda=(n^n)$.  So $G$ vanishes on the
+channels with at most one moved cell per side and is $12\prod_{x,y}(\beta_x-\beta_y)$ on the two-cell channels (the
+two-cell columns are this rectangle factor times an interpolant of lower weight, closed at weight four only), and the
+relation $f_0=\bar E_1s_{333}(\beta_X/\beta_Y)$ of (L) at weight ten vanishes on all channels with at most two moved
+cells and is $\bar E_1\prod_{x,y}(\beta_x-\beta_y)$ on the three-cell channels; $f_0$ spans the kernel of the node
+matrices at $w=10$.  At $w=11$ four directions are missing in all ($989$ nodes for $\dim\Pi_{11}=993$), and at one point
+they vanish on the channels with at most two moved cells of weight $12$ and $13$.  Conjecturally the first element of
+$\Pi$ that vanishes on all channels with at most $k$ moved cells per side is $s_{((k+1)^{k+1})}(\beta_X/\beta_Y)$, times
+$\bar E_1$ when $k$ is even (weights $4,10,16,26$; seen for $k=1,2$).  Checked in the analysis on the exact rows up to seven boxes at three points
+and the rows $E_8$--$E_{11}$ at two points, no failure: (H) $71\,087$ entries, (S) $34\,475$, (Z) $23\,135$, (J)
+$43\,696$ and its $k'=1$ form $21\,912$, (G) $3964$; at every Lagrange node of their families ($330\,449$ node values);
+against the rows of (L) rebuilt from the closed top values at a fresh point without reading any row ($65\,312$ entries,
+$37\,006$ of them on rows beyond the data); the two super Schur identities exactly, and their values on every channel of
+weight $\le12$ at four points.  As expected, (J) fails on the other family and plain Jacobi--Trudi determinants fail.
+The script (\LMPH{hookcols}) checks (H), (S), the $k'=1$ form of (J) and (G) on the engine rows, and the values of $G$:
+$1169$ entries at $|R|\le6$ and $10\,612$ ($2239$ non-zero) with \LMPH{--nmax 9 --nb 12}, no mismatch.
+(H) and (S) were found at one point of the eleven-box rows, and the constants $c_k$ were recognised numerically and then
+identified with Macdonald's.  Open: the one-cell columns not of axis type ($219$ of the $296$ of weight $\le10$), the
+non-hook singles and the single hooks other than $1^w$, $(w)$, the two-column columns on the other family and the
+two-cell columns from weight five on.
 \end{observation}
 
 \begin{observation}[three-cell pairs, and the line rows at every $n$]\label{obs:threecell}
@@ -1277,7 +1349,8 @@ zonal binomials \eqref{eq:zonal} on axis columns, interpolation (I) on all & mod
 two-cell rows (non-resonant), single columns & sign-flip kernel \eqref{eq:kernel} & mod $p$ $\le11$ boxes\\
 two-cell rows (non-resonant), pair columns & top: products (P), $X^*$; heavier: $0$; light: Lagrange interpolants
 \eqref{eq:lagrange}, ratios of determinants, on $\Pi_w$ restricted to the channels from weight $10$ on
-(Obs.~\ref{obs:twocell}) & mod $p$ $\le11$ boxes; two-row rows $\le15$\\
+(Obs.~\ref{obs:twocell}); closed for the hook pairs, the one-row and one-column singles, the two-column axis columns and
+weight four (Obs.~\ref{obs:interp}) & mod $p$ $\le11$ boxes; two-row rows $\le15$\\
 line pair rows ($n$ cells), single columns & \eqref{eq:kernel} on the end states, \eqref{eq:ring} on the rings; deep
 states: $n=4$ closed, $n=5$ tables & mod $p$, $n\le6$\\
 line pair rows ($n$ cells), pair columns & heavy support $=$ the chain pairs (LC), the two partners (LP); for $n=3$ the
@@ -1289,11 +1362,12 @@ resonant two-cell rows, pair columns & heavier: products (H); light: Lagrange in
 whose resonant and two-cell coordinates are products (Obs.~\ref{obs:resrows}) & mod $p$ $\le11$ boxes\\
 ghost directions & zero rule for the tops, ghost term with $Z_g$ from the trefoil (Section~\ref{sec:ghosts}); top
 coordinates at $R=U$ by the top-weight law with multiplicities; for $\mathrm{ex}\ge2$ and four corners one symmetric form
-$K_U$, at $[4,3,2,1]$ closed on the nine good tops and the off-diagonal of the $3\times3$ block (Section~\ref{sec:cubic})
-& $\le10$ boxes except $[4,3,2,1]$; there all but ten ghost numbers\\
+$K_U$, at $[4,3,2,1]$ closed on the nine good tops and the off-diagonal of the $3\times3$ block (Section~\ref{sec:cubic});
+their number by one identity per corner, closed for three rows with a gap $\le2$ or $s_3=3$, and the leading part for
+three corners & $\le10$ boxes except $[4,3,2,1]$; there all but ten ghost numbers; the count $\le18$ boxes\\
 \midrule
 \multicolumn{3}{p{0.95\textwidth}}{\textbf{Not closed:} a combinatorial formula for the Lagrange basis of
-\eqref{eq:lagrange}, and the top values at separate/separate and interior-domino nodes (in the data, tops of ghost
+\eqref{eq:lagrange} beyond Observation~\ref{obs:interp}, and the top values at separate/separate and interior-domino nodes (in the data, tops of ghost
 diagrams); the three-cell block of the three-cell line rows, and their heavy columns other than the partners; the pair
 columns of the other rows with three or more moved cells per side; the other twelve kernel states of a domino plus a
 separate cell against a line; bent sides beyond the diagonal; the anomalous pairs ($m_c(U)=0$); deep states of line pairs
@@ -1337,9 +1411,60 @@ of equal rows, $s_i$ the step after it): if $r_2=s_2=1$, iff ($s_1,s_3\ge2$) or 
 $r_1=1$, $r_3\ge2$, $s_3=1$; if $s_2=1<r_2$, unless $s_3=1$, $s_1\ge2$, $r_1=1$; if $r_2,s_2\ge2$, always.  The first ghost
 diagrams are $[4,3,1]$ (eight boxes), $[5,3,1]$ (nine), $[6,3,1]$, $[5,4,1]$, $[5,3,2]$ and the four-corner $[4,3,2,1]$
 (ten), and their transposes.  The rule was found on the census of $\mathrm{ex}(U)$ up to $13$ boxes and checked on all $135$
-diagrams with $14$ boxes (a first rule found on $\le12$ boxes failed at $13$).  For three corners the ghost lives, modulo
+diagrams with $14$ boxes (a first rule found on $\le12$ boxes failed at $13$), and with the exact count of the next item
+on all diagrams up to $18$ boxes ($819$ up to transposition).  For three corners the ghost lives, modulo
 the ghosts of smaller ghost diagrams, exactly on the channels whose minimal diagram is a proper vertex of the Boolean
 cube $[U-\mathrm{corners}(U),U)$ (nine diagrams up to eleven boxes).
+\item \textbf{How many ghosts, and their leading part} (analysis).  $\dim I_U$ has an exact form without characters and
+without a node bound.  The colours $S\not\supseteq U$ are the union over the corners $(i,j)$ of $U$ of the fat hooks
+$\{S:S_i\le j\}$, on which the content power sums are supersymmetric in $i+j$ variables, and the super-Cauchy identity
+turns the vanishing into one identity per corner: $f=\sum_Xf_X\psi_X$ lies in $I_U$ iff the weights $\mu_X$ ($f_X$ for a
+single, $f_X/2$ for each orientation of a pair, $\mu_\vac=-\sum_Xf_X$) satisfy
+\[
+\sum_X\mu_X\prod_{k<i}R_X(a_k)\prod_{l<j}R_X(c_l)^{-1}=0\quad\text{for all }a,c,\qquad
+R_X(a)=\frac{\prod_{n\in N(X)}(1-na)}{\prod_{w\in P(X)}(1-wa)},
+\]
+at every corner $(i,j)$, with $P(Z,Z')=\{t^{\alpha_r+1}\}\cup\{ut^{-\alpha'_s}\}$, $N(Z,Z')=\{t^{-\beta_r}\}\cup
+\{ut^{1+\beta'_s}\}$ from the Frobenius coordinates $(\alpha|\beta)$, $(\alpha'|\beta')$ of $Z$, $Z'$, $t=q^2$,
+$u=A^{-2}$.  By partial fractions the conditions say that $\mu$ kills the residue monomials of the $R_X$ (products of $i'$
+particle and $j'$ hole residues, $(i',j')$ a cell of $U$), so $\dim I_U$ is a Hilbert function of the labels in these
+coordinates.  The limit $A\to\infty$ keeps the rank (all $355$ diagrams up to $15$ boxes), the further limit $q\to1$
+does not (first at $[5,3,2,1]$).  With this the census extends to $18$ boxes, and for three rows,
+$U=[s_1+s_2+s_3,s_2+s_3,s_3]$ and the transposes, $\mathrm{ex}(U)$ is closed whenever a gap is at most two or $s_3=3$
+($m=\min(s_1,s_2)$):
+\begin{itemize}
+\item $\max(0,\min(s_1,s_3)-1)$ for $s_2=1$; $\min(s_1,s_2-1)$ for $s_3=1<s_2$; $\min(s_2,s_3)$ for $s_1=1<s_2$;
+\item $7(m-1)+3\,[s_2>s_1]$ for $s_3=2\le s_1,s_2$; for $s_2=2\le s_1$, $s_3\ge3$: $9s_1-8$ ($s_1<s_3$), $9s_3-12$
+($s_1\ge s_3$); for $s_1=2$, $s_2,s_3\ge3$: $9s_2-6$, $9s_3-9$, $9s_3-8$ for $s_2<s_3$, $s_2=s_3$, $s_2>s_3$;
+\item $21m-28$, $21m-32$, $21m-23$, $21m-22$ for $s_3=3\le s_1,s_2$ and $s_1>s_2$, $s_1=s_2$, $s_2=s_1+1$, $s_2\ge s_1+2$.
+\end{itemize}
+The third difference $\Delta_1\Delta_2\Delta_3\,\mathrm{ex}$ lies in the band $-(s_3-2)\le s_2-s_1\le s_3-1$ with totals
+$1,6,14,28$ for $s_3=1,\dots,4$, whose partial sums are the slopes $1,7,21,49$ in $m$ (observed).  The ghost space has a
+canonical filtration by depth, $|U|$ minus the largest level $|Z|$ at which a ghost has a non-zero coefficient.  No
+ghost has depth $0$ or $1$, the graded dimensions do not depend on the point, and the top piece, depth $2$, has
+dimension $1$, $7$, $21$ for three, four, five corners in every case computed.  Its leading parts live on the depth-two
+labels of multiplicity two, $\{U-T,U-T'\}$ with $T$, $T'$ two-element sets of corners, and avoid the tops among them
+($T\cap T'=\varnothing$, the multiplicity-two tops); and $\sum_c(m_c(U)-1)$ over the tops and co-tops never exceeds
+$\mathrm{ex}(U)$ (up to $13$ boxes).  At $[4,3,2,1]$ and $[5,3,2,1]$ the graded dimensions are $7,3$ and $7,4$, the same
+numbers as $\dim J$ and $\dim G/J$ in Section~\ref{sec:cubic}.  For three corners the leading part of the ghost is closed
+and independent of $A$: with corner contents $c_1>c_2>c_3$, $Z_a$ the diagram $U$ without the two corners other than
+$a$, $H(Z)=\prod_{b\in Z}[h(b)]$ and
+\[
+\frac{k_{\{Z_a,Z_b\}}}{d_{\{Z_a,Z_b\}}}\propto w_aw_b,\qquad w_a=H(Z_a)\,v_a,\qquad
+v=\bigl([c_2-c_3],\,-[c_1-c_3],\,[c_1-c_2]\bigr),
+\]
+so the leading part is $\sum_{a,b}w_aw_b\,\chi_{[Z_a,Z_b]}$, the composite square of the virtual representation
+$\sum_aw_aZ_a$, and $\{q\}v$ is the cross product of $(q^{c_a})$ and $(q^{-c_a})$.  The deeper coefficients are not
+products (at $[4,3,1]$ degrees up to ten in $A^{-2}$ and irreducible numerators).  For four and five corners the vectors
+of the three-element sets of corners lie in the top piece but span only $4$ of its $7$ and $10$ of its $21$ dimensions.
+Checked: the exact count against the characters on all $355$ diagrams up to $15$ boxes and at two seeds up to $12$; the
+three-row formulas on all $217$ three-row diagrams computed in these regimes (up to $30$ boxes), with $39$ values written
+down before they were computed ($36$ three-row, $3$ four-corner) all correct, while one more guess, at
+$(s_1,s_2,s_3)=(6,4,4)$, failed; the leading vector, found on the $30$ three-corner ghost diagrams up to $13$ boxes, on
+$11$ more at $14$--$15$ boxes and at a second point on $11$ diagrams up to $19$ boxes, with a sign-flipped control; the
+depth profiles at two seeds.  Not closed: $\mathrm{ex}(U)$ for four or more corners and for three rows with
+$s_3\ge4$ and $\min(s_1,s_2)=3$ or $s_3\ge5$, a basis of the ghost space below the top piece, and the ghost coefficients
+below the leading part.
 \item \textbf{Checks}, with $Z_g$ from \eqref{eq:ghost} and nothing fitted: the formula agrees with the strengthened
 Formula~II of the other branch for all $137$ diagrams with $|R|\le10$ except $[4,3,2,1]$, $m=-4,\dots,4$, two points; at
 $m=-1$ this includes the stored $H_R(4_1)$ of $[4,3,1]$ and $[3,2,2,1]$, where \eqref{eq:channel} alone fails.  The
@@ -1402,8 +1527,8 @@ linear polynomiality condition removes.  So no principle at $R=U$ fixes the laye
 $R\supsetneq U$ do see the invisible part, since they contract $K_U$ with $f(R)$ rather than $f(U)$; their polynomiality
 was not tested.
 \item \textbf{Open.}  Ghost diagrams with $\mathrm{ex}(U)\ge2$ (first $[6,4,1]$, $[5,4,2]$ at eleven boxes) and the
-four-corner diagrams ($[4,3,2,1]$ with ten ghosts, $[5,3,2,1]$ with eleven): the forms $K_U$; the values of
-$\mathrm{ex}(U)$; a closed form for the coefficients of $k_U$.
+four-corner diagrams ($[4,3,2,1]$ with ten ghosts, $[5,3,2,1]$ with eleven): the forms $K_U$; $\mathrm{ex}(U)$ outside
+the three-row regimes above; the ghost coefficients below their leading part, which is closed for three corners.
 \end{itemize}
 
 \subsection{Double braids and Borromean rings: one cubic tensor}\label{sec:cubic}
@@ -1665,7 +1790,9 @@ light columns as Lagrange interpolants \eqref{eq:lagrange} (\LMPH{lagrange}) & n
 end to end from the closed rows only, \eqref{eq:U} without ghosts (\LMPH{closed}) & \LMPH{--nmax 10}: all $76$ diagrams whose channels are singles and one-cell pairs, $320$ stored values and $76$ Rosso--Jones values, no mismatch; analysis: $72$ such diagrams with $11$--$14$ boxes (Rosso--Jones), $26$ diagrams $\le6$ exactly\\
 pair-pair block: interpolation (I), zonal binomials \eqref{eq:zonal} (analysis) & (I) on every engine entry up to eleven boxes and $98\,343$ generated entries $\le14$ boxes; \eqref{eq:zonal} on $26\,826$ axis-type entries; no failure\\
 resonant rows, Observation~\ref{obs:resrows} (analysis) & all $21$ resonant pairs with one minimal diagram up to eleven boxes: unique solution $=$ engine row at every column, two points; exact identities on the three rows $\le7$ boxes; uniform filtration on $1019$ clean rows per point\\
+closed light columns, Observation~\ref{obs:interp} (\LMPH{hookcols}: (H), (S), (J) for $k'=1$, (G)) & on the engine rows $1169$ entries ($268$ non-zero) at $|R|\le6$, $10\,612$ ($2239$ non-zero) with \LMPH{--nmax 9 --nb 12}, and $G=0$ or $12\prod(\beta_x-\beta_y)$ on $197$ rows; no mismatch; analysis: exact rows $\le7$ boxes at three points and $E_8$--$E_{11}$ at two points: hook pairs $71\,087$ entries, one-row and one-column singles $34\,475$, axis columns of one-cell rows $23\,135$, two-column axis columns $43\,696$ ($21\,912$ in the explicit $k'=1$ form), weight four $3964$; $330\,449$ Lagrange node values; $65\,312$ entries of rows rebuilt without reading any row; the super Schur identities exactly and on every channel of weight $\le12$ at four points; no failure\\
 three-cell pairs and line rows, Observation~\ref{obs:threecell} (analysis) & (D3) on all $46$ three-cell pairs with $m_c(U)=1$ and a unique row up to twelve boxes ($1196$ points), again from the engine rows ($92$ row checks), on the rank-deficient rows in the gauge of the zero rule ($20$ checks) and on four-cell pairs with a line side at $13$--$14$ boxes ($14$); (LE) $240$ states and the kernel form on $408$ residual columns; (LC) $35$ row checks, $n=3,\dots,6$; (LP) $154$ entries, $n=2,\dots,6$; no failure\\
+number of ghosts and their leading part, Section~\ref{sec:ghosts} (analysis) & the exact count against the characters on all $355$ diagrams $\le15$ boxes, at two seeds $\le12$, and $11$ counts up to $26$ boxes at a fresh point; census of $819$ diagrams $\le18$ boxes (the rule for which diagrams, $0$ violations); three-row formulas on $217$ diagrams up to $30$ boxes, $39$ values predicted before they were computed; the leading vector on $30+11$ three-corner diagrams $\le15$ boxes and at a second point on $11$ up to $19$ boxes, with a control; depth profiles at two seeds\\
 ghost layer \eqref{eq:ghost} (analysis) & with $Z_g$ from the trefoil: all $137$ diagrams $\le10$ boxes except $[4,3,2,1]$ against the strengthened engine, $m=-4,\dots,4$, two points\\
 ghost layer of $[4,3,2,1]$ at $R=U$ (analysis) & lower part $118/118$ terms equal to the closed block of the other branch (which equals Formula~I $8/8$ and Rosso--Jones), $Y\in I_U$, $\dim I_U=24=12+2+10$; two points\\
 fixing principles at $R=U$ (analysis) & free parameters left by polynomiality / $+4_1$ amphichirality / $+$Rosso--Jones: $18$ / $1$ / $0$ (consistent) at $[4,3,1]$; $58$ / $35$ / $34$ at $[5,4,2]$ and $[6,4,1]$; $270$ / not run / $259$ at $[4,3,2,1]$\\
@@ -1690,8 +1817,10 @@ $[2,2,1,1]$ on): for the one-cell pairs every column of $N$, $\Et$, $E$, $B$ is 
 two-cell pairs the single columns (kernel \eqref{eq:kernel}), the diagonal, the first pair column, the pair columns of
 the top weight and the zeros are closed (Observation~\ref{obs:twocell}); the light columns are explicit Lagrange
 interpolants \eqref{eq:lagrange}, ratios of determinants rather than products (the pure-$q$ property behind
-\eqref{eq:roots} fails there); open is a combinatorial formula for the Lagrange basis (from weight $10$ on it lives
-on the power sums restricted to the channels).  The resonant two-cell pairs (vertical against horizontal domino, e.g.\
+\eqref{eq:roots} fails there).  The hook pair columns, the one-row and one-column singles, the two-column axis columns on
+their family and the weight-four two-cell columns are closed (Observation~\ref{obs:interp}); open is a formula for the
+other columns of the Lagrange basis, first the one-cell columns not of axis type (from weight $10$ on the basis lives on
+the power sums restricted to the channels).  The resonant two-cell pairs (vertical against horizontal domino, e.g.\
 $\{[1,1,1],[3]\}$ in $R=[3,2,1]$) have closed single columns on $[V,R_{\min}]$, products in the heavy pair columns, and
 light columns that are Lagrange interpolants on an enlarged space with closed product coordinates
 (Observation~\ref{obs:resrows}); they are fixed by the vanishing conditions, while the twist-knot data test only their
@@ -1723,7 +1852,9 @@ $[4,3,2,1]$), and none of the principles tested (polynomiality in $A$, the amphi
 them once $\mathrm{ex}(U)\ge2$, and neither do the double braids at $R=U$ with their mirror symmetry
 (Section~\ref{sec:ghosts}).  What the twist knots see of such a diagram at every $R\supseteq U$ is one symmetric form, its
 double-braid block $K_U$ at $R=U$ (Section~\ref{sec:cubic}); one exact double braid with $|m|,|n|\ge2$ at $R=U$ would fix
-it at $\mathrm{ex}(U)=2$.
+it at $\mathrm{ex}(U)=2$.  The number of ghosts has an exact form (one super-Cauchy identity per corner) and is closed for
+three rows with a gap at most two or $s_3=3$, not in general; for three corners the leading part of the ghost is closed
+(Section~\ref{sec:ghosts}).
 \item \textbf{Double braids and Borromean rings} (Section~\ref{sec:cubic}): the cubic form is checked up to ten boxes
 and away from $[4,3,2,1]$ only; the factors $C_U$ and $\sigma_U$ of the deferred constants are those fitted by the other
 branch (new here are $g_U$, $a_U$ and the identification of $h_0$, $h_1$ with our rows); at eleven boxes the nine-box
@@ -1937,8 +2068,8 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 \begin{itemize}\raggedright
 \item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
 (options \LMPH{--nmax}, \LMPH{--seed}, \LMPH{--nb}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom
-pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed vacuum twocell lagrange monomial
-ideal dbraid}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
+pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed vacuum twocell lagrange hookcols
+monomial ideal dbraid}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
 adjres gap2 roots fullrow kernel} runs the checks of Sections \ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends
 them to seven boxes, and \LMPH{--nmax 7 --nb 10} imposes the vanishing conditions on all diagrams with at most ten boxes,
 which makes every channel with $|R|\le7$ full rank).
@@ -1951,7 +2082,8 @@ The closed formulas live in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{
 and \LMPH{minimal\_pairs} for the census), \LMPH{pi\_vac} \eqref{eq:vacuum},
 \LMPH{pair\_diag} \eqref{eq:pdiag}, \LMPH{first\_pair\_column}, \LMPH{partner\_B}, \LMPH{xstar\_B} and \LMPH{twocell\_zero}
 (Observation~\ref{obs:twocell}), \LMPH{lagrange\_family}, \LMPH{pi\_monomials}, \LMPH{low\_columns} and
-\LMPH{check\_lagrange} \eqref{eq:lagrange}, \LMPH{mono\_M}, \LMPH{ideal\_basis} (Observation~\ref{obs:monomial}),
+\LMPH{check\_lagrange} \eqref{eq:lagrange}, \LMPH{window\_series}, \LMPH{hook\_poly}, \LMPH{single\_poly},
+\LMPH{twocol\_poly} and \LMPH{g4\_poly} (Observation~\ref{obs:interp}), \LMPH{mono\_M}, \LMPH{ideal\_basis} (Observation~\ref{obs:monomial}),
 \LMPH{db\_formula}, \LMPH{db\_window} and \LMPH{borromean\_formula} (Section~\ref{sec:cubic}), and \LMPH{closed\_N} / \LMPH{closed\_H}, which build $N$ from the closed rules and
 evaluate \eqref{eq:U}.  \LMPH{--nmax 10 closed} is the end-to-end check (about two minutes).
 \item \LMPH{python3 -m pytest tests/test\_twist\_formula.py} --- fast subset.

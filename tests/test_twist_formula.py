@@ -171,6 +171,14 @@ def test_lagrange_light_columns():
     assert ok, lines
 
 
+def test_closed_light_columns():
+    """The closed light columns from windowed elementary / complete functions of the composite particles: the hook
+    pairs and the singles 1^w, (w) on all rows of the Lagrange families, the two-column pairs and the weight-4 two-cell
+    pairs on their own family, and G = 0 / 12 Pi (|R| <= 7)."""
+    ok, lines = T.check_hookcols(nmax=7, seed=29)
+    assert ok, lines
+
+
 def test_monomial_law():
     """Phi_c(1) = M(R_min(c)) = (-1)^|R| A^{2|R|} q^{2 kappa_R} for every channel with one minimal diagram."""
     ok, lines = T.check_monomial(nmax=6, seed=26)

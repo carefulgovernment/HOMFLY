@@ -59,6 +59,10 @@ checks:
   lagrange  the light columns of the non-resonant rows of N (singles, one-cell, two-cell) as Lagrange interpolants (L) in
           the Ebar-even composite power sums on the channels of one domino orientation (node census (U) to weight 10),
           and the explicit weight-3 columns
+  hookcols  the closed light columns N_cY = N_YY F_Y(c) / F_Y(Y), F_Y built from windowed elementary / complete functions
+          of the composite particles x_{Z_i - i}, 1/x_{Z'_i - i} (x_m = A q^{2m-1}): the hook pairs and the singles 1^w,
+          (w) on every row of the Lagrange families, the two-column pairs (a Macdonald coefficient) and the weight-4
+          two-cell pairs on their own family, and G = 0 / 12 prod (b_x - b_y) on the rows with <= 1 / 2 moved cells
   monomial  the monomial law Phi_c(1) = M(R_min(c)) = (-1)^{|R|} A^{2|R|} q^{2 kappa_R} for every clean channel with one
           minimal diagram (with Phi_c(-1) = 1 and Phi_c(0) = 0 it closes the double-braid form of the formula)
   ideal   the ideal identity: f(U) = rho(U) phi_f(-1) and phi_f(1) = M(U) phi_f(-1) on every basis vector of the
@@ -70,7 +74,7 @@ checks:
           phi_c(-1)^2 M(R_min(c))) against data/homfly/L6a4.txt
 
 usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed vacuum
-       twocell lagrange monomial ideal dbraid]
+       twocell lagrange hookcols monomial ideal dbraid]
 """
 import argparse
 import gzip
@@ -2201,6 +2205,144 @@ def check_lagrange(nmax=6, seed=1):
                         cnt["low"], "none" if not bad else bad[:4])]
 
 
+# --- the closed light columns: windowed elementary and complete functions of the composite particles ------------------
+def window_series(c, W, n, F, A, q, h=False, swap=False):
+    """[t^0], ..., [t^n] of the windowed generating functions of the composite particles of c = (Z, Z'),
+        u(c) = {x_{Z_i - i}} u {1 / x_{Z'_i - i}},   x_m = A q^{2m-1}   (vacuum particles at m = 0, -1, -2, ...),
+        E^W_c(t) = prod_i (1 + t x_{Z_i-i})(1 + t / x_{Z'_i-i}) / ((1 + t x_{-i})(1 + t / x_{-i})) prod_{j in W} (1 + t b_{-j} + t^2),
+        H^W_c(t) = prod_i (1 - t x_{-i})(1 - t / x_{-i}) / ((1 - t x_{Z_i-i})(1 - t / x_{Z'_i-i})) prod_{j in W} (1 - t b_{j+1} + t^2),
+    b_m = x_m + 1/x_m (h selects H); swap exchanges Z and Z' (u -> 1/u)."""
+    Z, Zp = (c[2], c[1]) if swap else (c[1], c[2])
+    x = lambda m: A * q ** (2 * m - 1)
+    part = [x(r - i) for i, r in enumerate(Z)] + [1 / x(r - i) for i, r in enumerate(Zp)]
+    vac = [x(-i) for i in range(len(Z))] + [1 / x(-i) for i in range(len(Zp))]
+    if not h:
+        num, den = part + [x(-j) for j in W] + [1 / x(-j) for j in W], vac
+    else:
+        num, den = [-r for r in vac] + [-x(j + 1) for j in W] + [-1 / x(j + 1) for j in W], [-r for r in part]
+    s = [F.one] + [F.zero] * n
+    for r in num:                                  # times (1 + r t)
+        for k in range(n, 0, -1):
+            s[k] = s[k] + r * s[k - 1]
+    for r in den:                                  # divided by (1 + r t)
+        for k in range(1, n + 1):
+            s[k] = s[k] - r * s[k - 1]
+    return s
+
+
+def window_alt(c, W, r, F, A, q, h=False, sign=-1):
+    """Alt (sign -1) or Sym (sign +1) of e^W_r = [t^r] E^W (h: of h^W_r): f(Z, Z') -+ f(Z', Z)."""
+    if r < 0:
+        return F.zero
+    return window_series(c, W, r, F, A, q, h)[r] + sign * window_series(c, W, r, F, A, q, h, True)[r]
+
+
+def hook_poly(c, k, m, F, A, q):
+    """(H) the hook column X_{k,m} = {(m+1, 1^{k+1}), (m+2, 1^k)}:  Alt e^{[k+1]}_{k+1} Alt h^{[m+1]}_{m+1}, [n] = {0..n-1}."""
+    return window_alt(c, range(k + 1), k + 1, F, A, q) * window_alt(c, range(m + 1), m + 1, F, A, q, True)
+
+
+def single_poly(c, w, h, F, A, q):
+    """(S) the single column 1^w:  Sym (e^{[w-1]}_w - e^{[w-1]}_{w-2});  (w) (h True): the same with h."""
+    return window_alt(c, range(w - 1), w, F, A, q, h, 1) - window_alt(c, range(w - 1), w - 2, F, A, q, h, 1)
+
+
+def twocol_poly(c, k, h, F, A, q):
+    """(J) the two-column column mu = (2, 1^{k-1}), X = {(2, 2, 1^{k-1}), (2, 1^{k+1})} (and with h its transpose):
+        Alt e^{[k+1]}_{k+1} Alt e^{[k, k+2)}_2 + c_k Alt e^{[k+2]}_{k+2} Alt e_1,
+    c_k = -(1 - Q)(1 - T^{k+1}) / ((1 - T)(1 - Q T^k)), (Q, T) = (q^4, q^2): the coefficient of e_{k+1} in the Macdonald
+    polynomial P_{(2, 1^{k-1})}(Q, T) = e_k e_1 + c_k e_{k+1}."""
+    Q, T = q ** 4, q ** 2
+    ck = -(1 - Q) * (1 - T ** (k + 1)) / ((1 - T) * (1 - Q * T ** k))
+    return (window_alt(c, range(k + 1), k + 1, F, A, q, h) * window_alt(c, range(k, k + 2), 2, F, A, q, h)
+            + ck * window_alt(c, range(k + 2), k + 2, F, A, q, h) * window_alt(c, (), 1, F, A, q, h))
+
+
+def g4_poly(c, F, A, q):
+    """(G) G = Ebar_1^4 + 3 Ebar_2^2 - 4 Ebar_1 Ebar_3 - 12 Ebar_1^2 (= 12 s_22 of the cell variables)."""
+    O, E = power_sums(c, 3, F, A, q)
+    return E[1] ** 4 + 3 * E[2] ** 2 - 4 * E[1] * E[3] - 12 * E[1] ** 2
+
+
+def check_hookcols(nmax=6, seed=1):
+    """The closed light columns: for each column Y below and every clean row c != Y of the stated rows,
+        N_cY F_Y(Y) = N_YY F_Y(c)        (N_cY = N_YY F_Y(c) / F_Y(Y), N_YY the closed diagonal):
+      (H) the hook pairs X_{k,m}, F = hook_poly, and (S) the singles 1^w and (w), F = single_poly, on every row of the
+          Lagrange families (singles, one-cell pairs, non-resonant two-cell pairs of both orientations);
+      (J) the two-column pairs {(2, 2, 1^{k-1}), (2, 1^{k+1})} and their transposes, F = twocol_poly, on the rows of
+          their natural family (h, resp. v);
+      (G) the weight-4 two-cell pairs {[2,2],[4]} (h) and {[1^4],[2,2]} (v), F = g4_poly, on the rows of their family;
+    and G = 0 on the rows with at most one moved cell, G = 12 prod_{x in X, y in Y} (b_x - b_y) on the two-cell rows,
+    b_e = A q^{2c(e)} + 1/(A q^{2c(e)}).  Off its family a (J) or (G) column is a different polynomial (counted)."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    pos = {c: i for i, c in enumerate(order)}
+    cleanset = set(clean)
+    rows = [c for c in clean if lagrange_family(c)]
+    fam = {xi: [c for c in rows if xi in lagrange_family(c)] for xi in ("h", "v")}
+    wtop = max(weight(c) for c in rows)
+    cols = []
+    for k in range(wtop):
+        for m in range(wtop - k - 2):
+            cols.append(("H", I.pair((m + 1,) + (1,) * (k + 1), (m + 2,) + (1,) * k),
+                         lambda c, k=k, m=m: hook_poly(c, k, m, F, A, q), None))
+    for w in range(1, wtop):
+        cols.append(("S", I.single((1,) * w), lambda c, w=w: single_poly(c, w, False, F, A, q), None))
+        if w > 1:
+            cols.append(("S", I.single((w,)), lambda c, w=w: single_poly(c, w, True, F, A, q), None))
+    for k in range(1, wtop - 3):
+        cols.append(("J", I.pair((2, 2) + (1,) * (k - 1), (2,) + (1,) * (k + 1)),
+                     lambda c, k=k: twocol_poly(c, k, False, F, A, q), "h"))
+        cols.append(("J", I.pair((k + 1, 2), (k + 2, 1)), lambda c, k=k: twocol_poly(c, k, True, F, A, q), "v"))
+    cols.append(("G", I.pair((2, 2), (4,)), lambda c: g4_poly(c, F, A, q), "h"))
+    cols.append(("G", I.pair((1, 1, 1, 1), (2, 2)), lambda c: g4_poly(c, F, A, q), "v"))
+    cnt = {lab: [0, 0, 0, 0, 0] for lab in "HSJG"}       # columns, entries, non-zero entries, off-family, of them differing
+    bad = []
+    for lab, Y, f, xi in [col for col in cols if col[1] in pos]:
+        if Y not in cleanset or f(Y) == 0:
+            bad.append(("column", Y))
+            continue
+        j = pos[Y]
+        sc = N[j][j] / f(Y)
+        cnt[lab][0] += 1
+        for c in (rows if xi is None else fam[xi]):
+            if c != Y:
+                v = N[pos[c]][j]
+                cnt[lab][1] += 1
+                cnt[lab][2] += v != 0
+                if v != sc * f(c):
+                    bad.append((lab, c, Y))
+        if xi is not None:
+            for c in rows:
+                if xi not in lagrange_family(c):
+                    cnt[lab][3] += 1
+                    cnt[lab][4] += N[pos[c]][j] != sc * f(c)
+    b = lambda e: A * q ** (2 * cont(e)) + 1 / (A * q ** (2 * cont(e)))
+    gid = 0
+    for c in rows:
+        want = F.zero
+        if c[0] == "p" and len(pair_cells(c)[1]) == 2:
+            V, X, Yc = pair_cells(c)
+            want = 12 * (b(X[0]) - b(Yc[0])) * (b(X[0]) - b(Yc[1])) * (b(X[1]) - b(Yc[0])) * (b(X[1]) - b(Yc[1]))
+        gid += 1
+        if g4_poly(c, F, A, q) != want:
+            bad.append(("G = 12 Pi", c))
+    kinds = {}
+    for c in rows:
+        k = "single" if c[0] == "s" else {"1-cell": "one-cell", "2-cell separate/separate": "sep/sep"}.get(
+            pair_kind(c), "two-cell " + "".join(sorted(lagrange_family(c))))
+        kinds[k] = kinds.get(k, 0) + 1
+    part = lambda lab, name: "%s %d columns, %d entries (%d non-zero)" % (name, cnt[lab][0], cnt[lab][1], cnt[lab][2])
+    return not bad, ["hookcols: |R| <= %d, rows %s; (H) %s; (S) %s; (J) %s, off the family %d of %d entries differ; (G) %s, "
+                     "off the family %d of %d differ; G = 0 / 12 Pi on %d rows; mismatches %s"
+                     % (nmax, ", ".join("%s %d" % (k, kinds[k]) for k in sorted(kinds)), part("H", "hooks"),
+                        part("S", "singles 1^w, (w)"), part("J", "two-column"), cnt["J"][4], cnt["J"][3],
+                        part("G", "weight-4 two-cell"), cnt["G"][4], cnt["G"][3], gid, "none" if not bad else bad[:4])]
+
+
 # ---------------------------------------------------------------------------
 # double braids and Borromean rings: the cubic form of the formula
 # ---------------------------------------------------------------------------
@@ -2444,8 +2586,8 @@ CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check
           "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
           "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow, "kernel": check_kernel,
           "topweight": check_topweight, "mult": check_mult, "closed": check_closed, "vacuum": check_vacuum,
-          "twocell": check_twocell, "lagrange": check_lagrange, "monomial": check_monomial, "ideal": check_ideal,
-          "dbraid": check_dbraid}
+          "twocell": check_twocell, "lagrange": check_lagrange, "hookcols": check_hookcols, "monomial": check_monomial,
+          "ideal": check_ideal, "dbraid": check_dbraid}
 
 
 def set_node_bound(nb):
