@@ -211,9 +211,10 @@ pairs ($m_c(U)=0$); separate/separate two-cell pairs (no data).
 
 \item \textbf{Ghosts: where the channel form stops, and how the formula continues.}  Up to seven boxes the vanishing
 conditions determine every row of $E$ once enough nodes are used; the rank deficiencies seen at seven and eight boxes with
-the engine's default node bound are an artefact of that bound, with one exception: the five top channels of $R=[4,3,1]$
+the first node bound $\max(7,|R_{\min}|+1)$ are an artefact of that bound (the engine now adds larger nodes while a row
+is undetermined), with one exception: the five top channels of $R=[4,3,1]$
 and the five of $[3,2,2,1]$ (eight boxes) keep a one-dimensional common kernel for every node bound, and no choice of the
-free parameter makes \eqref{eq:channel} reproduce $H_R(\Tw_m)$ for these two $R$ (with the default gauge already
+free parameter makes \eqref{eq:channel} reproduce $H_R(\Tw_m)$ for these two $R$ (with the zero gauge already
 $H_R(4_1)$ is wrong).  The kernel is a \emph{ghost}: a combination of characters that vanishes on every $R$ not containing
 $U=[4,3,1]$ and belongs to no channel.  It adds one term of the same three-factor form to \eqref{eq:Usum}, whose constant
 $Z_g$ is fixed by the trefoil (Rosso--Jones at $m=1$, $R=U$); nothing is fitted.  With this term the formula agrees with
@@ -358,8 +359,8 @@ check & result (modulo $p=10^9+7$; seed points 1 and 2 of the project)\\
 \endhead
 the law \eqref{eq:law} on the stored exact weights, all $R$ with $|R|\le6$ (\LMPH{regular}) & $263/263$ labels at $16$
 values of $A$; the bound is attained on all $214$ labels with bound $\ge1$; without the factor $\rho(R)$ all $263$ fail\\
-the law on the engine's weights at seven boxes (\LMPH{regular --nmax 7}) & $325/325$ labels of the $15$ diagrams (node
-bound $10$; with the default bound the $28$ labels of the rank-deficient rows of $[4,2,1]$, $[3,2,1,1]$ fail)\\
+the law on the engine's weights at seven boxes (\LMPH{regular --nmax 7}) & $325/325$ labels of the $15$ diagrams (with
+the rows of the first node bound alone the $28$ labels of the rank-deficient rows of $[4,2,1]$, $[3,2,1,1]$ fail)\\
 \eqref{eq:final} at $[4,3,1]$, $[3,2,2,1]$, the whole layer unknown (\LMPH{regular --nmax 8}) & unique ($6$ unknowns at
 each of $24$ values of $A$); the stored exact $H_R(4_1)$, Rosso--Jones $H_R(3_1)$, the top law on all $5$ tops; $[4,3,1]$
 solved at $(A,-1/q)$ gives the twist knots of $[3,2,2,1]$ at $(A,q)$, $|m|\le4$\\
@@ -497,9 +498,9 @@ $F_c(R)$, $B$ as above, the single rows of $B$ given by \eqref{eq:kntz} and the 
 \section{The single sector is closed}\label{sec:single}
 
 A single row of $B$ has non-zero entries only at single columns $\mu\subseteq\lambda$ (no pair entries; this holds for
-every single channel with $|\lambda|\le 8$ whose vanishing system has full rank, while the engine's gauge rows of the
-seven rank-deficient singles listed below do contain pair entries, one way to see that this gauge is not the right
-one), and
+every single channel with $|\lambda|\le 8$ whose vanishing system has full rank, while the zero-gauge rows that the
+first node bound gives for the seven singles listed below do contain pair entries, one way to see that this gauge is not
+the right one), and
 
 \begin{conjecture}[KNTZ identity]\label{conj:kntz}
 For single channels $\lambda,\mu$ ($\mu\subseteq\lambda$)
@@ -536,13 +537,14 @@ $\lambda=[2,2,1],[3,2],[2,2,1,1],[3,2,1],[4,2]$ (it is for hooks and rectangles)
 
 \paragraph{Status.}  Exact identity of \eqref{eq:kntz} with the vanishing-condition rows for all $29$ singles with
 $|\lambda|\le 6$ (over $\mathbb Q(A^2,q^2)$); identity of the rows derived by \eqref{eq:eigrec} with the engine's rows
-modulo $p=10^9+7$ at random points for all $59$ singles with $|\lambda|\le8$ whose vanishing system has full rank
-(\LMPH{check kntz}).  For the seven singles $[4,2,1]$, $[3,2,1,1]$, $[5,2,1]$, $[4,2,1,1]$, $[3,2,2,1]$, $[4,3,1]$,
-$[3,2,1,1,1]$ the vanishing system is rank-deficient (by one or two); there the engine's gauge row and the KNTZ row
+modulo $p=10^9+7$ at random points for all $64$ singles with $|\lambda|\le8$ other than $[4,3,1]$, $[3,2,2,1]$
+(\LMPH{kntz --nmax 8}).  With the first node bound alone the seven singles $[4,2,1]$, $[3,2,1,1]$, $[5,2,1]$, $[4,2,1,1]$,
+$[3,2,2,1]$, $[4,3,1]$, $[3,2,1,1,1]$ are rank-deficient (by one or two); there the zero-gauge row and the KNTZ row
 differ, $\varphi_\lambda(-1)$ nevertheless agrees, and both choices give the same $H_R(4_1)$ wherever the formula
-works at all ($|R|=7$: $15/15$; $|R|=8$: $20/22$ either way).  The KNTZ row is the canonical choice for these
-channels.  (With the vanishing conditions imposed on all diagrams with at most $13$ boxes the deficiency disappears
-for all of them except $[4,3,1]$, $[3,2,2,1]$, and the determined rows agree with KNTZ; see Section~\ref{sec:checks}.)
+works at all ($|R|=7$: $15/15$; $|R|=8$: $20/22$ either way).  With larger nodes (the engine adds them while a row is
+undetermined; also with the conditions on all diagrams with at most $13$ boxes) the deficiency disappears for all of
+them except $[4,3,1]$, $[3,2,2,1]$, and the determined rows agree with KNTZ; these two keep one free unknown (rank $41$
+of $42$), and the KNTZ row is the canonical choice for them (it agrees with the engine's zero gauge there).
 
 \section{The binomial matrix and the closed single sector}\label{sec:N}
 
@@ -606,8 +608,8 @@ matrix, which we checked but did not derive.
 
 \paragraph{Status.}  Identity of \eqref{eq:tab} with $N=\Et^{-1}$ built from the vanishing-condition rows: exact (over
 $\mathbb Q(A,q)$) for all $841$ single entries with $|\lambda|\le6$; for all single entries with $|\lambda|\le7$ except
-the two rows $[4,2,1]$, $[3,2,1,1]$, which the engine's default node bound leaves rank-deficient (their stored rows are
-gauge garbage); modulo $p=10^9+7$ at two random points for the single block of $N$ built from the rows determined by the
+the two rows $[4,2,1]$, $[3,2,1,1]$, which the first node bound leaves rank-deficient (their stored exact rows, computed
+with that bound, are gauge garbage); modulo $p=10^9+7$ at two random points for the single block of $N$ built from the rows determined by the
 vanishing conditions on all diagrams with at most $13$ boxes, $4096$ entries at $|\lambda|\le8$ and $7396$ entries
 at $|\lambda|\le9$, with no mismatch (the only excluded rows are the ten tops of $[4,3,1]$, $[3,2,2,1]$ and, at nine
 boxes, those of $[5,3,1]$, $[3,2,2,1,1]$ and four channels with two minimal diagrams).  The check \LMPH{binom} of the
@@ -817,7 +819,7 @@ $U$ and $V$, $+D_s^2/(D_{2c(b)}D_{2c(b')})$ at $Z$ and $Z'$).  Special cases: $\
 \eqref{eq:Nvac}; $\mu=U$ gives \eqref{eq:Ndiag}; $\mu=[1,1],[2]$ give \eqref{eq:Nadd}; and in general
 $\Gamma_c(\mu)=(P_\mu(Z)+P_\mu(Z')-P_\mu(U)-P_\mu(V))/(D_{2c(b)}D_{2c(b')})$ in the merged basis, which closes the
 correction of Observation~\ref{obs:Npair}.  Checked by the script (\LMPH{fourrow}: $17$ pairs, $179$ columns at
-$|R|\le6$; $28$ pairs, $344$ columns with \LMPH{--nmax 7}; no mismatch, the four rows computed from \eqref{eq:tab});
+$|R|\le6$; $34$ pairs, $458$ columns with \LMPH{--nmax 7}; no mismatch, the four rows computed from \eqref{eq:tab});
 in the analysis exact on the same rows and modulo $p$ for $56$ pairs ($869$ columns) at eight boxes at two points and
 $83$ pairs ($1550$ columns) at nine boxes.  Found on the rows with at most six boxes; the rest was not used in finding
 it.  Together with Observation~\ref{obs:khook} below this makes every entry of a one-cell pair row of $N$ closed except
@@ -845,7 +847,7 @@ replaced by $[4]D_{-1}/[2]=D_1+D_{-3}$ for $c=\{[2,1,1],[2,2]\}$, $X=\{[1,1,1],[
 covered by the general adjacent formula of Observation~\ref{obs:adjres}, of which \eqref{eq:khook} is the non-landing
 case.  It also fails at part of the non-adjacent entries (from the rows whose $V$ contains a $2\times2$ block on).  Checked by the script (\LMPH{khook}; $17$ pairs at $|R|\le6$:
 diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, the implied $B$ entries $15/15$, the zero rule
-$6/6$; with \LMPH{--nmax 7}, $28$ pairs: $28/28$, $27/27$, $27/27$, $27/27$); in the analysis exact for all $28$ one-cell pairs with at most seven boxes (diagonal $28/28$, adjacent
+$6/6$; with \LMPH{--nmax 7}, $34$ pairs: $34/34$, $33/33$, $37/37$, $37/37$, the zero rule $18/18$); in the analysis exact for all $28$ one-cell pairs with at most seven boxes (diagonal $28/28$, adjacent
 non-landing $29/29$), modulo $p$ for $56$ pairs at eight boxes ($56/56$, $74/74$) and $83$ pairs at nine boxes
 ($83/83$, $118/118$), with the non-adjacent non-landing entries right in $515$ of $741$ cases and the landing ones in
 none.  Found on the exact rows with at most seven boxes; the eight- and nine-box rows were not used in finding it.
@@ -866,7 +868,7 @@ where $d_X=c(k')-c(k)$, $d_c=c(e)-c(k)$, $d_3=c(e)-c(k')$; and $N_{cX}=N_{cc}B_{
 $E_{cX}=-N_{cX}/\varphi_X(-1)$.  The $K$-hook law is the case $d_3=\pm1$ ($e$ next to $k'$); the formula covers the
 landing entries as well, and its zero rule explains the zero entries seen at eight and nine boxes (a moved cell of
 $c$ inside $V_X$).  Checked by the script (\LMPH{adjres}: $27$ adjacent entries at $|R|\le6$, ten of them landing,
-and $47$ with \LMPH{--nmax 7}, $18$ landing, on $N$ and on $B$, no mismatch); in the analysis exact for all adjacent
+and $77$ with \LMPH{--nmax 7}, $38$ landing, on $N$ and on $B$, no mismatch); in the analysis exact for all adjacent
 entries up to seven boxes including the six rank-deficient seven-box pairs recomputed at node bound $10$ ($47+30$
 entries) and modulo $p$ for $156$ entries at eight boxes and $258$ at nine boxes, at two points, no failure.  Found by
 a linear fit of a cell-type product ansatz to $18$ exact residues; three monomial exponents that the small diagrams
@@ -892,7 +894,7 @@ follow from the chain relation of $NB=\Lam N$,
 N_{cX}\,(\Lam_c-\Lam_X)=\sum_{X<Y\le c}N_{cY}\,B_{YX},
 \end{equation}
 in which only one-cell pairs $Y$ contribute (single rows have no pair entries, one-cell pair rows no two-cell pair
-entries).  Checked by the script (\LMPH{gap2}: $19$ gap-two entries at $|R|\le6$ and $42$ with \LMPH{--nmax 7}, $B$ by
+entries).  Checked by the script (\LMPH{gap2}: $19$ gap-two entries at $|R|\le6$ and $66$ with \LMPH{--nmax 7}, $B$ by
 \eqref{eq:gap2} and $N$ by \eqref{eq:chain}, every ingredient from the closed formulas, no mismatch); in the analysis
 exact for $66$ entries up to seven boxes and modulo $p$ for $156$ entries at eight and $287$ at nine boxes, two
 points, no failure.  Two more facts from the analysis: if both moved cells are shared ($V=V_X+\{e_1,\dots,e_m\}$) then
@@ -928,9 +930,9 @@ root of unity; it never contains a $D$-zero nor a resonance $\Lam_Y=\Lam_c$), th
 $Q=\prod_Y(1-\rho_Y)$, and $P+T_{cX}\,Q\equiv0\pmod\Psi$ fixes $T_{cX}\in\mathbb Q(q)$ and overdetermines it by
 $\deg\Psi-1$ further equations (all satisfied on the data).  Then $B_{cX}=\Lam_cT_{cX}q^{s-s_X}D_s/D_{s_X}$ and
 $N_{cX}$ by \eqref{eq:chain}.  Checked by the script (\LMPH{roots}; at $|R|\le6$: $27$, $19$, $9$ entries of $B$ and
-$N$ at gaps $1$, $2$, $3$; \LMPH{--nmax 7}: $47$, $42$, $25$, $11$ at gaps $1$--$4$; \LMPH{--nmax 7 --nb 10}, i.e.\
-with the vanishing conditions imposed on all diagrams with at most ten boxes, where all $34$ one-cell pairs with
-$|U|\le7$ have full rank: $77$, $66$, $37$, $17$; no mismatch, every quotient-ring result a constant); in the analysis
+$N$ at gaps $1$, $2$, $3$; \LMPH{--nmax 7}, where all $34$ one-cell pairs with $|U|\le7$ have full rank: $77$, $66$,
+$37$, $17$ at gaps $1$--$4$, while the rows of the first node bound alone leave six of them rank-deficient and give $47$,
+$42$, $25$, $11$; no mismatch, every quotient-ring result a constant); in the analysis
 exact for the same $34$ rows, and modulo $p$ at two points for the $22$ rows with $|U|=8$ (gaps $1$--$5$: $79$, $90$,
 $70$, $38$, $22$ entries), the $41$ rows with $|U|=9$ (gaps $1$--$6$: $138$, $161$, $136$, $95$, $46$, $27$) and the
 $55$ rows with $|U|=10$ (gaps $1$--$7$: $251$, $273$, $257$, $189$, $121$, $54$, $31$; $T$, $B$ and $N$ each), plus the
@@ -1000,8 +1002,8 @@ every $R$ all of whose channels are of these two kinds: all $|R|\le5$; at six bo
 $[2,2,1,1]$; at seven all but $[5,2]$, $[4,2,1]$, $[3,2,1,1]$, $[2,2,1,1,1]$; at eight all but $[6,2]$, $[5,3]$,
 $[5,2,1]$, $[4,3,1]$, $[4,2,2]$, $[4,2,1,1]$, $[3,3,1,1]$, $[3,2,2,1]$, $[3,2,1,1,1]$, $[2,2,2,1,1]$, $[2,2,1^4]$
 (the diagrams containing two-cell pairs); all hooks and rectangles.  Checked by the script (\LMPH{fullrow}: every
-single column of $N$ and of $B$ of the $17$ pairs at $|R|\le6$, $179+179$ entries; $344+344$ with \LMPH{--nmax 7};
-$458+458$ with \LMPH{--nmax 7 --nb 10}; no mismatch); in the analysis modulo $p$ at two points for every one-cell pair
+single column of $N$ and of $B$ of the $17$ pairs at $|R|\le6$, $179+179$ entries; $458+458$ with \LMPH{--nmax 7};
+no mismatch); in the analysis modulo $p$ at two points for every one-cell pair
 at eight ($925$ columns), nine ($1633$) and ten boxes ($2629$), $N$ and $B$ each, no failure.
 \end{observation}
 
@@ -1483,14 +1485,20 @@ $K^R_{\mu\nu}(x)$ of Formula~I with the prefactor made explicit.
 \emph{Checks.}  (i) On the stored exact weights, all $263$ labels of the $29$ diagrams with $|R|\le6$, at $16$ values of
 $A$ (script, \LMPH{regular}): no failure; the bound is attained on all $214$ labels where it is positive; and the factor
 $\rho(R)$ is needed: $w_X(R)/d_X$ alone is a polynomial for none of the $263$.  (ii) On the engine's weights at seven boxes,
-all $325$ labels of the $15$ diagrams (\LMPH{regular --nmax 7 --nb 10}): no failure.  With the engine's default node bound
-the law fails on exactly the $28$ labels of $[4,2,1]$ and $[3,2,1,1]$ that carry the rank-deficient rows of these two
-diagrams (Section~\ref{sec:N}).  There the weights still give the right $H_R(\Tw_m)$ for $|m|\le2$, but not for
-$|m|\ge3$: at $[4,2,1]$ and $m=\pm3,\pm4$ the default-bound values are not Laurent polynomials in $q$ and violate the
-special-polynomial theorem $H_R(A,1)=H_{[1]}(A,1)^{|R|}$, while the values at node bound $10$ are Laurent polynomials, satisfy
-it, and equal the other branch's exact eight-box files (analysis; both versions are Laurent in $A$ and agree with the
-$\mathfrak{sl}_3$ reduction $H_{[4,2,1]}(q^3,q)=H_{[3,1]}(q^3,q)$, so only the $q\to1$ test and the law tell them apart).
-So the law detects a wrong gauge that the low twist knots do not see.  (iii) Above the ghosts the law is used as an equation, and the
+all $325$ labels of the $15$ diagrams (\LMPH{regular --nmax 7}): no failure.  With the rows of the first node bound
+alone (the engine's rows before this work) the law fails on exactly the $28$ labels of $[4,2,1]$ and $[3,2,1,1]$ that
+carry the rank-deficient rows of these two diagrams (Section~\ref{sec:N}; the control of \LMPH{regular --nmax 7}).
+There the weights still give the right $H_R(\Tw_m)$ for $|m|\le2$, but not for $|m|\ge3$: at $[4,2,1]$ and
+$m=\pm3,\pm4$ the first-bound values are not Laurent polynomials in $q$ and violate the special-polynomial theorem
+$H_R(A,1)=H_{[1]}(A,1)^{|R|}$, while the values of the determined rows are Laurent polynomials, satisfy it, and equal the
+other branch's exact eight-box files (analysis; both versions are Laurent in $A$ and agree with the $\mathfrak{sl}_3$
+reduction $H_{[4,2,1]}(q^3,q)=H_{[3,1]}(q^3,q)$, so only the $q\to1$ test and the law tell them apart).  So the law
+detects a wrong gauge that the low twist knots do not see.  This is how the error of the repository's
+\LMPH{double-braid-interpolation} method was found: $F_c$ does not depend on the free unknown, but $\Phi_c(\pm3)$ does,
+and $7_2$, $8_1$, $9_2$, $10_1$ (and other double braids, such as $\mathrm{DB}(2,-3)$) came out wrong at $[4,2,1]$, $[3,2,1,1]$
+and at the five eight-box diagrams $[5,2,1]$, $[4,2,2]$, $[4,2,1,1]$, $[3,3,1,1]$, $[3,2,1,1,1]$, where the first bound
+also leaves rows undetermined.  The method now adds conditions until every row is determined (all rows of all
+diagrams without ghosts up to ten boxes), and it does not claim the diagrams containing $[4,3,1]$ or $[3,2,2,1]$.  (iii) Above the ghosts the law is used as an equation, and the
 weights it produces agree label by label with the verified formula of Section~\ref{sec:ghosts} on every diagram with nine
 and ten boxes above the ghosts (Table~\ref{tab:final}); so the verified weights there satisfy it too.
 \end{observation}
@@ -2041,7 +2049,7 @@ tabulated weights (JSON) vs the same data (\LMPH{table}) & $319/319$\\
 $H_R(4_1)=1+\sum_cF_c(R)$ at $|R|=7$ (\LMPH{f41}) & $15/15$\\
 $H_R(4_1)$ at $|R|=8$ (\LMPH{f41}) & $20/22$; fails for $[4,3,1]$ and $[3,2,2,1]$, with and without KNTZ single rows (and for every choice of the free parameter of their tops; analysis); $22/22$ with the ghost term (analysis, Section~\ref{sec:ghosts})\\
 symmetric $[7],[8],[9],[10]$, ten knots (\LMPH{sym}) & $40/40$\\
-KNTZ identity \eqref{eq:kntz} (\LMPH{kntz}) & exact for $29$ singles $|\lambda|\le6$; mod $p$ for $59$ full-rank singles $|\lambda|\le8$\\
+KNTZ identity \eqref{eq:kntz} (\LMPH{kntz}) & exact for $29$ singles $|\lambda|\le6$; mod $p$ for all $64$ singles $|\lambda|\le8$ other than $[4,3,1]$, $[3,2,2,1]$ (\LMPH{--nmax 8}; at these two the zero gauge of the engine agrees with KNTZ)\\
 product formula \eqref{eq:phiprod} (\LMPH{phi}) & all $|\lambda|\le6$ exact, mod $p$ in the script\\
 pair rows: Observations \ref{obs:all}, \ref{obs:one} (\LMPH{pairs}) & $49$ channels at $|R|\le6$; $17/17$ one-cell pairs\\
 tabulated twist matrix vs engine (\LMPH{bmat}) & $49$ rows, all entries agree\\
@@ -2050,10 +2058,10 @@ tableau formula \eqref{eq:tab} for the single rows of $N$ (\LMPH{binom}) & $841$
 one-cell pairs of $N$: \eqref{eq:Ndiag}, \eqref{eq:Nfirst}, \eqref{eq:Nadd} (\LMPH{pairn}) & $17/17$ pairs at $|R|\le6$\\
 union formula \eqref{eq:union} (\LMPH{union}) & $472$ non-resonant entries of the $17$ pairs at $|R|\le6$, no mismatch; analysis: exact $1856$ entries ($28$ pairs, $\le7$ boxes), mod $p$ $5704$ entries ($41$ pairs, $\le8$ boxes)\\
 hook family \eqref{eq:hook} and transposes (\LMPH{hook}) & $8$ rows, $k\le5$, at $|R|\le6$; analysis: exact $k\le6$, mod $p$ $k\le10$\\
-adjacent pair columns \eqref{eq:adjres} (\LMPH{adjres}) & $27$ entries of $N$ and $B$ at $|R|\le6$ ($10$ landing), $47$ with \LMPH{--nmax 7} ($18$ landing), no mismatch; analysis: exact $77$ entries ($\le7$ boxes), mod $p$ $156$ (8 boxes) $+$ $258$ (9 boxes), two points\\
-gap-two pair columns \eqref{eq:gap2}, \eqref{eq:chain} (\LMPH{gap2}) & $19$ entries of $B$ and $N$ at $|R|\le6$, $42$ with \LMPH{--nmax 7}, no mismatch; analysis: $66$ exact, $156+287$ mod $p$ (8, 9 boxes), two points\\
-pair columns at every gap \eqref{eq:roots} (\LMPH{roots}) & $B$ and $N$ at gaps $1,2,3$: $27$, $19$, $9$ entries at $|R|\le6$; gaps $1$--$4$: $47$, $42$, $25$, $11$ with \LMPH{--nmax 7} and $77$, $66$, $37$, $17$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: the same exact rows, mod $p$ two points at $8$, $9$, $10$ boxes, gaps up to $5$, $6$, $7$ ($299$, $603$, $1176$ entries), no failure\\
-whole one-cell pair rows \eqref{eq:Nsingle}, \eqref{eq:Bsingle} (\LMPH{fullrow}) & every single column of $N$ and $B$: $179+179$ at $|R|\le6$, $344+344$ with \LMPH{--nmax 7}, $458+458$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: $925$, $1633$, $2629$ columns at $8$, $9$, $10$ boxes, $N$ and $B$ each, two points, no failure\\
+adjacent pair columns \eqref{eq:adjres} (\LMPH{adjres}) & $27$ entries of $N$ and $B$ at $|R|\le6$ ($10$ landing), $77$ with \LMPH{--nmax 7} ($38$ landing), no mismatch; analysis: exact $77$ entries ($\le7$ boxes), mod $p$ $156$ (8 boxes) $+$ $258$ (9 boxes), two points\\
+gap-two pair columns \eqref{eq:gap2}, \eqref{eq:chain} (\LMPH{gap2}) & $19$ entries of $B$ and $N$ at $|R|\le6$, $66$ with \LMPH{--nmax 7}, no mismatch; analysis: $66$ exact, $156+287$ mod $p$ (8, 9 boxes), two points\\
+pair columns at every gap \eqref{eq:roots} (\LMPH{roots}) & $B$ and $N$ at gaps $1,2,3$: $27$, $19$, $9$ entries at $|R|\le6$; gaps $1$--$4$: $77$, $66$, $37$, $17$ with \LMPH{--nmax 7}, no mismatch; analysis: the same exact rows, mod $p$ two points at $8$, $9$, $10$ boxes, gaps up to $5$, $6$, $7$ ($299$, $603$, $1176$ entries), no failure\\
+whole one-cell pair rows \eqref{eq:Nsingle}, \eqref{eq:Bsingle} (\LMPH{fullrow}) & every single column of $N$ and $B$: $179+179$ at $|R|\le6$, $458+458$ with \LMPH{--nmax 7}, no mismatch; analysis: $925$, $1633$, $2629$ columns at $8$, $9$, $10$ boxes, $N$ and $B$ each, two points, no failure\\
 sign-flip kernel \eqref{eq:kernel} (\LMPH{kernel}) & one-cell pairs $179$ columns and non-resonant two-cell pairs $24$ columns at $|R|\le6$; $458$ and $92$ with \LMPH{--nmax 7 --nb 10}; no mismatch; analysis: $10\,346$ one-cell, $1\,996$ domino/domino, $2\,170$ domino/separate columns up to ten boxes, two points, no failure; three-cell line pairs $92$ columns (middle states from the sum rules)\\
 top-weight law \eqref{eq:topweight} (\LMPH{topweight}) & every channel with one minimal diagram (all with $m_c=1$): $49$ at $|R|\le6$ (exact in the analysis), $87$ with \LMPH{--nmax 7 --nb 10}, no mismatch; analysis: $399$ channels up to ten boxes, two points, no failure\\
 multiplicities $m_c(R_{\min})$ (\LMPH{mult}) & every pair channel at every minimal diagram with at most $12$ boxes ($1062$ cases): $m_c=2$ exactly for the $24$ two-cell separate/separate pairs, first at $[4,3,2,1]$, otherwise $1$; with \LMPH{--nmax 15}: $m_c\le2$, $219$ two-cell and $56$ three-cell pairs with $m_c=2$\\
@@ -2072,7 +2080,7 @@ ghost layer \eqref{eq:ghost} (analysis) & with $Z_g$ from the trefoil: all $137$
 ghost layer of $[4,3,2,1]$ at $R=U$ (analysis) & lower part $118/118$ terms equal to the closed block of the other branch (which equals Formula~I $8/8$ and Rosso--Jones), $Y\in I_U$, $\dim I_U=24=12+2+10$; two points\\
 fixing principles at $R=U$ (analysis) & free parameters left by polynomiality / $+4_1$ amphichirality / $+$Rosso--Jones: $18$ / $1$ / $0$ (consistent) at $[4,3,1]$; $58$ / $35$ / $34$ at $[5,4,2]$ and $[6,4,1]$; $270$ / not run / $259$ at $[4,3,2,1]$\\
 double braids at $R=U$ as a fixing principle (analysis) & free parameters left by double-braid polynomiality / $+$Rosso--Jones, rows rigid: $1$ / $0$ at $[4,3,1]$ (the trefoil rule), $18$ / $17$ at $[5,4,2]$ and $[6,4,1]$ ($11$ in the twist-invisible square), $0$ with one exact $7_4$ or $8_3$, $11$ with an exact $5_2$; at $[4,3,2,1]$ deformations of the block: $15$ (one invisible direction), $209$, $511$; stable over the ranges of $|m|,|n|$ run (up to $7$ at $\mathrm{ex}\le2$, up to $10$ at $[4,3,2,1]$), two values of $q$; the window law on the other branch's values at $8$--$11$ boxes ($105$ pairs and $18$ eleven-box files)\\
-four-row formula \eqref{eq:fourrow} (\LMPH{fourrow}) & $17$ pairs, $179$ single columns at $|R|\le6$ ($28$ pairs, $344$ columns with \LMPH{--nmax 7}), no mismatch; analysis: mod $p$ $869$ columns (8 boxes, two points), $1550$ columns (9 boxes)\\
+four-row formula \eqref{eq:fourrow} (\LMPH{fourrow}) & $17$ pairs, $179$ single columns at $|R|\le6$ ($34$ pairs, $458$ columns with \LMPH{--nmax 7}), no mismatch; analysis: mod $p$ $869$ columns (8 boxes, two points), $1550$ columns (9 boxes)\\
 $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, implied $B$ entries $15/15$; analysis: exact $28$ pairs ($\le7$ boxes), mod $p$ $56$ pairs (8 boxes), $83$ pairs (9 boxes), no mismatch in the claimed classes\\
 monomial law, Observation~\ref{obs:monomial} (\LMPH{monomial}) & $\Phi_c(1)=M(R_c)$ and the mirror covariance of the rows: $49$ channels, $558$ entries at $|R|\le6$; $142$ channels, $3431$ entries with \LMPH{--nmax 8 --nb 12}; no mismatch; analysis: every basis vector of every $I_U$ with $|U|\le11$ ($845$), $724$ rows, $57$ ghost vectors, $1371$ stored rows $E_8$--$E_{11}$, two points\\
 ideal identity, Observation~\ref{obs:monomial} (\LMPH{ideal}) & $f(U)=\rho(U)\varphi_f(-1)$ and $\varphi_f(1)=M(U)\varphi_f(-1)$ on every basis vector of every $I_U$: all $29$ diagrams $|U|\le6$ ($49$ vectors), all $66$ with \LMPH{--nmax 8} ($154$, the ghosts of $[4,3,1]$ and $[3,2,2,1]$), all $138$ with \LMPH{--nmax 10} ($482$, eleven ghost diagrams, $[4,3,2,1]$ with ten ghosts), two points; no mismatch; analysis: $|U|\le11$, two points, and the vacuum law on all of $I_U$ at five ghost diagrams\\
@@ -2096,7 +2104,7 @@ and only if $m_\lambda(R)=1$ exactly up to nine boxes ($631$ products, $768$ non
 $2798/2798$, the colour-side $BC$ form $0/2611$\\
 regularity law, Observation~\ref{obs:law} (\LMPH{regular}) & exact weights $|R|\le6$: $263/263$ labels at $16$ values of
 $A$, the bound attained on $214/214$, without $\rho(R)$ $263/263$ fail; \LMPH{--nmax 7}: the engine's weights at seven
-boxes $325/325$ (node bound $10$; with the default bound the $28$ labels of $[4,2,1]$, $[3,2,1,1]$ fail); \LMPH{--nmax 8}:
+boxes $325/325$ (with the rows of the first node bound alone the $28$ labels of $[4,2,1]$, $[3,2,1,1]$ fail); \LMPH{--nmax 8}:
 \eqref{eq:final} as a solver at $[4,3,1]$, $[3,2,2,1]$ with the whole layer unknown, unique ($144$ unknowns over $24$
 values of $A$), $H_R(4_1)$ $=$ data, $H_R(3_1)$ $=$ Rosso--Jones, the top law on all $5$ tops, and $[4,3,1]$ at $(A,-1/q)$
 $=$ $[3,2,2,1]$ at $(A,q)$ for $|m|\le4$; no failure\\
@@ -2140,8 +2148,9 @@ $d_X\rho(R)$, and the degree of the polynomial, $|R|-|M_X(R)|$, and above the gh
 through a linear system; a closed formula for the polynomial $K_X(R)$ itself is open.
 \item \textbf{Resonances}: from $[3,2,1]$ on, the evolution form does not separate channels with equal eigenvalues;
 the channel form does.
-\item \textbf{Rank deficiency}: with the engine's default node bound, some vanishing systems have free parameters
-from seven boxes on.  This is an artefact of the node bound for all of them except the five top channels of $R=[4,3,1]$
+\item \textbf{Rank deficiency}: with the first node bound $\max(7,|R_{\min}|+1)$ alone, some vanishing systems have free
+parameters from seven boxes on; the engine now adds larger nodes while a row is undetermined.  This is an artefact of
+the node bound for all of them except the five top channels of $R=[4,3,1]$
 (the single $[4,3,1]$ and the pairs $\{[3,3],[4,1,1]\}$, $\{[4,2,1],[4,3]\}$, $\{[3,3,1],[4,3]\}$, $\{[3,3,1],[4,2,1]\}$)
 and the five of $[3,2,2,1]$: with the conditions on all diagrams with at most $13$ boxes every other row is determined
 (and agrees with \eqref{eq:tab}, \eqref{eq:union} where those apply), while these ten keep a common one-dimensional
@@ -2382,10 +2391,10 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed bcdet colprod vacuum twocell
 lagrange hookcols monomial ideal regular dbraid}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
 adjres gap2 roots fullrow kernel} runs the checks of Sections \ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends
-them to seven boxes, and \LMPH{--nmax 7 --nb 10} imposes the vanishing conditions on all diagrams with at most ten boxes,
-which makes every channel with $|R|\le7$ full rank; \LMPH{--nmax 8 regular} runs the solver of
-Conjecture~\ref{conj:final} at $[4,3,1]$, $[3,2,2,1]$ in about four minutes, with the node bound raised to $10$ by
-itself).
+them to seven boxes, and \LMPH{--nmax 7 --nb 10} imposes the vanishing conditions on all diagrams with at most ten boxes
+(the engine adds larger nodes by itself while a row is undetermined, so every channel with $|R|\le7$ has full rank
+either way); \LMPH{--nmax 8 regular} runs the solver of Conjecture~\ref{conj:final} at $[4,3,1]$, $[3,2,2,1]$ in about
+four minutes).
 The closed formulas live in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{binom\_N} / \LMPH{tableau\_P}
 \eqref{eq:tab}, \LMPH{check\_union} \eqref{eq:union}, \LMPH{hook\_pair\_row} \eqref{eq:hook}, \LMPH{check\_pairn}
 \eqref{eq:Ndiag}--\eqref{eq:Nadd}, \LMPH{khook\_N} \eqref{eq:khook}, \LMPH{check\_fourrow} \eqref{eq:fourrow},

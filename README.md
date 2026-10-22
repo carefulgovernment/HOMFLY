@@ -50,7 +50,7 @@ $ python scripts/validate_fundamental.py 12   # all 2977 knots vs KnotInfo
 | **3-strand, all 11 six-box reps**: [6], [1⁶] (family P generator export); the other nine from A-independent U_Q (families G/F, release v1.1), float64-BLAS mod p < 2²¹ | ✅ Rosso–Jones T[3,4], T[3,5]; transposition pairs; = two-bridge on all 30 overlap knots |
 | **Two-bridge [4,2], [2,2,1,1], [3,2,1]** (family G S̄, alternating chain) | ✅ = G/F 3-strand data on all 30 overlap knots |
 | **Montesinos knots K(p₁/q₁;…;p_k/q_k)**, tangle calculus with S̄ and the mixed S (families P, H, G; mixed S of [2,1,1] and the non-rectangular 5-box reps generated with the release's G engine, `scripts/make_mixed_S_gtpath.sh`) | ✅ fundamental = KnotInfo on all 721 Montesinos knots ≤ 12 crossings; colored = 3-strand data and two-bridge data for every R; independent R/Rᵀ data agree by transposition |
-| **Interpolation formula for antiparallel double braids H_R(m,n)**, any R, no Racah matrices (Hopf-link characters + interpolation matrix E) | ✅ = Racah two-bridge data for all 29 R with \|R\| ≤ 6 × 12 (m,n) (348/348); \|R\| = 7: trefoil = Rosso–Jones, 4_1 amphichiral, transposition |
+| **Interpolation formula for antiparallel double braids H_R(m,n)**, every R without ghosts (not containing [4,3,1] or [3,2,2,1]), no Racah matrices (Hopf-link characters + interpolation matrix E) | ✅ = Racah two-bridge data for all 29 R with \|R\| ≤ 6 × 12 (m,n) (348/348); \|R\| = 7: trefoil = Rosso–Jones, 4_1 amphichiral, transposition; twist knots up to 10_1 at [4,2,1], [3,2,1,1] = independent exact data (`docs/notes/twist_knots_formula.tex`) |
 | Racah data model, JSON store, checks | ✅ |
 | Eigenvalue hypothesis | 2×2 ✅, 3×3–5×5 ⏳ M4 |
 | Highest-weight Racah matrices | ⏳ M5 |
@@ -66,7 +66,7 @@ $ python scripts/validate_fundamental.py 12   # all 2977 knots vs KnotInfo
 | 185 with braid index ≤ 3 | every R with \|R\| ≤ 6 (all 29) | `racah-3strand`, `racah-3strand-U` |
 | 362 two-bridge | every R with \|R\| ≤ 6 (all 29) | `two-bridge` |
 | 715 Montesinos (≥ 3 tangles, chirality fixed by H_[1], or by H_[2] via cabling when H_[1] is mirror-symmetric; not 10_71, 12a_453, 12a_669, 12n_250, 12n_278, 12n_562 — 5-strand braids, tie unresolved) | every R with \|R\| ≤ 6 (all 29) | `montesinos` |
-| double braids H(m,n) (4_1, 3_1, twist knots, all two-bridge knots with a 2-term even cf) | any R | `double-braid-interpolation` |
+| double braids H(m,n) (4_1, 3_1, twist knots, all two-bridge knots with a 2-term even cf) | every R not containing [4,3,1] or [3,2,2,1] (so every R with \|R\| ≤ 7) | `double-braid-interpolation` |
 | torus knots T[m,n] | any R | `rosso-jones` |
 | any braid (e.g. polyhedral knots) | band space ≤ 4·10⁶ skew tableaux: 4-strand braids up to \|R\| = 4 and [5], [1⁵] | `cabling-paths` (cabling in the multiplicity spaces W_Q, path basis; from the colored-homfly-cabling skill) |
 | any braid (small) | m·\|R\| ≲ 10 | `cabling` (reference) |

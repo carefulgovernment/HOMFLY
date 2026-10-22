@@ -19,7 +19,15 @@ chî_X(R) = chi_X(q^{2(R+rho)}) / d_X (Hopf-link values), psi_X = chî_X - 1.
   proper subdiagram of some diagram of R_min(c);
   B(c) = {X < c present in some R in R_min(c)};
 * row E_c: E_cc = 1 and sum_{X in {c} ∪ B(c)} E_cX psi_X(nu) = 0 for every nu
-  with m_c(nu) = 0 (|nu| <= max(7, |R_min(c)| + 1)).
+  with m_c(nu) = 0: first at |nu| <= max(7, |R_min(c)| + 1), then at larger nu, one
+  size at a time, while the row is not determined and each size raises its rank
+  (at most NODE_EXTRA sizes).  The first bound alone leaves six rows at [4,2,1]
+  and their transposes at [3,2,1,1] with rank 30 of 31 (and more rows at eight
+  boxes); a free unknown set to 0 there gives wrong values for |m| or |n| >= 3;
+* ghosts: at R containing [4,3,1] or [3,2,2,1] the rows of the tops of these two
+  diagrams stay undetermined (rank 41 of 42 at every node bound) and the formula
+  misses a ghost term (docs/notes/twist_knots_formula.tex, the ghost layer), so
+  DoubleBraidInterpolation does not claim these R.
 
 Everything is evaluated at a point (A, q) of a field (GF(p) in production), so
 the method plugs into the reconstruction pipeline.  The paper's convention
@@ -36,7 +44,7 @@ from ..algebra.fields import BadPoint
 from ..knots.families import DoubleBraid
 from ..reps.characters import character, lr_product, z_rho
 from ..reps.partitions import P, conjugate, kappa, partitions
-from .base import Method
+from .base import Method, NotApplicable
 
 # ---------------------------------------------------------------------------
 # combinatorics (R-, point-independent; cached)
@@ -161,10 +169,21 @@ def support(c):
     return tuple(out)
 
 
+# further node sizes tried while a row is not determined by nodes(c)
+NODE_EXTRA = 3
+
+# every diagram with ghosts contains one of these (checked up to 18 boxes)
+GHOST_DIAGRAMS = ((4, 3, 1), (3, 2, 2, 1))
+
+
+def node_bound(c):
+    return max(7, max(sum(r) for r in rmin(c)) + 1)
+
+
 @lru_cache(maxsize=None)
 def nodes(c, extra_size=None):
     """Partitions nu with m_c(nu) = 0, |nu| <= max(7, |R_min|+1), small first."""
-    bound = max(7, max(sum(r) for r in rmin(c)) + 1) if extra_size is None else extra_size
+    bound = node_bound(c) if extra_size is None else extra_size
     out = []
     for k in range(0, bound + 1):
         for nu in partitions(k):
@@ -265,9 +284,8 @@ class Point:
         n = len(B)
         rows = []          # reduced rows [coeffs..., rhs], pivots
         pivots = []
-        for nu in nodes(c):
-            if len(pivots) == n:
-                break
+
+        def condition(nu):
             r = [self.psi(x, nu) for x in B] + [-self.psi(c, nu)]
             for (pc, pr) in zip(pivots, rows):
                 if r[pc] != 0:
@@ -275,7 +293,7 @@ class Point:
                     r = [a - f * b for a, b in zip(r, pr)]
             piv = next((i for i in range(n) if r[i] != 0), None)
             if piv is None:
-                continue          # dependent condition (consistency not checked here)
+                return            # dependent condition (consistency not checked here)
             inv = F.one / r[piv]
             r = [a * inv for a in r]
             for k, pr in enumerate(rows):
@@ -284,6 +302,23 @@ class Point:
                     rows[k] = [a - f * b for a, b in zip(pr, r)]
             rows.append(r)
             pivots.append(piv)
+
+        for nu in nodes(c):
+            if len(pivots) == n:
+                break
+            condition(nu)
+        top = max(node_bound(c), max((sum(nu) for nu in nodes(c)), default=0))
+        for size in range(top + 1, top + NODE_EXTRA + 1):
+            if len(pivots) == n:
+                break
+            before = len(pivots)
+            for nu in partitions(size):
+                if len(pivots) == n:
+                    break
+                if not presence(c, nu):
+                    condition(nu)
+            if len(pivots) == before:
+                break             # a whole size adds nothing: not fixed by vanishing conditions
         sol = [F.zero] * n    # free unknowns (rank deficiency) set to 0
         for pc, pr in zip(pivots, rows):
             sol[pc] = pr[n]
@@ -345,13 +380,21 @@ def PAPER_POINT(A, q):
 
 
 class DoubleBraidInterpolation(Method):
-    """Antiparallel double braids DoubleBraid(m, n) in any R (no Racah data)."""
+    """Antiparallel double braids DoubleBraid(m, n) in every R without ghosts (no Racah data)."""
 
     name = "double-braid-interpolation"
 
     def supports(self, knot, R):
-        return isinstance(knot, DoubleBraid) and knot.antiparallel == (True, True)
+        return (isinstance(knot, DoubleBraid) and knot.antiparallel == (True, True)
+                and not any(contains(P(R), U) for U in GHOST_DIAGRAMS))
 
     def evaluate(self, knot, R, F, A, q):
         a, b = PAPER_POINT(A, q)
-        return paper_value(R, knot.m, knot.n, F, a, b)
+        pt = Point(F, a, b)
+        v = paper_value(R, knot.m, knot.n, F, a, b, point=pt)
+        for c in channels_of(R):
+            r, n = pt._E[("rank", c)]
+            if r < n:
+                raise NotApplicable("row of %s in %s not determined by the vanishing conditions (rank %d of %d)"
+                                    % (c, R, r, n))
+        return v

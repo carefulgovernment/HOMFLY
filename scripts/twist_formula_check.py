@@ -2891,8 +2891,9 @@ def solve_mod(rows, n, p=PRIME):
 
 def regular_completion(R, F, q, As):
     """The regularity law at R as a solver.  Known: the term d_c (e(R) / phi_e(-1)) e of every channel c of R whose
-    minimal diagram contains neither [4,3,1] nor [3,2,2,1] (there the row e of the vanishing conditions is unique,
-    given enough nodes: a node bound of 10 for the rows of seven boxes).  Unknown: an element of the sum of the ideals I_U' over the diagrams U' ⊆ R that contain one of them, one per sample
+    minimal diagram contains neither [4,3,1] nor [3,2,2,1] (there the row e of the vanishing conditions is unique, and
+    the engine adds conditions until it is determined).  Unknown: an element of the sum of the ideals I_U' over the
+    diagrams U' ⊆ R that contain one of them, one per sample
     point A in As (q fixed).  The law on every label X (w_X / (d_X rho(R)) a polynomial in A^2 of degree <= law_gap)
     is imposed through divided differences over the points.  Returns ({X: w_X(R)} at As[0], number of unknowns) or
     (None, why)."""
@@ -2965,7 +2966,9 @@ def check_regular(nmax=6, seed=1):
     fails: the whole layer of the diagram (its tops and its ghost) is left unknown and fixed by the law from the closed
     channels below it, at 24 values of A; compared with the stored H_R(4_1) and with Rosso-Jones T(2,3); the top law
     w_c = d_c rho(R) comes out; and [4,3,1] solved again at (A, -1/q) gives the twist knots of [3,2,2,1] at (A, q)
-    (transposition).  (b) and (c) run with the node bound raised to 10 unless --nb is given."""
+    (transposition).  (b) also with the rows of the conditions at |nu| <= max(7, |R_min| + 1) alone, which keep a free
+    unknown at [4,2,1] and [3,2,1,1] (the engine before it added conditions while a row is undetermined): the law then
+    fails on exactly their 28 labels."""
     F, A0, q = random_point(seed)
     rng = random.Random(1000 + seed)
     lines, bad = [], []
@@ -3001,15 +3004,7 @@ def check_regular(nmax=6, seed=1):
                  % (min(nmax, 6), nlab, sum(1 for b in bad if b[0] == "table"), sharp, pos, norho, nlab))
     if nmax < 7:
         return not bad, lines
-    # (b), (c) need the full-rank rows at seven boxes: with the engine's default node bound the rows of [4,2,1] and
-    # [3,2,1,1] are rank-deficient (gauge garbage; the law fails on exactly their 28 labels), so raise it to 10
-    saved = I.nodes
-    if hasattr(saved, "__wrapped__"):
-        set_node_bound(10)
-    try:
-        return _check_regular_big(nmax, F, A0, q, rng, lines, bad)
-    finally:
-        I.nodes = saved
+    return _check_regular_big(nmax, F, A0, q, rng, lines, bad)
 
 
 def _check_regular_big(nmax, F, A0, q, rng, lines, bad):
@@ -3019,20 +3014,35 @@ def _check_regular_big(nmax, F, A0, q, rng, lines, bad):
     if nmax >= 7:
         As7 = [A0] + [F(rng.randrange(2, PRIME - 1)) for _ in range(17)]
         xs7 = [(A * A).v for A in As7]
-        pts = [I.Point(F, A, q) for A in As7]
-        n7 = 0
-        for R in partitions(7):
-            ws = [twist_weights(pt, R) for pt in pts]
-            for X in set().union(*ws):
-                if X == VAC:
-                    continue
-                g = law_gap(X, R)
-                n7 += 1
-                dvals = [(w.get(X, F.zero) / (pt.d(X) * rho_top(R, F, pt.A, q))).v for w, pt in zip(ws, pts)]
-                if g < 0 or any(sum(wt * dvals[i] for i, wt in nu) % PRIME for nu in law_annihilators(xs7, g)):
-                    bad.append(("engine", R, X))
-        lines.append("regular: (b) the law on the engine's weights, all R |R| = 7: %d labels, failures %d"
-                     % (n7, sum(1 for b in bad if b[0] == "engine")))
+
+        def engine_law():
+            pts = [I.Point(F, A, q) for A in As7]
+            n7, fails = 0, []
+            for R in partitions(7):
+                ws = [twist_weights(pt, R) for pt in pts]
+                for X in set().union(*ws):
+                    if X == VAC:
+                        continue
+                    g = law_gap(X, R)
+                    n7 += 1
+                    dvals = [(w.get(X, F.zero) / (pt.d(X) * rho_top(R, F, pt.A, q))).v for w, pt in zip(ws, pts)]
+                    if g < 0 or any(sum(wt * dvals[i] for i, wt in nu) % PRIME for nu in law_annihilators(xs7, g)):
+                        fails.append((R, X))
+            return n7, fails
+        n7, fails = engine_law()
+        bad += [("engine", R, X) for R, X in fails]
+        lines.append("regular: (b) the law on the engine's weights, all R |R| = 7: %d labels, failures %d" % (n7, len(fails)))
+        if hasattr(I.nodes, "__wrapped__"):          # control (not with --nb)
+            saved, I.NODE_EXTRA = I.NODE_EXTRA, 0
+            try:
+                _, fails0 = engine_law()
+            finally:
+                I.NODE_EXTRA = saved
+            at = sorted({R for R, X in fails0})
+            lines.append("regular: (b) control, rows from the conditions at |nu| <= max(7, |R_min| + 1) alone: the law "
+                         "fails on %d labels, at %s" % (len(fails0), at))
+            if len(fails0) != 28 or at != [(3, 2, 1, 1), (4, 2, 1)]:
+                bad.append(("control", len(fails0), at))
     # (c) the law as a solver at the ghost diagrams
     if nmax >= 8:
         RJ = RossoJones()
@@ -3214,8 +3224,8 @@ def main(argv=None):
     ap.add_argument("--nmax", type=int, default=6)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--nb", type=int, default=None,
-                    help="node bound of the vanishing conditions (default: the engine's max(7, |R_min|+1)); "
-                         "--nb 10 makes every channel with |R| <= 7 full rank")
+                    help="node bound of the vanishing conditions (default: the engine's max(7, |R_min|+1), with "
+                         "larger nodes added while a row is not determined)")
     a = ap.parse_args(argv)
     if a.nb is not None:
         set_node_bound(a.nb)
