@@ -197,3 +197,25 @@ def test_double_braids_and_borromean():
     L6a4 (|R| <= 4)."""
     ok, lines = T.check_dbraid(nmax=4, seed=27)
     assert ok, lines
+
+
+def test_bc_determinant_single_sector():
+    """The single sector as BC interpolation at the Schur point: N = c_mu P*_mu(x(nu)) against the reverse-tableau
+    formula, E~ in divided differences, Phi_mu(m) as one determinant, and the laws of Phi (|nu| <= 5)."""
+    ok, lines = T.check_bcdet(nmax=5, seed=29)
+    assert ok, lines
+
+
+def test_colour_binomial_products():
+    """[R:lam] as a product when s_{R/lam} = s_W, the pair product rule, and the rectangles end to end from the
+    products and the determinant Phi alone (|R| <= 5)."""
+    ok, lines = T.check_colprod(nmax=5, seed=30)
+    assert ok, lines
+
+
+def test_regularity_law_exact_weights():
+    """w_X(R) / (d_X rho(R)) is a polynomial in A^2 of degree <= |R| - |M_X(R)| on all tabulated exact weights
+    (|R| <= 6), the bound attained, and not without rho(R)."""
+    ok, lines = T.check_regular(nmax=6, seed=31)
+    assert ok, lines
+    assert "control without rho(R): 263/263 fail" in lines[0], lines

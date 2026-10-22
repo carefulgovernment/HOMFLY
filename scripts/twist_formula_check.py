@@ -52,6 +52,14 @@ checks:
           at least 12 boxes): 1, except 2 for every two-cell separate/separate pair (first at [4,3,2,1])
   closed  end to end from the closed formulas only: H_R(Tw_m) for every R whose channels are singles and one-cell
           pairs, from the closed rows of N (no vanishing condition solved), against the data and Rosso-Jones T(2,3)
+  bcdet   the single sector in closed determinant form: N_{nu mu} = c_mu P*_mu(x(nu)), Okounkov's BC interpolation
+          polynomial of the LABEL nu at the Schur point (nodes A q^{2(nu_i - i) + 1}, s = A q^{1-2n}), against the
+          reverse-tableau formula; the same block as a windowed Nagelsbach-Kostka determinant of the composite particles;
+          E~ = N^{-1} in divided differences; Phi_mu(m) as one determinant (Cauchy-Binet) against sum E~ Lambda^m
+  colprod the colour binomials in closed form: [R:lam] = H_q(R) / (H_q(lam) H_q(W)) prod_{R/lam} D_{delta_lam} / D_c when
+          s_{R/lam} = s_W, against the finite sum E~ chihat / rho; [R:c] = [R:Z][R:Z'] / ([R_c:Z][R_c:Z']) for pairs with
+          s_{R/Z} = s_{R/Z'} = s_W against the engine rows; the rectangles end to end from these products and the
+          determinant Phi alone, against the stored polynomials and Rosso--Jones
   vacuum  the vacuum law: E~_{c,vac} (the constant term of Phi_c(m)) = pi(R_min(c)) = prod_b A q^{c(b)} / D_{c(b)} for every
           channel with one minimal diagram, and rho = (-1)^{|R|} pi prod_b {q^{h(b)}}^2
   twocell the pair diagonal N_cc (one-cell and non-resonant two-cell pairs, hinge shift for domino/separate), the first pair
@@ -68,13 +76,19 @@ checks:
   ideal   the ideal identity: f(U) = rho(U) phi_f(-1) and phi_f(1) = M(U) phi_f(-1) on every basis vector of the
           vanishing ideal I_U of every diagram U, ghosts included (--nmax 10: all 138 diagrams, [4,3,2,1] with its ten
           ghosts); so the rows cannot carry the multiplicity m_c = 2
+  regular the regularity law: w_X(R) / (d_X rho(R)) is a polynomial in A^2 of degree <= |R| - |M_X(R)| (M_X(R) the
+          smallest minimal diagram of X inside R) and w_X(R) = 0 for X absent at R: on the exact weights |R| <= 6 (the
+          bound attained, and the control without rho), with --nmax 7 on the engine's weights at seven boxes, and with
+          --nmax 8 as the solver of the final conjecture at [4,3,1], [3,2,2,1]: everything above the two minimal ghost
+          diagrams unknown, fixed by the law from the closed channels below them (unique), against the stored H_R(4_1),
+          Rosso-Jones T(2,3), the top law, and transposition
   dbraid  the cubic form H_R(DB(m, n)) = 1 + sum_c F_c(R) Phi_c(m) Phi_c(n) / M(R_min(c)) against the 18 stored
           double-braid knots (all R <= 6) and the A-window of each stored polynomial, the mirror identity
           DB(n, -1)(A, q) = H_R(Tw_{-n})(1/A, 1/q), and the Borromean rings b(R, R, R) = 1 + sum_c F_c(R)^3 / (d_c^2
           phi_c(-1)^2 M(R_min(c))) against data/homfly/L6a4.txt
 
-usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed vacuum
-       twocell lagrange hookcols monomial ideal dbraid]
+usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed bcdet colprod vacuum
+       twocell lagrange hookcols monomial ideal regular dbraid]
 """
 import argparse
 import gzip
@@ -1725,6 +1739,330 @@ def check_closed(nmax=6, seed=1, ms=range(-5, 6)):
         % (n_R, nmax, open_R, n_val, n_rj, "none" if not bad else bad[:4])]
 
 
+# --- closed binomials: the single block of N as BC interpolation polynomials of the label, its inverse, the twist
+# binomials as one determinant, and the product rules for the colour binomials -----------------------------------
+def det_F(M, F):
+    """Determinant over the field F (Gaussian elimination)."""
+    M = [row[:] for row in M]
+    n, d = len(M), F.one
+    for c in range(n):
+        piv = next((r for r in range(c, n) if M[r][c] != 0), None)
+        if piv is None:
+            return F.zero
+        if piv != c:
+            M[c], M[piv] = M[piv], M[c]
+            d = -d
+        d = d * M[c][c]
+        inv = F.one / M[c][c]
+        for r in range(c + 1, n):
+            if M[r][c] != 0:
+                f = M[r][c] * inv
+                M[r] = [a - f * b for a, b in zip(M[r], M[c])]
+    return d
+
+
+class BCSingle:
+    """The single sector in closed form at a point, in n >= l variables (the values do not depend on n):
+        s = A q^{1-2n},  beta_l = s q^{2l} + 1/(s q^{2l}),  k_i(nu) = nu_i + n - i   (nodes x_i(nu) = A q^{2(nu_i-i)+1}),
+        N_{nu mu}  = c_mu det[p_{k_j(mu)}(beta_{k_i(nu)})] / V(nu),          p_k(b) = prod_{l<k} (b - beta_l),
+        E~_{mu nu} = V(nu) / c_mu det[a_{k_i(mu), k_j(nu)}],               a_kl = 1 / prod_{m<=k, m!=l} (beta_l - beta_m),
+        Phi_mu(m)  = det[sum_{l<=k_i(mu)} a_{k_i(mu), l} g(l)^m beta_l^{n-t}] / (c_mu prod_j g(n-j)^m),
+    V(nu) = prod_{i<j} (beta_{k_i(nu)} - beta_{k_j(nu)}), g(l) = A^{2(l-n)} q^{2(l-n)(l-n+1)}, c_mu = phi_mu(-1)/P*_mu(mu).
+    N is Okounkov's BC interpolation polynomial P*_mu(x(nu)) at the Schur point q_M = t_M = q^2 (determinant form) of
+    the label nu, E~ its inverse (divided differences), Phi by Cauchy-Binet (the KNTZ F-function for every mu)."""
+
+    def __init__(self, F, A, q):
+        self.F, self.A, self.q = F, A, q
+        self._beta, self._a, self._c = {}, {}, {}
+
+    def beta(self, n, l):
+        if (n, l) not in self._beta:
+            s = self.A * self.q ** (1 - 2 * n + 2 * l)
+            self._beta[(n, l)] = s + 1 / s
+        return self._beta[(n, l)]
+
+    @staticmethod
+    def ks(mu, n):
+        return [(mu[i] if i < len(mu) else 0) + n - 1 - i for i in range(n)]
+
+    def V(self, nu, n):
+        k, v = self.ks(nu, n), self.F.one
+        for i in range(n):
+            for j in range(i + 1, n):
+                v = v * (self.beta(n, k[i]) - self.beta(n, k[j]))
+        return v
+
+    def p(self, n, k, b):
+        v = self.F.one
+        for l in range(k):
+            v = v * (b - self.beta(n, l))
+        return v
+
+    def a(self, n, k, l):
+        if l > k:
+            return self.F.zero
+        if (n, k, l) not in self._a:
+            v = self.F.one
+            for m in range(k + 1):
+                if m != l:
+                    v = v * (self.beta(n, l) - self.beta(n, m))
+            self._a[(n, k, l)] = 1 / v
+        return self._a[(n, k, l)]
+
+    def pstar(self, mu, nu, n):
+        km, kn = self.ks(mu, n), self.ks(nu, n)
+        num = det_F([[self.p(n, km[j], self.beta(n, kn[i])) for j in range(n)] for i in range(n)], self.F)
+        return num / self.V(nu, n)
+
+    def c(self, mu, n):
+        if (mu, n) not in self._c:
+            self._c[(mu, n)] = phi_product(mu, self.F, self.A, self.q) / self.pstar(mu, mu, n)
+        return self._c[(mu, n)]
+
+    def N(self, nu, mu, n=None):
+        if not mu:
+            return self.F.one
+        if not I.contains(nu, mu):
+            return self.F.zero
+        n = n or len(nu)
+        return self.c(mu, n) * self.pstar(mu, nu, n)
+
+    def Et(self, mu, nu, n=None):
+        if not I.contains(mu, nu):
+            return self.F.zero
+        if not mu:
+            return self.F.one
+        n = n or len(mu)
+        km, kn = self.ks(mu, n), self.ks(nu, n)
+        M = [[self.a(n, km[i], kn[j]) for j in range(n)] for i in range(n)]
+        return self.V(nu, n) / self.c(mu, n) * det_F(M, self.F)
+
+    def Phi(self, mu, m):
+        if not mu:
+            return self.F.one
+        F, A, q, n = self.F, self.A, self.q, len(mu)
+        g = lambda l: (A ** (2 * (l - n)) * q ** (2 * (l - n) * (l - n + 1))) ** m
+        km = self.ks(mu, n)
+        M = [[sum((self.a(n, km[i], l) * g(l) * self.beta(n, l) ** (n - 1 - t) for l in range(km[i] + 1)), F.zero)
+              for t in range(n)] for i in range(n)]
+        den = self.c(mu, n)
+        for j in range(n):
+            den = den * g(n - 1 - j)
+        return det_F(M, F) / den
+
+
+def hq_prod(lam, F, q):
+    """H_q(lam) = prod_{b in lam} [h(b)]."""
+    v = F.one
+    for b in boxes(lam):
+        v = v * qnum(hook(lam, b), F, q)
+    return v
+
+
+def delta_idx(lam, b):
+    """delta_lam(i, j) = (lam_i - i) - (lam'_j - j) (0-based): the D-index a(b) - l(b) + 2c(b) of phi_lam(-1), continued to
+    the cells outside lam."""
+    i, j = b
+    lc = conjugate(lam) if lam else ()
+    return ((lam[i] if i < len(lam) else 0) - i) - ((lc[j] if j < len(lc) else 0) - j)
+
+
+def colour_sum(R, lam, S, pt):
+    """(1/rho(lam)) sum_{nu in lam} E~_{lam nu} chihat_nu(R): a finite sum with closed coefficients."""
+    F = pt.F
+    tot = F.zero
+    for nu in subdiagrams(lam):
+        tot = tot + S.Et(lam, nu) * ((pt.psi(I.single(nu), R) + 1) if nu else F.one)
+    return tot / rho_top(lam, F, pt.A, pt.q)
+
+
+def colour_single(R, lam, S, pt):
+    """[R:lam] for a single channel and every R (zero unless lam is in R)."""
+    if not lam:
+        return pt.F.one
+    if not I.contains(R, lam):
+        return pt.F.zero
+    return colour_sum(R, lam, S, pt)
+
+
+def single_W(R, Z):
+    """W if s_{R/Z} = s_W (one Littlewood-Richardson term with coefficient one), else None."""
+    sk = I.skew(R, Z)
+    return list(sk)[0] if len(sk) == 1 and list(sk.values())[0] == 1 else None
+
+
+def colour_product(R, lam, F, A, q):
+    """[R:lam] = H_q(R) / (H_q(lam) H_q(W)) prod_{b in R/lam} D_{delta_lam(b)} / D_{c(b)} when s_{R/lam} = s_W
+    (multiplicity one); None otherwise."""
+    W = single_W(R, lam)
+    if W is None:
+        return None
+    v = hq_prod(R, F, q) / (hq_prod(lam, F, q) * hq_prod(W, F, q))
+    inner = set(boxes(lam))
+    for b in boxes(R):
+        if b not in inner:
+            v = v * Dk(delta_idx(lam, b), F, A, q) / Dk(cont(b), F, A, q)
+    return v
+
+
+def pair_product(R, c, F, A, q):
+    """[R:c] = [R:Z][R:Z'] / ([R_c:Z][R_c:Z']) for a pair c = {Z, Z'} with one minimal diagram R_c, when s_{R/Z} =
+    s_{R/Z'} = s_W and s_{R_c/Z} = s_{R_c/Z'} = s_{W_c} (the singles by colour_product); None outside this class."""
+    Z, Zp = c[1], c[2]
+    if not I.presence(c, R):
+        return F.zero
+    rm = I.rmin(c)
+    if len(rm) != 1:
+        return None
+    Rc = rm[0]
+    W, Wc = single_W(R, Z), single_W(Rc, Z)
+    if W is None or Wc is None or single_W(R, Zp) != W or single_W(Rc, Zp) != Wc:
+        return None
+    v = (hq_prod(R, F, q) * hq_prod(Wc, F, q) / (hq_prod(Rc, F, q) * hq_prod(W, F, q))) ** 2
+    inner = set(boxes(Rc))
+    for b in boxes(R):
+        if b not in inner:
+            v = v * Dk(delta_idx(Z, b), F, A, q) * Dk(delta_idx(Zp, b), F, A, q) / Dk(cont(b), F, A, q) ** 2
+    return v
+
+
+def check_bcdet(nmax=6, seed=1):
+    """The single sector in determinant form (BCSingle): N against the reverse-tableau formula for every mu in nu,
+    |nu| <= nmax, also with n = l(nu) + 1 variables; E~ against the inverse of that block; Phi_mu(m) against
+    sum_nu E~_{mu nu} Lambda_nu^m for |m| <= 4, and the laws Phi(-1) = 1, Phi(0) = 0, Phi(1) = M(mu)."""
+    F, A, q = random_point(seed)
+    S = BCSingle(F, A, q)
+    lams = [tuple(l) for k in range(1, nmax + 1) for l in partitions(k)]
+    nN = bN = nn = bn = nE = bE = nP = bP = nL = bL = nW = bW = 0
+    for nu in lams:
+        sub = subdiagrams(nu)
+        for mu in sub:
+            if not mu:
+                continue
+            nN += 1
+            v = S.N(nu, mu)
+            bN += v != binom_N(nu, mu, F, A, q)
+            if len(nu) <= 3 and sum(nu) <= 6:
+                nn += 1
+                bn += S.N(nu, mu, len(nu) + 1) != v
+            nW += 1
+            bW += v != S.N(mu, mu) * single_windet(nu, mu, F, A, q) / single_windet(mu, mu, F, A, q)
+        # E~ row of nu: the inverse of the single block on the subdiagrams of nu
+        Et = {}
+        for lam in sorted(sub, key=sum):
+            row = {lam: F.one / (S.N(lam, lam) if lam else F.one)}
+            for mu in sorted([x for x in subdiagrams(lam) if x != lam], key=sum, reverse=True):
+                s = F.zero
+                for nu2 in subdiagrams(lam):
+                    if nu2 != mu and I.contains(nu2, mu) and nu2 in row:
+                        s = s + row[nu2] * S.N(nu2, mu)
+                row[mu] = -s / (S.N(mu, mu) if mu else F.one)
+            Et[lam] = row
+        for mu, w in Et[nu].items():
+            nE += 1
+            bE += S.Et(nu, mu) != w
+        for m in range(-4, 5):
+            nP += 1
+            direct = sum((S.Et(nu, mu) * Lam(I.single(mu) if mu else VAC, F, A, q) ** m for mu in sub), F.zero)
+            bP += S.Phi(nu, m) != direct
+        nL += 1
+        bL += (S.Phi(nu, -1) != F.one or S.Phi(nu, 0) != F.zero or S.Phi(nu, 1) != mono_M(nu, F, A, q))
+    ok = not (bN or bn or bE or bP or bL or bW)
+    return ok, ["bcdet: N_{nu mu} = c_mu P*_mu(x(nu)) (BC interpolation at the Schur point, s = A q^{1-2n}) vs the "
+                "reverse-tableau formula: %d entries (|nu| <= %d), mismatches %d; n-independence (n = l + 1): %d, %d"
+                % (nN, nmax, bN, nn, bn),
+                "bcdet: N_{nu mu} = N_{mu mu} P_mu(nu)/P_mu(mu), P_mu the windowed Nagelsbach-Kostka determinant of the "
+                "composite particles: %d entries, mismatches %d" % (nW, bW),
+                "bcdet: E~ in divided differences vs the inverse block: %d entries, mismatches %d; Phi_mu(m) as one "
+                "determinant vs sum E~ Lambda^m (|m| <= 4): %d values, mismatches %d; laws Phi(-1) = 1, Phi(0) = 0, "
+                "Phi(1) = M(mu): %d singles, failures %d" % (nE, bE, nP, bP, nL, bL)]
+
+
+def check_colprod(nmax=6, seed=1):
+    """The colour binomials: the product rule [R:lam] for every (R, lam) with s_{R/lam} = s_W against the finite sum
+    E~ chihat / rho; the pair product rule against [R:c] = Psi_c(R)/rho(R_c) from the engine rows (every clean pair with
+    one minimal diagram, one-cell and multi-cell); and end to end, H_R(Tw_m) of every rectangle from the product rule and
+    the determinant Phi alone against the stored polynomials and Rosso--Jones."""
+    from homfly.methods.rosso_jones import RossoJones
+    from homfly.knots.families import TorusKnot
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    S = BCSingle(F, A, q)
+    nS = bS = nZ = bZ = 0
+    for k in range(1, nmax + 1):
+        for R in partitions(k):
+            R = tuple(R)
+            for lam in subdiagrams(R):
+                if not lam:
+                    continue
+                v = colour_single(R, lam, S, pt)
+                if lam == R:
+                    nZ += 1
+                    bZ += v != F.one
+                pr = colour_product(R, lam, F, A, q)
+                if pr is not None:
+                    nS += 1
+                    bS += pr != v
+            for lam in [tuple(l) for l in partitions(k)] + [tuple(l) for l in partitions(k + 1)]:
+                if not I.contains(R, lam):
+                    nZ += 1
+                    bZ += colour_sum(R, lam, S, pt) != F.zero
+    chans = channels_present(nmax)
+    clean, excluded = clean_channels(pt, chans)
+    order, Et, N = build_EN(pt, chans)
+    idx = {c: i for i, c in enumerate(order)}
+    kinds, bP2 = {}, []
+    for c in clean:
+        if c[0] != "p" or len(I.rmin(c)) != 1:
+            continue
+        Rc = I.rmin(c)[0]
+        for k in range(sum(Rc), nmax + 1):
+            for R in partitions(k):
+                R = tuple(R)
+                pr = pair_product(R, c, F, A, q)
+                if pr is None or not I.presence(c, R):
+                    continue
+                psi = sum((Et[idx[c]][j] * ((pt.psi(X, R) + 1) if X != VAC else F.one) for j, X in enumerate(order)
+                           if Et[idx[c]][j] != 0), F.zero)
+                key = sum(Rc) - sum(c[1])
+                kinds[key] = kinds.get(key, 0) + 1
+                if pr != psi / rho_top(Rc, F, A, q):
+                    bP2.append((c, R))
+    RJ = RossoJones()
+    nH = nRJ = 0
+    bH = []
+    for k in range(1, nmax + 1):
+        for R in partitions(k):
+            R = tuple(R)
+            if len(set(R)) != 1:
+                continue
+            terms = []
+            for lam in subdiagrams(R):
+                if not lam:
+                    continue
+                Zl = pt.d(I.single(lam)) * phi_product(lam, F, A, q) * rho_top(lam, F, A, q)
+                terms.append((Zl * colour_product(R, lam, F, A, q), lam))
+            vals = {m: F.one + sum((w * S.Phi(lam, m) for w, lam in terms), F.zero) for m in range(-5, 6) if m}
+            for m, v in vals.items():
+                sym = len(R) == 1 and not has_data(M_KNOT[m], R) and k >= 7
+                if has_data(M_KNOT[m], R, symmetric=sym):
+                    nH += 1
+                    if v != twist_data(m, R, F, A, q, symmetric=sym):
+                        bH.append((R, m))
+            nRJ += 1
+            if vals[1] != RJ.evaluate(TorusKnot(2, 3), R, F, A, q):
+                bH.append((R, "RJ"))
+    ok = not (bS or bZ or bP2 or bH)
+    return ok, ["colprod: [R:lam] = H_q(R)/(H_q(lam) H_q(W)) prod_{R/lam} D_delta/D_c for every (R, lam) with s_{R/lam} = "
+                "s_W, |R| <= %d: %d cases vs the finite sum E~ chihat/rho, mismatches %d; zeros and [lam:lam] = 1: %d, "
+                "failures %d" % (nmax, nS, bS, nZ, bZ),
+                "colprod: pair rule [R:c] = [R:Z][R:Z']/([R_c:Z][R_c:Z']) vs the engine rows (clean pairs with one minimal "
+                "diagram; cases by |R_c| - |Z|: %s; excluded channels %d): mismatches %s"
+                % (dict(sorted(kinds.items())), len(excluded), "none" if not bP2 else bP2[:3]),
+                "colprod: rectangles from the product rule and the determinant Phi alone: %d stored values, %d Rosso-Jones "
+                "values, mismatches %s" % (nH, nRJ, "none" if not bH else bH[:4])]
+
+
 def pi_vac(R, F, A, q):
     """pi(R) = prod_{b in R} 1 / (1 - A^{-2} q^{-2c(b)}) = prod_b A q^{c(b)} / D_{c(b)}."""
     v = F.one
@@ -2206,18 +2544,19 @@ def check_lagrange(nmax=6, seed=1):
 
 
 # --- the closed light columns: windowed elementary and complete functions of the composite particles ------------------
-def window_series(c, W, n, F, A, q, h=False, swap=False):
+def window_series(c, W, n, F, A, q, h=False, swap=False, div=()):
     """[t^0], ..., [t^n] of the windowed generating functions of the composite particles of c = (Z, Z'),
         u(c) = {x_{Z_i - i}} u {1 / x_{Z'_i - i}},   x_m = A q^{2m-1}   (vacuum particles at m = 0, -1, -2, ...),
         E^W_c(t) = prod_i (1 + t x_{Z_i-i})(1 + t / x_{Z'_i-i}) / ((1 + t x_{-i})(1 + t / x_{-i})) prod_{j in W} (1 + t b_{-j} + t^2),
         H^W_c(t) = prod_i (1 - t x_{-i})(1 - t / x_{-i}) / ((1 - t x_{Z_i-i})(1 - t / x_{Z'_i-i})) prod_{j in W} (1 - t b_{j+1} + t^2),
-    b_m = x_m + 1/x_m (h selects H); swap exchanges Z and Z' (u -> 1/u)."""
+    b_m = x_m + 1/x_m (h selects H); swap exchanges Z and Z' (u -> 1/u); for E the factors of the j in div are divided
+    out (the signed window [m], m < 0: W = (), div = {m, ..., -1})."""
     Z, Zp = (c[2], c[1]) if swap else (c[1], c[2])
     x = lambda m: A * q ** (2 * m - 1)
     part = [x(r - i) for i, r in enumerate(Z)] + [1 / x(r - i) for i, r in enumerate(Zp)]
     vac = [x(-i) for i in range(len(Z))] + [1 / x(-i) for i in range(len(Zp))]
     if not h:
-        num, den = part + [x(-j) for j in W] + [1 / x(-j) for j in W], vac
+        num, den = part + [x(-j) for j in W] + [1 / x(-j) for j in W], vac + [x(-j) for j in div] + [1 / x(-j) for j in div]
     else:
         num, den = [-r for r in vac] + [-x(j + 1) for j in W] + [-1 / x(j + 1) for j in W], [-r for r in part]
     s = [F.one] + [F.zero] * n
@@ -2228,6 +2567,27 @@ def window_series(c, W, n, F, A, q, h=False, swap=False):
         for k in range(1, n + 1):
             s[k] = s[k] - r * s[k - 1]
     return s
+
+
+def signed_e(c, m, r, F, A, q):
+    """e^{[m]}_r(c) = [t^r] E^{[m]}_c: the window [m] = {0, ..., m-1}, for m < 0 the factors of {m, ..., -1} divided out."""
+    if r < 0:
+        return F.zero
+    if m >= 0:
+        return window_series(c, range(m), r, F, A, q)[r]
+    return window_series(c, (), r, F, A, q, div=range(m, 0))[r]
+
+
+def single_windet(lam, mu, F, A, q):
+    """P_mu(lam) = det[e^{[mu'_i - i]}_{mu'_i - i + j} - e^{[mu'_i - i]}_{mu'_i - i - j}]_{i, j = 1..mu_1} at the single
+    channel lam (a factorial Nagelsbach-Kostka determinant in the windowed elementary functions of the composite
+    particles; N_{lam mu} = N_{mu mu} P_mu(lam) / P_mu(mu))."""
+    c, mc = ("s", lam, lam), conjugate(mu)
+    M = []
+    for i in range(1, len(mc) + 1):
+        r = mc[i - 1] - i
+        M.append([signed_e(c, r, r + j, F, A, q) - signed_e(c, r, r - j, F, A, q) for j in range(1, len(mc) + 1)])
+    return det_F(M, F)
 
 
 def window_alt(c, W, r, F, A, q, h=False, sign=-1):
@@ -2462,6 +2822,256 @@ def check_ideal(nmax=6, seed=1):
                         "none" if not bad else bad[:4])]
 
 
+# ---------------------------------------------------------------------------
+# the regularity law: the layers above [4,3,1], [3,2,2,1] from the closed channels below them
+# ---------------------------------------------------------------------------
+GHOST_BASES = ((4, 3, 1), (3, 2, 2, 1))     # the minimal ghost diagrams: every diagram with ex >= 1 contains one
+
+
+def ghost_related(U):
+    return any(I.contains(tuple(U), B) for B in GHOST_BASES)
+
+
+def law_gap(X, R):
+    """Degree bound of the regularity law: w_X(R) / (d_X rho(R)) is a polynomial in A^2 of degree <= |R| - |M|, M the
+    smallest minimal diagram of X inside R; -1 if X is absent at R (then w_X(R) = 0)."""
+    ms = [sum(M) for M in I.rmin(X) if I.contains(tuple(R), M)]
+    return sum(R) - min(ms) if ms else -1
+
+
+def law_annihilators(xs, g, p=PRIME):
+    """Divided differences of order g + 1 on consecutive nodes xs (ints mod p) as [(index, weight)]: together they kill
+    exactly the polynomials of degree <= g in x; for g < 0 the point evaluations."""
+    if g < 0:
+        return [[(i, 1)] for i in range(len(xs))]
+    out = []
+    for k in range(len(xs) - g - 1):
+        S = range(k, k + g + 2)
+        nu = []
+        for i in S:
+            d = 1
+            for j in S:
+                if j != i:
+                    d = d * (xs[i] - xs[j]) % p
+            nu.append((i, pow(d, p - 2, p)))
+        out.append(nu)
+    return out
+
+
+def solve_mod(rows, n, p=PRIME):
+    """rows: lists of length n + 1 meaning sum_j r[j] y_j + r[n] = 0.  Returns (y, rank): y if the system is consistent
+    with a unique solution, else None."""
+    piv, red = [], []
+    for r in rows:
+        r = [v % p for v in r]
+        for pc, pr in zip(piv, red):
+            if r[pc]:
+                f = r[pc]
+                r = [(a - f * b) % p for a, b in zip(r, pr)]
+        lead = next((j for j in range(n + 1) if r[j]), None)
+        if lead is None:
+            continue
+        if lead == n:
+            return None, len(piv)                 # inconsistent
+        inv = pow(r[lead], p - 2, p)
+        r = [a * inv % p for a in r]
+        for j, pr in enumerate(red):
+            if pr[lead]:
+                f = pr[lead]
+                red[j] = [(a - f * b) % p for a, b in zip(pr, r)]
+        piv.append(lead)
+        red.append(r)
+    if len(piv) < n:
+        return None, len(piv)
+    y = [0] * n
+    for pc, pr in zip(piv, red):
+        y[pc] = (-pr[n]) % p
+    return y, n
+
+
+def regular_completion(R, F, q, As):
+    """The regularity law at R as a solver.  Known: the term d_c (e(R) / phi_e(-1)) e of every channel c of R whose
+    minimal diagram contains neither [4,3,1] nor [3,2,2,1] (there the row e of the vanishing conditions is unique,
+    given enough nodes: a node bound of 10 for the rows of seven boxes).  Unknown: an element of the sum of the ideals I_U' over the diagrams U' ⊆ R that contain one of them, one per sample
+    point A in As (q fixed).  The law on every label X (w_X / (d_X rho(R)) a polynomial in A^2 of degree <= law_gap)
+    is imposed through divided differences over the points.  Returns ({X: w_X(R)} at As[0], number of unknowns) or
+    (None, why)."""
+    R = tuple(R)
+    pts = [I.Point(F, A, q) for A in As]
+    present = list(I.channels_of(R))
+    ups = [U for k in range(1, sum(R) + 1) for U in partitions(k) if I.contains(R, U) and ghost_related(U)]
+    known, vecs = [], []
+    for pt in pts:
+        w = {}
+        for c in present:
+            Ms = [M for M in I.rmin(c) if I.contains(R, M)]
+            if any(ghost_related(M) for M in Ms):
+                if not all(ghost_related(M) for M in Ms):
+                    return None, "split channel %s across a ghost diagram" % (c,)
+                continue
+            if len(Ms) != 1:
+                return None, "split channel %s (several minimal diagrams) not supported here" % (c,)
+            Fc = pt.F_c(c, R)
+            if Fc == 0:
+                continue
+            ph = pt.phi(c, -1)
+            for X, e in pt.E_row(c).items():
+                if X != VAC and e != 0:
+                    w[X] = w.get(X, F.zero) + Fc * e / ph
+        known.append(w)
+        vs = []
+        for U in ups:
+            labs, basis = ideal_basis(pt, U)
+            vs += [{X: a for X, a in zip(labs, v) if a != 0} for v in basis]
+        vecs.append(vs)
+    ne = len(vecs[0])
+    if any(len(v) != ne for v in vecs):
+        return None, "the dimension of the unknown space depends on the point"
+    labels = list(present)
+    for vs in vecs:
+        for v in vs:
+            labels += [X for X in v if X not in labels]
+    xs = [(A * A).v for A in As]
+    rows = []
+    for X in labels:
+        g = law_gap(X, R) if X in present else -1
+        scale = [(1 / (pt.d(X) * rho_top(R, F, pt.A, q))).v for pt in pts]
+        for nu in law_annihilators(xs, g):
+            r = [0] * (len(As) * ne + 1)
+            for i, wt in nu:
+                s = wt * scale[i] % PRIME
+                for t, v in enumerate(vecs[i]):
+                    if X in v:
+                        r[i * ne + t] = s * v[X].v % PRIME
+                if X in known[i]:
+                    r[-1] = (r[-1] + s * known[i][X].v) % PRIME
+            if any(r):
+                rows.append(r)
+    y, rank = solve_mod(rows, len(As) * ne)
+    if y is None:
+        return None, "not unique or inconsistent (%d equations, %d unknowns, rank %d)" % (len(rows), len(As) * ne, rank)
+    W = dict(known[0])
+    for t, v in enumerate(vecs[0]):
+        for X, a in v.items():
+            W[X] = W.get(X, F.zero) + F(y[t]) * a
+    return {X: a for X, a in W.items() if a != 0}, len(As) * ne
+
+
+def check_regular(nmax=6, seed=1):
+    """The regularity law: for every R and every label X, w_X(R) / (d_X rho(R)) is a polynomial in A^2 of degree
+    <= |R| - |M_X(R)| (M_X(R) the smallest minimal diagram of X inside R; rho = rho_top), and w_X(R) = 0 for X absent at
+    R.  (a) on the tabulated exact weights, all R with |R| <= 6, at 16 values of A; (b) with --nmax >= 7 on the engine's
+    weights at seven boxes; (c) with --nmax >= 8 as a solver at [4,3,1] and [3,2,2,1], where the channel formula alone
+    fails: the whole layer of the diagram (its tops and its ghost) is left unknown and fixed by the law from the closed
+    channels below it, at 24 values of A; compared with the stored H_R(4_1) and with Rosso-Jones T(2,3); the top law
+    w_c = d_c rho(R) comes out; and [4,3,1] solved again at (A, -1/q) gives the twist knots of [3,2,2,1] at (A, q)
+    (transposition).  (b) and (c) run with the node bound raised to 10 unless --nb is given."""
+    F, A0, q = random_point(seed)
+    rng = random.Random(1000 + seed)
+    lines, bad = [], []
+    # (a) the exact table
+    tab = json.load(open(TABLE))["weights"]
+    As = [A0] + [F(rng.randrange(2, PRIME - 1)) for _ in range(15)]
+    xs = [(A * A).v for A in As]
+    ptsA = [I.Point(F, A, q) for A in As]
+    yq = q * q
+
+    def ev(terms, x):
+        return sum((c * x ** a * yq ** b for a, b, c in terms), F.zero)
+    def poly_le(vals, g, xs):
+        return g >= 0 and not any(sum(wt * vals[i] for i, wt in nu) % PRIME for nu in law_annihilators(xs, g))
+    nlab = sharp = pos = norho = 0
+    for k in range(1, min(nmax, 6) + 1):
+        for R in partitions(k):
+            rhos = [rho_top(R, F, A, q) for A in As]
+            for w in tab[str(list(R))]:
+                X = (w["X"][0], tuple(w["X"][1]), tuple(w["X"][2]))
+                g = law_gap(X, R)
+                nlab += 1
+                wv = [ev(w["num"], A * A) / ev(w["den"], A * A) for A in As]
+                dvals = [(v / (pt.d(X) * r)).v for v, pt, r in zip(wv, ptsA, rhos)]
+                if not poly_le(dvals, g, xs):
+                    bad.append(("table", R, X))
+                if g >= 1:
+                    pos += 1
+                    sharp += not poly_le(dvals, g - 1, xs)          # the bound is attained
+                norho += not poly_le([(v / pt.d(X)).v for v, pt in zip(wv, ptsA)], g, xs)   # control: without rho
+    lines.append("regular: (a) the law on the tabulated exact weights, all R |R| <= %d: %d labels, failures %d; the "
+                 "degree bound is attained on %d of the %d labels with bound >= 1; control without rho(R): %d/%d fail"
+                 % (min(nmax, 6), nlab, sum(1 for b in bad if b[0] == "table"), sharp, pos, norho, nlab))
+    if nmax < 7:
+        return not bad, lines
+    # (b), (c) need the full-rank rows at seven boxes: with the engine's default node bound the rows of [4,2,1] and
+    # [3,2,1,1] are rank-deficient (gauge garbage; the law fails on exactly their 28 labels), so raise it to 10
+    saved = I.nodes
+    if hasattr(saved, "__wrapped__"):
+        set_node_bound(10)
+    try:
+        return _check_regular_big(nmax, F, A0, q, rng, lines, bad)
+    finally:
+        I.nodes = saved
+
+
+def _check_regular_big(nmax, F, A0, q, rng, lines, bad):
+    from homfly.methods.rosso_jones import RossoJones
+    from homfly.knots.families import TorusKnot
+    # (b) the engine's weights at seven boxes
+    if nmax >= 7:
+        As7 = [A0] + [F(rng.randrange(2, PRIME - 1)) for _ in range(17)]
+        xs7 = [(A * A).v for A in As7]
+        pts = [I.Point(F, A, q) for A in As7]
+        n7 = 0
+        for R in partitions(7):
+            ws = [twist_weights(pt, R) for pt in pts]
+            for X in set().union(*ws):
+                if X == VAC:
+                    continue
+                g = law_gap(X, R)
+                n7 += 1
+                dvals = [(w.get(X, F.zero) / (pt.d(X) * rho_top(R, F, pt.A, q))).v for w, pt in zip(ws, pts)]
+                if g < 0 or any(sum(wt * dvals[i] for i, wt in nu) % PRIME for nu in law_annihilators(xs7, g)):
+                    bad.append(("engine", R, X))
+        lines.append("regular: (b) the law on the engine's weights, all R |R| = 7: %d labels, failures %d"
+                     % (n7, sum(1 for b in bad if b[0] == "engine")))
+    # (c) the law as a solver at the ghost diagrams
+    if nmax >= 8:
+        RJ = RossoJones()
+        As8 = [A0] + [F(rng.randrange(2, PRIME - 1)) for _ in range(23)]
+        ms = (1, -1, 2, -2, 3, -3, 4, -4)
+
+        def twist_values(W, qq):
+            return {m: F.one + sum((a * (Lam(X, F, A0, qq) ** m - 1) for X, a in W.items()), F.zero) for m in ms}
+        Hs = {}
+        for R in [U for k in range(8, nmax + 1) for U in partitions(k) if ghost_related(U)]:
+            W, info = regular_completion(R, F, q, As8)
+            if W is None:
+                lines.append("regular: (c) %s: %s" % (list(R), info))
+                if not str(info).startswith("split"):
+                    bad.append(("solve", R, info))
+                continue
+            H = Hs[R] = twist_values(W, q)
+            ok41 = H[-1] == twist_data(-1, R, F, A0, q) if has_data("4_1", R) else None
+            ok31 = H[1] == RJ.evaluate(TorusKnot(2, 3), R, F, A0, q)
+            pt0 = I.Point(F, A0, q)
+            tops = [c for c in I.channels_of(R) if list(I.rmin(c)) == [tuple(R)]]
+            okt = all(W.get(c, F.zero) == pt0.d(c) * rho_top(R, F, A0, q) for c in tops)
+            if ok41 is False or not ok31 or not okt:
+                bad.append(("solve", R, (ok41, ok31, okt)))
+            lines.append("regular: (c) %s: whole layer unknown (%d unknowns over 24 points), unique; 4_1 = data: %s; "
+                         "3_1 = Rosso-Jones: %s; top law w_c = d_c rho(R) on its %d tops: %s"
+                         % (list(R), info, "n/a" if ok41 is None else ok41, ok31, len(tops), okt))
+        # transposition H_{R^T}(A, q) = H_R(A, -1/q): R solved again at -1/q, independently of R^T at q
+        qm = -1 / q
+        for R in [U for U in Hs if tuple(conjugate(U)) in Hs and U > tuple(conjugate(U))]:
+            W, info = regular_completion(R, F, qm, As8)
+            ok = W is not None and twist_values(W, qm) == Hs[tuple(conjugate(R))]
+            if not ok:
+                bad.append(("transpose", R, info))
+            lines.append("regular: (c) transposition: %s solved at (A, -1/q) = %s solved at (A, q) for m = +-1..+-4: %s"
+                         % (list(R), list(conjugate(R)), ok))
+    return not bad, lines
+
+
 def cubic_terms(pt, R):
     """[(c, F_c(R), phi_c(-1), M(R_min(c)))] for the channels of R (one minimal diagram each, as for |R| <= 8)."""
     out = []
@@ -2585,9 +3195,10 @@ CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
           "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
           "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow, "kernel": check_kernel,
-          "topweight": check_topweight, "mult": check_mult, "closed": check_closed, "vacuum": check_vacuum,
+          "topweight": check_topweight, "mult": check_mult, "closed": check_closed, "bcdet": check_bcdet,
+          "colprod": check_colprod, "vacuum": check_vacuum,
           "twocell": check_twocell, "lagrange": check_lagrange, "hookcols": check_hookcols, "monomial": check_monomial,
-          "ideal": check_ideal, "dbraid": check_dbraid}
+          "ideal": check_ideal, "regular": check_regular, "dbraid": check_dbraid}
 
 
 def set_node_bound(nb):

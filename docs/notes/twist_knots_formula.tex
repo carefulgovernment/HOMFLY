@@ -37,6 +37,24 @@ as the family $\Tw_m$ of antiparallel double braids with $m$ full twists (Sectio
 reduced colored HOMFLY polynomial $H_R(\Tw_m)$ in a non-rectangular representation $R$, explicit in the twist
 parameter.
 
+\paragraph{The final form.}  Everything below combines into one conjecture for every $R$ and every $m$
+(Conjecture~\ref{conj:final}, stated with all its ingredients in Section~\ref{sec:onepage}):
+\[
+H_R(\Tw_m)=1+\sum_Xw_X(R)\bigl(\Lam_X^{\,m}-1\bigr),\qquad
+w(R)=\sum_{\substack{(c,M):\ M\subseteq R\\ M\not\supseteq[4,3,1],\,[3,2,2,1]}}Z_c\,\cf Rc\,\Et_c\;+\;t(R).
+\]
+The first sum is the closed channel formula below the two minimal ghost diagrams $[4,3,1]$, $[3,2,2,1]$ (one term per
+channel and minimal diagram; every diagram with ghosts contains one of the two).  Everything above them (the ghosts, the
+multiplicity-two block of $[4,3,2,1]$, the diagrams with several ghosts, the deferred terms) is the single vector $t(R)$
+in the vanishing ideals $\sum_{U\subseteq R,\,U\supseteq[4,3,1]\text{ or }[3,2,2,1]}I_U$ for which every coefficient
+obeys the \emph{regularity law}: $w_X(R)/(d_X\rho(R))$ is a polynomial in $A^2$ of degree at most $|R|-|M_X(R)|$,
+$M_X(R)$ the smallest minimal diagram of $X$ inside $R$, and $w_X(R)=0$ for a channel absent at $R$.  This is a finite
+linear system with closed coefficients.  The law holds on all exact weights up to six boxes ($263/263$, the bound attained
+wherever it is positive), and as a solver it has a unique solution in every case tried, which reproduces label by label
+every verified twist vector at nine and ten boxes at both points, Formula~I at $[4,3,2,1]$, the other branch's
+eleven-box files, transposition at six pairs of diagrams up to eleven boxes and Rosso--Jones, with no trefoil rule, zero
+rule or fitted input.  The rest of this summary lists the pieces in the order in which they were found.
+
 \paragraph{The universal formula.}  The answer is one conjectural formula for every $R$ and every $m\in\mathbb Z$
 (Conjecture~\ref{conj:U}, Section~\ref{sec:universal}):
 \begin{equation}\label{eq:Usum}
@@ -212,7 +230,8 @@ twist knots see the layer of $U$ through one symmetric form, $M(U)/\rho(U)$ time
 (from the ideal identity; from the closed block of $[4,3,2,1]$ at $R=U$ alone this reproduces the other branch's
 eleven-box twist knots, $33/33$).  But polynomiality in $A$, the amphichirality of $4_1$, Rosso--Jones, and the double
 braids at $R=U$ with their mirror symmetry do not fix $K_U$ from $\mathrm{ex}(U)=2$ on, and a closed $H_R(4_1)$ would add
-nothing to Rosso--Jones.
+nothing to Rosso--Jones.  What fixes the twist-knot content of every layer is the regularity law (Observation~\ref{obs:law}): with
+everything above $[4,3,1]$, $[3,2,2,1]$ unknown it is the final form above.
 
 \item \textbf{Beyond twist knots: double braids and Borromean rings.}  The same constants give every antiparallel
 double braid and the Borromean rings (Section~\ref{sec:cubic}).  On every vanishing ideal the twist binomial at $m=1$
@@ -230,6 +249,148 @@ six boxes), and modulo $p$ against the strengthened engine of the other branch u
 
 Nothing in this note is proved.  The statements are conjectures checked on the data described in
 Section~\ref{sec:checks}; \LMPH{scripts/twist\_formula\_check.py} re-runs every check from the data files.
+
+\section{The formula in one place}\label{sec:onepage}
+
+This section states the conjecture in its final form, with every ingredient and the data it is checked on.  The later
+sections derive the pieces and record how they were found.  Nothing here is proved.
+
+\paragraph{Ingredients.}
+\begin{itemize}
+\item \emph{Numbers.}  For a cell $b=(i,j)$ of a diagram $R$: the content $c(b)=j-i$, the hook length $h(b)$, and
+$\kappa_R=\sum_bc(b)$.  Further $[n]=(q^n-q^{-n})/(q-q^{-1})$, $\{x\}=x-x^{-1}$, $D_k=Aq^k-A^{-1}q^{-k}$, and
+\[
+\rho(R)=(-A)^{|R|}\,q^{\kappa_R}\prod_{b\in R}\frac{\{q^{h(b)}\}^2}{D_{c(b)}},\qquad M(R)=(-1)^{|R|}A^{2|R|}q^{2\kappa_R}.
+\]
+\item \emph{Channels.}  A channel is a composite $X=[Z,Z']$ with $|Z|=|Z'|$, taken up to $[Z,Z']\sim[Z',Z]$: a single
+$[\mu]=[\mu,\mu]$ or a pair $\{Z,Z'\}$.  It carries the eigenvalue $\Lam_X=A^{2|Z|}q^{2(\kappa_Z+\kappa_{Z'})}$, the
+quantum dimension $d_X$ of its composite(s), and the normalised Koike character $\chih_X(R)$ at the colour $R$;
+$\psi_X=\chih_X-1$.  $X$ is \emph{present} at $R$ if $m_X(R)=\langle s_{R/Z},s_{R/Z'}\rangle>0$, and $\Chan(R)$ is the set
+of channels present at $R$.  A minimal diagram of $X$ is a minimal $R$ at which $X$ is present, and $M_X(R)$ denotes
+the smallest minimal diagram of $X$ contained in $R$.
+\item \emph{Ideals and rows.}  For a diagram $U$, $I_U$ is the space of $f=\sum_{X\in\Chan(U)}f_X\psi_X$ with $f(S)=0$
+for every diagram $S\not\supseteq U$; here $f(R)=\sum_Xf_X\psi_X(R)$ and $\varphi_f(m)=\sum_Xf_X(\Lam_X^{\,m}-1)$.  The
+\emph{row} of a channel $c$ at one of its minimal diagrams $M$ is the $e\in I_M$ with $e_c=1$, $e=0$ on the other tops
+and co-tops of $M$, and $e(S)=0$ at every $S\supseteq M$ at which $c$ is absent.  Its \emph{term} at $R\supseteq M$ is
+the vector
+\[
+\tau_{c,M}(R)=d_c\,\frac{e(R)}{\varphi_e(-1)}\;e\;=\;Z_c\,\cf Rc\,\Et_c
+\]
+in the notation of Section~\ref{sec:universal} ($Z_c=d_cN_{cc}\rho(M)$, $\cf Rc$ the colour binomial, $\Et_c=e/\varphi_e(-1)$
+the row of $\Et=N^{-1}$).
+\item \emph{Below the ghosts.}  Every diagram $U$ with ghosts, $\mathrm{ex}(U)=\dim I_U-\#\{\text{tops}\}
+-\#\{\text{co-tops}\}\ge1$, contains $[4,3,1]$ or $[3,2,2,1]$ (Section~\ref{sec:ghosts}; all $376$ ghost diagrams of the
+census of $819$ diagrams up to $18$ boxes).  We say that $M$ is \emph{below the ghosts} if it contains neither.  There the
+row of every channel is unique, and Table~\ref{tab:N} gives closed formulas for it; where none is known, the row is the
+unique solution of the vanishing conditions, a finite linear system in the closed characters.
+\end{itemize}
+
+\paragraph{The regularity law.}  Write $H_R(\Tw_m)=1+\sum_Xw_X(R)\,(\Lam_X^{\,m}-1)$.  For every $R$ and every channel $X$,
+\begin{equation}\label{eq:law}
+w_X(R)=0\quad\text{if }X\notin\Chan(R),\qquad
+\frac{w_X(R)}{d_X\,\rho(R)}\in\mathbb Q(q)[A^2]\quad\text{of degree}\le|R|-|M_X(R)|.
+\end{equation}
+At the tops of $R$ ($M_X(R)=R$) the quotient is a constant, and \eqref{eq:law} contains the top-weight law
+\eqref{eq:topweight}.  In general it sharpens Observation~\ref{obs:top}: the product is $d_X\rho(R)$ for every channel, and
+the degree bound uses $M_X(R)$ instead of $Z\cup Z'$ ($|M_X(R)|\ge|Z\cup Z'|$).  The checks are in
+Observation~\ref{obs:law}.  On the stored exact weights the bound is attained on every label where it is positive.
+
+\begin{conjecture}[the universal twist-knot formula]\label{conj:final}
+For every diagram $R$ and every $m\in\mathbb Z$,
+\begin{equation}\label{eq:final}
+\boxed{\;H_R(\Tw_m)=1+\sum_Xw_X(R)\bigl(\Lam_X^{\,m}-1\bigr),\qquad
+w(R)=\sum_{\substack{(c,M):\ M\subseteq R\\ M\not\supseteq[4,3,1],\,[3,2,2,1]}}\tau_{c,M}(R)\;+\;t(R),\;}
+\end{equation}
+where the sum runs over the channels $c$ of $R$ and those of their minimal diagrams $M\subseteq R$ that are below the
+ghosts, and $t(R)$ is the unique element of
+\[
+V_R=\sum_{\substack{U\subseteq R\\ U\supseteq[4,3,1]\ \text{or}\ U\supseteq[3,2,2,1]}}I_U
+\]
+for which $w(R)$ obeys the regularity law \eqref{eq:law}.
+\end{conjecture}
+
+Every ingredient is explicit: the terms below the ghosts are the closed channel terms of Sections
+\ref{sec:single}--\ref{sec:universal}, and $t(R)$ is the solution of a finite linear system with closed coefficients.
+At fixed $q$, take $N$ values $A_1,\dots,A_N$; the unknowns are the coordinates of $t(R)$ in a basis of $V_R$ at each
+$A_i$, and every label $X$ gives $N-g_X-1$ equations, the divided differences of order $g_X+1$ of
+$w_X(R)/(d_X\rho(R))$ in $A^2$ ($g_X=|R|-|M_X(R)|$; for an absent channel $w_X(R)=0$ at every point).  In every case
+tried the solution is unique ($N=24$ and $N=36$).  Remarks:
+\begin{itemize}
+\item[(a)] \emph{Below the ghosts} ($R\not\supseteq[4,3,1],[3,2,2,1]$, e.g.\ every $R$ with at most seven boxes) $V_R=0$, and
+\eqref{eq:final} is the channel formula, $H_R(\Tw_m)=\sum_cZ_c\cf Rc\Phi_c(m)$, term by term explicit.  (The rows must be
+the unique ones: with the vanishing conditions cut off too early, at $[4,2,1]$ and $[3,2,1,1]$, the rows are not
+determined, and a wrong choice is caught by the law; Observation~\ref{obs:law}.)  Above them the law
+replaces three things that were separate rules before: the gauge of the rows of the tops of ghost diagrams (the zero
+rule), the ghost terms with the trefoil rule for $Z_g$ \eqref{eq:ghost}, and the open layers of the diagrams with
+$\mathrm{ex}(U)\ge2$ and of $[4,3,2,1]$.  All of these now come out of one solve, with no trefoil, Rosso--Jones, top-law or
+Formula~I input.  Also the deferred terms of Section~\ref{sec:cubic} lie in $V_R$ and come out.
+\item[(b)] \emph{What comes out.}  At $R=U$ the multiplicity top law $w_c(U)=m_c(U)\,d_c\,\rho(U)$ (with $m_c=2$ on the three
+separate/separate tops of $[4,3,2,1]$), the trefoil-rule constants $Z_g$ of the excess-one diagrams (including the
+conjectured family $Z_{[a,3,1]}$ of Section~\ref{sec:ghosts}), and the closed $[4,3,2,1]$ block of the other branch
+label by label.  So the closed block is exactly the regular completion at $R=U$, its twist-invisible coordinates
+included.
+\item[(c)] \emph{What it does not say.}  The law fixes the total $t(R)$, which is all that the twist knots at $R$ need.  It
+does not fix the split of $t(R)$ into the layers $G^U$ of the diagrams $U\subseteq R$ as symmetric forms; the double braids
+and the Borromean rings need more of the cubic tensor (Section~\ref{sec:cubic}).
+\item[(d)] \emph{The input cannot be made smaller in this way.}  With only the single channels known (the closed KNTZ
+sector) and every other top of every $U\subseteq R$ unknown, the law leaves exactly one free direction at $R=[3,1]$; with the
+singles and the one-cell pairs known, it leaves exactly one at $[5,2,1]$.  The top-weight law adds nothing here, since it
+holds on the whole ideal (Observation~\ref{obs:monomial}).  So the channels below the ghosts are input, and the law is a
+statement about what lies above them.
+\item[(e)] \emph{The most explicit part.}  For a single channel with $s_{R/\lambda}=s_W$ (multiplicity one; for instance
+every $\lambda\subseteq R$ when $R$ is a rectangle), the term is a product and the twist binomial one determinant
+(Observation~\ref{obs:bc}):
+\[
+Z_\lambda\cf R\lambda=d_\lambda\,\{q\}^{2|\lambda|}\,\frac{H_q(\lambda)\,H_q(R)}{H_q(W)}
+\prod_{b\in R}\frac{D_{\delta_\lambda(b)}}{D_{c(b)}},
+\]
+with $\delta_\lambda(i,j)=(\lambda_i-i)-(\lambda'_j-j)$ and $H_q(X)=\prod_{b\in X}[h(b)]$,
+and $\Phi_\lambda(m)$ is the $n\times n$ determinant \eqref{eq:Phidet}.  For a rectangle this is the KNTZ formula; for a pair
+with one minimal diagram and $s_{R/Z}=s_{R/Z'}=s_W$, $\cf Rc=\cf RZ\cf R{Z'}/(\cf{R_c}Z\cf{R_c}{Z'})$.
+\end{itemize}
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.38\textwidth}>{\raggedright\arraybackslash}p{0.56\textwidth}}
+\caption{Conjecture~\ref{conj:final} against the data.  ``Label by label'' compares the whole vector $w(R)$.}\label{tab:final}\\
+\toprule
+check & result (modulo $p=10^9+7$; seed points 1 and 2 of the project)\\
+\midrule
+\endhead
+the law \eqref{eq:law} on the stored exact weights, all $R$ with $|R|\le6$ (\LMPH{regular}) & $263/263$ labels at $16$
+values of $A$; the bound is attained on all $214$ labels with bound $\ge1$; without the factor $\rho(R)$ all $263$ fail\\
+the law on the engine's weights at seven boxes (\LMPH{regular --nmax 7}) & $325/325$ labels of the $15$ diagrams (node
+bound $10$; with the default bound the $28$ labels of the rank-deficient rows of $[4,2,1]$, $[3,2,1,1]$ fail)\\
+\eqref{eq:final} at $[4,3,1]$, $[3,2,2,1]$, the whole layer unknown (\LMPH{regular --nmax 8}) & unique ($6$ unknowns at
+each of $24$ values of $A$); the stored exact $H_R(4_1)$, Rosso--Jones $H_R(3_1)$, the top law on all $5$ tops; $[4,3,1]$
+solved at $(A,-1/q)$ gives the twist knots of $[3,2,2,1]$ at $(A,q)$, $|m|\le4$\\
+\eqref{eq:final} at all $8$ diagrams with $9$ boxes above the ghosts (analysis) & unique; $w(R)$ equal, label by label, to the
+verified formula of Section~\ref{sec:ghosts} (trefoil rule, zero rule, deferred terms; $47$ to $81$ labels), and
+$3_1,\dots,10_1$: $8/8$ at every diagram, both points\\
+\eqref{eq:final} at all $17$ diagrams with $10$ boxes above the ghosts (analysis) & unique; the $16$ other than
+$[4,3,2,1]$ label by label as above ($57$ to $126$ labels each) and $8/8$ knots, both points; Rosso--Jones at all\\
+$[4,3,2,1]$ (analysis) & unique, with all of $V_R$ unknown (the layers of $[4,3,1]$, $[3,2,2,1]$, the deferred diagrams and
+$[4,3,2,1]$); Formula~I $3_1,\dots,10_1$: $8/8$ at both points (independent exact data); equal label by label to the closed
+block of the other branch ($128$ labels)\\
+eleven boxes: $[4,4,2,1]$, $[4,3,3,1]$, $[4,3,2,2]$ (analysis) & unique; the other branch's exact files $3_1$, $4_1$, $5_2$,
+$6_1$: $4/4$ each, both points\\
+eleven boxes: $[5,4,2]$, $[6,4,1]$, $[5,3,2,1]$ (analysis) & unique; equal at $3_1,\dots,10_1$ ($8/8$, both points) to the
+regular completion with the smaller unknown space of Section~\ref{sec:ghosts} (only the layers above the
+excess-two diagrams unknown); there also Rosso--Jones, polynomiality in $A$ and the amphichirality of $4_1$\\
+eleven boxes without other data: $[3,3,2,2,1]$, $[3,2,2,2,1,1]$, $[4,3,2,1,1]$ (analysis) & unique; Rosso--Jones; equal to
+their transposes (next row)\\
+transposition $H_{R^T}(A,q)=H_R(A,-1/q)$, both sides solved independently (analysis) & $8/8$ knots at all six pairs:
+$[4,3,1]/[3,2,2,1]$, $[5,3,1]/[3,2,2,1,1]$, $[4,3,2,1]$, $[5,4,2]/[3,3,2,2,1]$, $[6,4,1]/[3,2,2,2,1,1]$,
+$[5,3,2,1]/[4,3,2,1,1]$\\
+exact principles on the solutions at $[5,4,2]$, $[6,4,1]$ (analysis): the $\mathfrak{sl}_N$ column and row removals and
+the $\mathfrak{gl}(N|M)$ shifts at $A=q^k$ (each a property of every knot, verified exactly on all stored tables,
+$1952/1952$), which alone leave one or two parameters per value of $q$ & $140/140$ identities ($k=3,2,0,-3,-5$ and
+$3,1,-3,-6$; $m=1,\dots,4$ and $-1,\dots,-3$; both points), Laurent polynomials in $A$, and inside the family these
+principles allow\\
+twelve-box rectangles $[4,4,4]$, $[3,3,3,3]$ (analysis) & unique; label by label equal to the verified formula ($53/53$);
+$3_1,\dots,10_1$ equal to the closed KNTZ form (product colour binomials and determinant $\Phi$, Observation~\ref{obs:bc}),
+$8/8$ at both points\\
+\bottomrule
+\end{longtable}}
 
 \section{Conventions, data, and the twist parameter}\label{sec:conv}
 
@@ -453,6 +614,54 @@ boxes, those of $[5,3,1]$, $[3,2,2,1,1]$ and four channels with two minimal diag
 script re-runs the $|\lambda|\le6$ case modulo $p$.  Nothing in \eqref{eq:tab} was fitted: the formula was found on the exact
 rows with at most six boxes and then compared with the rows of seven, eight and nine boxes, which were not used in
 finding it.
+
+\begin{observation}[the single sector as $BC$ interpolation: three determinants and a product]\label{obs:bc}
+Fix $n\ge\ell(\nu)$ (the values do not depend on $n$) and put $s=Aq^{1-2n}$, $\beta_l=sq^{2l}+(sq^{2l})^{-1}$,
+$k_i(\nu)=\nu_i+n-i$ ($i=1,\dots,n$), $p_k(b)=\prod_{l<k}(b-\beta_l)$ and $V(\nu)=\prod_{i<j}(\beta_{k_i(\nu)}-\beta_{k_j(\nu)})$.
+The nodes are $sq^{2k_i(\nu)}=Aq^{2(\nu_i-i)+1}$.  Then for single channels
+\begin{gather}
+N_{\nu\mu}=c_\mu\,\frac{\det\bigl[p_{k_j(\mu)}(\beta_{k_i(\nu)})\bigr]_{i,j\le n}}{V(\nu)},\qquad
+\Et_{\mu\nu}=\frac{V(\nu)}{c_\mu}\det\bigl[a_{k_i(\mu),k_j(\nu)}\bigr]_{i,j\le n},\label{eq:Ndet}\\
+a_{kl}=\prod_{\substack{0\le m\le k\\ m\ne l}}\frac1{\beta_l-\beta_m}\quad(l\le k),\qquad a_{kl}=0\quad(l>k),\notag\\
+\Phi_\mu(m)=\frac{\det\Bigl[\sum_{l=0}^{k_i(\mu)}a_{k_i(\mu),l}\,g(l)^m\,\beta_l^{\,n-t}\Bigr]_{i,t\le n}}
+{c_\mu\prod_{j=1}^ng(n-j)^m},\qquad g(l)=A^{2(l-n)}q^{2(l-n)(l-n+1)},\label{eq:Phidet}
+\end{gather}
+with $c_\mu=\varphi_\mu(-1)/P^*_\mu(\mu)$, $P^*_\mu(\nu)$ the determinant ratio in \eqref{eq:Ndet} and $\varphi_\mu(-1)$ the
+product \eqref{eq:phiprod}.  So the single block of $N$ is Okounkov's $BC$ interpolation polynomial at the Schur point
+($q=t=q^2$ in his notation) evaluated at the label, $\Et$ is its inverse by divided differences, and $\Phi_\mu(m)$ is one
+$n\times n$ determinant by Cauchy--Binet, the KNTZ $F$-function for every $\mu$.  This identifies the tableau sum
+\eqref{eq:tab}.  The same block is also a factorial N\"agelsbach--Kostka determinant in the windowed elementary functions
+of Observation~\ref{obs:interp}: $N_{\lambda\mu}=N_{\mu\mu}P_\mu(\lambda)/P_\mu(\mu)$ with
+$P_\mu(\lambda)=\det\bigl[e^{[\mu'_i-i]}_{\mu'_i-i+j}-e^{[\mu'_i-i]}_{\mu'_i-i-j}\bigr]_{i,j\le\mu_1}$ at the single
+$\lambda$, where a negative window $[m]$, $m<0$, means that the factors of $\{m,\dots,-1\}$ are divided out.  The colour binomial of a single is then the finite sum $\cf R\lambda=\rho(\lambda)^{-1}\sum_{\nu\subseteq
+\lambda}\Et_{\lambda\nu}\chih_\nu(R)$ with closed coefficients, for every $R$, and when $s_{R/\lambda}=s_W$ is a single
+Schur function (multiplicity $m_\lambda(R)=\langle s_{R/\lambda},s_{R/\lambda}\rangle=1$) it is a product:
+\begin{equation}\label{eq:colprod}
+\cf R\lambda=\frac{H_q(R)}{H_q(\lambda)\,H_q(W)}\prod_{b\in R/\lambda}\frac{D_{\delta_\lambda(b)}}{D_{c(b)}},\qquad
+\delta_\lambda(i,j)=(\lambda_i-i)-(\lambda'_j-j),\quad H_q(X)=\prod_{b\in X}[h(b)],
+\end{equation}
+$\delta_\lambda$ being the index of \eqref{eq:phiprod} continued to the cells outside $\lambda$.  For a rectangle $R$ every
+$\lambda\subseteq R$ has $m_\lambda(R)=1$, and $Z_\lambda\cf R\lambda$ is the figure-eight term of KNTZ.  For a pair
+$c=\{Z,Z'\}$ with one minimal diagram $R_c$ and $s_{R/Z}=s_{R/Z'}=s_W$, $s_{R_c/Z}=s_{R_c/Z'}=s_{W_c}$ (any number of moved
+cells), $\cf Rc=\cf RZ\cf R{Z'}/(\cf{R_c}Z\cf{R_c}{Z'})$.
+
+\emph{Checks.}  Script \LMPH{bcdet}: \eqref{eq:Ndet} against \eqref{eq:tab}, $\Et$ against the inverse block, $\Phi_\mu(m)$
+against $\sum_\nu\Et_{\mu\nu}\Lam_\nu^m$ ($|m|\le4$) and the laws $\Phi(-1)=1$, $\Phi(0)=0$, $\Phi(1)=M(\mu)$; with
+\LMPH{--nmax 9}: $1495$, $1591$, $864$ and $96$ cases, no failure, and the N\"agelsbach--Kostka form on the same $1495$
+entries; independence of $n$ at $n=\ell+1$.  Script \LMPH{colprod --nmax 7}
+\eqref{eq:colprod} on all $249$ cases with $m_\lambda(R)=1$ against the finite sum, the pair rule on all $39$
+cases of clean pairs with one minimal diagram in its class against the engine rows, and every rectangle end to end from
+\eqref{eq:colprod} and \eqref{eq:Phidet} alone ($151$ stored values, $16$ Rosso--Jones values), no failure.  Analysis
+(modulo $p$, two points): \eqref{eq:Ndet} $2749/2749$ and $\Et$ $2887/2887$ up to ten boxes, \eqref{eq:Phidet} $1242/1242$,
+\eqref{eq:colprod} on all $1183$ cases with $m_\lambda(R)=1$ up to ten boxes, the pair rule $197/197$ against independent
+rows at ten boxes and $312/312$ on held-out eleven-box rows; exactly up to nine boxes, $\cf R\lambda$ is a product of $D_k$'s
+and quantum numbers \emph{if and only if} $m_\lambda(R)=1$ ($631$ products, $768$ non-products, no exception); and at
+$q\to1$ it is the Okounkov--Olshanski shifted-Schur binomial $\binom{|R|}{|\lambda|}\dim(R/\lambda)\dim\lambda/\dim R$
+($2798/2798$).  The $BC$ structure is on the label side only: $R\mapsto\cf R\lambda$ is not $BC$-symmetric in the colour
+($\chih_{[1]}(R)$ contains $x_i/x_j$), and the colour-side analogue $P^*_\lambda(x(R))/P^*_\lambda(x(\lambda))$ with the
+nodes $Aq^{2(R_i-i)+1}$ fails in all $2611$ cases up to ten boxes (shifting the nodes rescues only the one-row or only the
+one-column diagrams).
+\end{observation}
 
 \section{The pair sector: what holds and what is missing}\label{sec:pairs}
 
@@ -1258,6 +1467,34 @@ The factor $2$ in the pair weights is the two conjugate composites $[Z,Z']$, $[Z
 polynomial parts are the explicit form of the ``$K^R_{\mu\nu}(x)\in\mathbb Q(q)[x]$, $\deg_x\le|R|-|\mu\cup\nu|$'' of
 the project's Formula~I; we did not find a closed expression for them.
 
+\begin{observation}[regularity law]\label{obs:law}
+For every diagram $R$ and every channel $X$, with $M_X(R)$ the smallest minimal diagram of $X$ contained in $R$,
+\[
+w_X(R)=0\ \ (X\notin\Chan(R)),\qquad
+K_X(R):=\frac{w_X(R)}{d_X\,\rho(R)}\in\mathbb Q(q)[A^2],\qquad \deg_{A^2}K_X(R)\le|R|-|M_X(R)|,
+\]
+$\rho$ the product of \eqref{eq:topweight}.  This is \eqref{eq:law} of Section~\ref{sec:onepage}.  It sharpens
+Observation~\ref{obs:top} in two ways: the product prefactor is the same $d_X\rho(R)$ for every channel, not only for the
+tops, and the bound uses $M_X(R)$, which is $Z\cup Z'$ for a non-resonant channel and larger for a resonant one (for
+$\{[1,1,1],[3]\}$ at $[3,2,1]$ it is $[3,2,1]$ itself, so $K_X$ is a constant: this is the exception of
+Observation~\ref{obs:top}).  At a top, $K_c(R)=m_c(R)$ is \eqref{eq:topweight}.  The $K_X(R)$ are the polynomials
+$K^R_{\mu\nu}(x)$ of Formula~I with the prefactor made explicit.
+
+\emph{Checks.}  (i) On the stored exact weights, all $263$ labels of the $29$ diagrams with $|R|\le6$, at $16$ values of
+$A$ (script, \LMPH{regular}): no failure; the bound is attained on all $214$ labels where it is positive; and the factor
+$\rho(R)$ is needed: $w_X(R)/d_X$ alone is a polynomial for none of the $263$.  (ii) On the engine's weights at seven boxes,
+all $325$ labels of the $15$ diagrams (\LMPH{regular --nmax 7 --nb 10}): no failure.  With the engine's default node bound
+the law fails on exactly the $28$ labels of $[4,2,1]$ and $[3,2,1,1]$ that carry the rank-deficient rows of these two
+diagrams (Section~\ref{sec:N}).  There the weights still give the right $H_R(\Tw_m)$ for $|m|\le2$, but not for
+$|m|\ge3$: at $[4,2,1]$ and $m=\pm3,\pm4$ the default-bound values are not Laurent polynomials in $q$ and violate the
+special-polynomial theorem $H_R(A,1)=H_{[1]}(A,1)^{|R|}$, while the values at node bound $10$ are Laurent polynomials, satisfy
+it, and equal the other branch's exact eight-box files (analysis; both versions are Laurent in $A$ and agree with the
+$\mathfrak{sl}_3$ reduction $H_{[4,2,1]}(q^3,q)=H_{[3,1]}(q^3,q)$, so only the $q\to1$ test and the law tell them apart).
+So the law detects a wrong gauge that the low twist knots do not see.  (iii) Above the ghosts the law is used as an equation, and the
+weights it produces agree label by label with the verified formula of Section~\ref{sec:ghosts} on every diagram with nine
+and ten boxes above the ghosts (Table~\ref{tab:final}); so the verified weights there satisfy it too.
+\end{observation}
+
 \section{The universal formula}\label{sec:universal}
 
 We now put the pieces together.  Append the vacuum to the channels ($\Lam_\vac=1$, $d_\vac=1$, $R_\vac=\varnothing$,
@@ -1286,7 +1523,9 @@ ghost diagrams $U\subseteq R$ with $\mathrm{ex}(U)=1$ (Section~\ref{sec:ghosts})
 $[4,3,1]$, $[3,2,2,1]$, $[5,3,1]$, $[3,2,2,1,1]$, \dots\ A diagram $U\subseteq R$ with $\mathrm{ex}(U)\ge2$ or with a top
 of multiplicity $m_c(U)=2$ ($[4,3,2,1]$ at ten boxes, $[6,4,1]$ and $[5,4,2]$ at eleven, \dots) contributes instead a
 symmetric form on its ideal, $\frac{M(U)}{\rho(U)}K_U(\varphi(m),f(R))$ with $K_U$ its double-braid block at $R=U$
-(Section~\ref{sec:cubic}); these forms are open.
+(Section~\ref{sec:cubic}); these forms are open as closed expressions, and their twist-knot content is fixed by the
+regularity law (Conjecture~\ref{conj:final}, which contains this conjecture: the ghost terms, the forms of the
+diagrams with $\mathrm{ex}(U)\ge2$ and the block of $[4,3,2,1]$ are all part of its single term $t(R)$).
 \end{conjecture}
 
 Conditions (i) and (ii) determine the rows of $\Et=N^{-1}$ (each row up to the ghost directions, which the zero rule of
@@ -1331,14 +1570,15 @@ diagrams the row of the vanishing conditions splits into one term per minimal di
 \item[(f)] Rectangular $R$ have only single channels and no ghosts, and \eqref{eq:U} is the cyclotomic expansion of KNTZ.
 \end{itemize}
 
-\begin{table}[ht]
+\begin{table}[htp]
 \centering
 \small
 \begin{tabular}{p{0.30\textwidth}p{0.40\textwidth}p{0.22\textwidth}}
 \toprule
 block of $N$ (row $c$, column $X$) & closed rule & checked\\
 \midrule
-single rows, all columns & tableau formula \eqref{eq:tab} & exact $\le6$, mod $p$ $\le9$ boxes\\
+single rows, all columns & tableau formula \eqref{eq:tab} $=$ $BC$ interpolation determinant \eqref{eq:Ndet}; $\Et$ and
+$\Phi$ as determinants (Obs.~\ref{obs:bc}) & exact $\le6$, mod $p$ $\le10$ boxes\\
 diagonal $N_{cc}$ & \eqref{eq:phiprod} (singles); \eqref{eq:pdiag} (pairs with $\le2$ moved cells per side, lines);
 (D3) (three-cell pairs with $m_c(U)=1$, pairs with a line side, Obs.~\ref{obs:threecell});
 $K_c(R_{\min})N_{R_{\min}R_{\min}}/2$ (resonant) & mod $p$ $\le11$ boxes; (D3) $\le12$, and $n=4$ at $13$--$14$\\
@@ -1360,19 +1600,18 @@ states with the line side constant, in the gauge of the zero rule (LE) & mod $p$
 resonant two-cell rows, single columns & extended kernel on $[V,R_{\min}]$ (Obs.~\ref{obs:kernel}(c)) & mod $p$ $\le11$ boxes\\
 resonant two-cell rows, pair columns & heavier: products (H); light: Lagrange interpolants on the enlarged space,
 whose resonant and two-cell coordinates are products (Obs.~\ref{obs:resrows}) & mod $p$ $\le11$ boxes\\
-ghost directions & zero rule for the tops, ghost term with $Z_g$ from the trefoil (Section~\ref{sec:ghosts}); top
-coordinates at $R=U$ by the top-weight law with multiplicities; for $\mathrm{ex}\ge2$ and four corners one symmetric form
-$K_U$, at $[4,3,2,1]$ closed on the nine good tops and the off-diagonal of the $3\times3$ block (Section~\ref{sec:cubic});
-their number by one identity per corner, closed for three rows with a gap $\le2$ or $s_3=3$, and the leading part for
-three corners & $\le10$ boxes except $[4,3,2,1]$; there all but ten ghost numbers; the count $\le18$ boxes\\
+ghost directions and everything above $[4,3,1]$, $[3,2,2,1]$ & one linear system: the regularity law
+(Conj.~\ref{conj:final}); before it, zero rule and trefoil rule at $\mathrm{ex}=1$ (Section~\ref{sec:ghosts}); the block of
+$[4,3,2,1]$ closed entry by entry except $Q_G$ (Section~\ref{sec:cubic}); the number of ghosts by one identity per corner,
+the leading part for three corners & the law: Table~\ref{tab:final}, up to $12$ boxes; the count $\le18$ boxes\\
 \midrule
 \multicolumn{3}{p{0.95\textwidth}}{\textbf{Not closed:} a combinatorial formula for the Lagrange basis of
 \eqref{eq:lagrange} beyond Observation~\ref{obs:interp}, and the top values at separate/separate and interior-domino nodes (in the data, tops of ghost
 diagrams); the three-cell block of the three-cell line rows, and their heavy columns other than the partners; the pair
 columns of the other rows with three or more moved cells per side; the other twelve kernel states of a domino plus a
 separate cell against a line; bent sides beyond the diagonal; the anomalous pairs ($m_c(U)=0$); deep states of line pairs
-with $n\ge6$; separate/separate pairs (no data); ghost diagrams with two or more ghosts (from $[6,4,1]$, $[5,4,2]$ at eleven boxes) and the four-corner diagrams
-(from $[4,3,2,1]$): their forms $K_U$.}\\
+with $n\ge6$; separate/separate pairs (no data); closed expressions for the layers above the ghosts (the law gives them as a
+solution) and the forms $K_U$ of the diagrams with $\mathrm{ex}\ge2$ and four corners.}\\
 \bottomrule
 \end{tabular}
 \caption{The binomial matrix $N$ block by block.  ``Checked'' gives the largest range checked (two points modulo
@@ -1523,12 +1762,20 @@ $\{u:\phi_u(\pm1)=0\}$), and deforming it there changes no twist knot at $R=U$. 
 one such direction and $511$ for the deformations on the five canonical ghosts with $\phi(\pm1)=0$.
 \end{itemize}
 What survives is a polynomial multiple, $s(A)=s_0(A)\,p(A^2)$ with $\deg p$ bounded only by the narrowest window, which no
-linear polynomiality condition removes.  So no principle at $R=U$ fixes the layer for $e\ge2$.  The twist knots at
-$R\supsetneq U$ do see the invisible part, since they contract $K_U$ with $f(R)$ rather than $f(U)$; their polynomiality
-was not tested.
-\item \textbf{Open.}  Ghost diagrams with $\mathrm{ex}(U)\ge2$ (first $[6,4,1]$, $[5,4,2]$ at eleven boxes) and the
-four-corner diagrams ($[4,3,2,1]$ with ten ghosts, $[5,3,2,1]$ with eleven): the forms $K_U$; $\mathrm{ex}(U)$ outside
-the three-row regimes above; the ghost coefficients below their leading part, which is closed for three corners.
+linear polynomiality condition removes.  So none of these conditions at $R=U$ fixes the layer for $e\ge2$.  The twist
+knots at $R\supsetneq U$ do see the invisible part, since they contract $K_U$ with $f(R)$ rather than $f(U)$; their
+polynomiality was not tested.
+\item \textbf{What does fix it: the regularity law.}  The conditions above constrain $H$; the law of
+Observation~\ref{obs:law} constrains every coefficient $w_X(R)$ separately, with the prefactor $d_X\rho(R)$ and the degree
+bound $|R|-|M_X(R)|$.  Imposed at $R=U$ with the whole $V_U$ unknown (Section~\ref{sec:onepage}), it has a unique solution at
+every diagram tried: at $[4,3,1]$ and $[3,2,2,1]$ it reproduces the trefoil rule, at $[5,4,2]$, $[6,4,1]$ ($e=2$) the
+completion with only the layers above them unknown, and at $[4,3,2,1]$ the closed block of the other branch label by label
+($128$ labels, and Formula~I $8/8$, at both points), with no Rosso--Jones or Formula~I input.  It fixes the twist-knot content of the layer
+(the total $t(R)$ at each $R$), not $K_U$ as a symmetric form.
+\item \textbf{Open.}  Closed formulas for the layers of the ghost diagrams with $\mathrm{ex}(U)\ge2$ (first $[6,4,1]$,
+$[5,4,2]$ at eleven boxes) and of the four-corner diagrams ($[4,3,2,1]$ with ten ghosts, $[5,3,2,1]$ with eleven): the law
+gives them as the solution of a linear system, not as products; the forms $K_U$ themselves; $\mathrm{ex}(U)$ outside the
+three-row regimes above; the ghost coefficients below their leading part, which is closed for three corners.
 \end{itemize}
 
 \subsection{Double braids and Borromean rings: one cubic tensor}\label{sec:cubic}
@@ -1680,8 +1927,30 @@ s_{13}=\frac{4A^{10}D_0^2D_{\pm1}D_{\pm3}D_{\pm4}D_{\pm6}}{\{1\}^4\{2\}^6\{4\}^8
 s_{23}=\frac{4A^{10}D_0^2D_{\pm2}^2D_{\pm3}D_{\pm5}D_{\pm6}}{D_{\pm4}\{1\}^4\{2\}^{10}\{4\}^4\{6\}^2}.
 \end{gather*}
 Their $q$-numbers are $\{1\}^4\prod_{x<y}\{c_x-c_y\}^2$ over the corners, times $\{c_x-c_y\}^2$ over the two pairs of the
-matching not involved; the $D$-part is not decoded.  The diagonal entries are a product times an irreducible quadratic
-in $A^2$, and neither they, nor the two co-top entries, nor $Q_G$ are products.
+matching not involved; the $D$-part is not decoded.  The diagonal entries and the two co-top entries are not products,
+but they are closed (analysis, wave 9; found on sweeps of the block of the other branch, checked at $59$ held-out
+points).  With $\gamma_n=q^n+q^{-n}$, $\{d,e\}$ the two matchings other than $c$, and $\sigma_c=4,2,0$ the content sum of
+a pair of $c=1,2,3$,
+\[
+s_{cc}=\frac{s_{cd}\,s_{ce}}{s_{de}}\cdot\frac{\alpha_c\,(A^2+A^{-2})+\beta_c}{D_{\sigma_c}D_{-\sigma_c}},
+\]
+\begin{align*}
+\alpha_1&=\tfrac{21+19\gamma_2+15\gamma_4+11\gamma_6+6\gamma_8+3\gamma_{10}+\gamma_{12}}{[3]}, &
+\beta_1&=-\tfrac{12+12\gamma_2+16\gamma_4+21\gamma_6+21\gamma_8+21\gamma_{10}+16\gamma_{12}+10\gamma_{14}+6\gamma_{16}+2\gamma_{18}}{[3]},\\
+\alpha_2&=\tfrac{7+7\gamma_2+5\gamma_4+3\gamma_6+2\gamma_8+\gamma_{10}}{[3][5]^2}, &
+\beta_2&=-\tfrac{6+10\gamma_2+12\gamma_4+7\gamma_6+3\gamma_8+4\gamma_{10}+3\gamma_{12}+\gamma_{14}}{[3][5]^2},\\
+\alpha_3&=\tfrac{39+36\gamma_2+28\gamma_4+18\gamma_6+10\gamma_8+4\gamma_{10}+\gamma_{12}}{[3][5][7]}, &
+\beta_3&=-\tfrac{86+76\gamma_2+56\gamma_4+34\gamma_6+16\gamma_8+6\gamma_{10}+2\gamma_{12}}{[3][5][7]};
+\end{align*}
+the first factor is the rank-one part of $s$ (any symmetric $3\times3$ matrix with non-zero off-diagonal has this form), so
+the content is the bracket, linear in $A^2+A^{-2}$, with palindromic numerators that do not factor; at $q=1$, $\beta_c=-2\alpha_c$
+and the entry is regular.  The co-tops are diagonal, $s_{cc}N_c=d_c$, with
+\[
+\frac1{N_{\{[2,2,2,1],[4,1,1,1]\}}}=\frac{A^{10}\,a\,q^{-1}\bigl[qA^{-2}+q^{-1}A^2-(\gamma_{13}+\gamma_{11}+\gamma_9+\gamma_7-\gamma_3
+-2\gamma_1)\bigr]}{D_{-6}D_{-4}D_{-3}D_0D_2^2},
+\]
+where $a=2q\{1\}/(\{2\}^2\{3\}^3\{5\}^2)$; and $\{[4,1,1,1],[4,3]\}$ is its mirror ($A\leftrightarrow1/A$ in the bracket, denominator $D_{-2}^2D_0D_3D_4D_6$).  $Q_G$ is the
+Schur complement of the other branch's closed Gram matrix, an explicit finite computation; it has no product form.
 \item What fails: (i) multiplicity two as two copies, $t_c(f_1f_1^T+f_2f_2^T)$ with $f_1\equiv f_2$ modulo the ghosts,
 which would make $T$ diagonal; (ii) $Q_G$ as a sum of rank-one cubes along canonical directions (the $J_W$ below, the
 deferred directions, the eigenvalue classes, the excess-one ghosts of the three-corner subdiagrams); (iii) a closed
@@ -1695,9 +1964,13 @@ diagrams with at most $17$ boxes; with at most $15$ one spurious vector remains)
 \item On every four-corner diagram up to twelve boxes the tops of multiplicity two are exactly the three perfect
 matchings of the corners ($8/8$), so a full $3\times3$ block is expected there; this is not tested, for lack of data.
 \end{itemize}
-So the layer of $[4,3,2,1]$ is one symmetric form on its $24$-dimensional ideal.  It is closed on the nine good tops and
-the off-diagonal of the $3\times3$ block; open are the diagonal of the block, the two co-top entries and $Q_G$, which at
-$R=U$ enter as the ten ghost coordinates of the twist vector.
+So the layer of $[4,3,2,1]$ is one symmetric form on its $24$-dimensional ideal, closed entry by entry except $Q_G$,
+which is a finite computation.  Only its twist vector is seen by ground truth (Formula~I and Rosso--Jones), and that is
+what the regularity law produces: at $R=U$ the regular completion with all of $V_U$ unknown equals the block's twist
+vector label by label ($128$ labels, two points), and at the eleven-box diagrams above it the law reproduces the other
+branch's files (Table~\ref{tab:final}).  The twist-invisible part of the block (the entries that only $|m|\ge2$ at
+$R\supsetneq U$ see) is the other branch's hypothesis made explicit; the law does not need it, since it fixes the total
+$t(R)$ at every $R$ directly.
 
 \paragraph{Checks} (modulo $p$ at two points unless exact; nothing fitted except the factors $C_U$, $\sigma_U$ quoted
 from the other branch):
@@ -1740,7 +2013,9 @@ $260$ stored values of the $26$ such diagrams up to six boxes exactly over $\mat
 single columns and engine pair columns, all $117$ diagrams up to ten boxes that have a row for every channel agree with all
 data.  With the ghost layer and the rows from the vanishing conditions, all diagrams up to ten boxes except $[4,3,2,1]$
 agree with the strengthened engine; for $[4,3,2,1]$ everything except ten ghost numbers per point agrees with the closed
-block of the other branch.  The cubic form (Section~\ref{sec:cubic}) extends all of this to the double braids and the
+block of the other branch.  The regularity law closes these gaps for the twist knots: with everything above $[4,3,1]$,
+$[3,2,2,1]$ unknown (so without the zero rule, the trefoil rule or the block), it reproduces all of the above from nine to
+twelve boxes, $[4,3,2,1]$ included (Conjecture~\ref{conj:final}, Table~\ref{tab:final}).  The cubic form (Section~\ref{sec:cubic}) extends all of this to the double braids and the
 Borromean rings: the same rows and constants, with the closed $\Phi_c(1)$ and the ten deferred terms, agree with the
 strengthened engine for every $R$ up to ten boxes except $R\supseteq[4,3,2,1]$, and with all stored exact double-braid and
 Borromean data.  What remains open is the last row of Table~\ref{tab:N}.
@@ -1805,6 +2080,33 @@ double braids and Borromean rings, \eqref{eq:DB}, \eqref{eq:borr} (\LMPH{dbraid}
 cubic form against the strengthened engine (analysis) & double braids at all $137$ diagrams $|R|\le10$ except $R\supseteq[4,3,2,1]$, every $m,n$ (eigenvalue-class matrix), $137/137$, and $127/137$ without the deferred terms; Borromean rings $2151$ triples; mirror identity $137/137$; deferred constants $240/240$; two points\\
 the rule $G^U=\frac{M(U)}{\rho(U)}K_U$ (analysis) & the eleven-box twist knots of the other branch ($3_1$, $4_1$, $5_2$, $6_1$ at $[4,4,2,1]$, $[4,3,3,1]$, $[4,3,2,2]$) from its closed block of $[4,3,2,1]$ at $R=U$ alone, $11/11$ at each of three points; three wrong slices $0/11$ each\\
 the block of $[4,3,2,1]$ in our basis (analysis) & rank $21$ ($23$ with the deferred terms), $T$ diagonal except the $3\times3$ block, $Q_G$ of rank $7$, top coordinates $14/14$ at $90$ points, two points; $s_{12}$, $s_{13}$, $s_{23}$ found on $90+200$ sweep points and checked at six points, $3/3$ each; (i)--(iii) fail at two points; the flag $10\supset7\supset3$; the multiplicity-two tops are the corner matchings at $8/8$ four-corner diagrams $\le12$ boxes\\
+closed diagonal and co-top entries of the block of $[4,3,2,1]$ (analysis) & against the block of the other branch: the
+three diagonal entries and the two co-top entries $1/N_c$ at seeds $1$, $2$, four fresh points and $53$ held-out points, no
+failure; the mirror relation of the two co-tops at $100$ values of $q$\\
+single sector as $BC$ interpolation, Observation~\ref{obs:bc} (\LMPH{bcdet}) & with \LMPH{--nmax 9}: \eqref{eq:Ndet}
+against \eqref{eq:tab} $1495$ entries, $\Et$ in divided differences $1591$, $\Phi_\mu(m)$ as one determinant $864$ values
+($|m|\le4$), the laws $\Phi(-1)=1$, $\Phi(0)=0$, $\Phi(1)=M(\mu)$ on $96$ singles, independence of $n$ $144$; no mismatch;
+analysis: $2749$, $2887$, $1242$, $414$ up to ten boxes, two points\\
+colour binomials, \eqref{eq:colprod} and the pair rule (\LMPH{colprod}) & with \LMPH{--nmax 7}: \eqref{eq:colprod} against the
+finite sum on all $249$ cases with $m_\lambda(R)=1$, zeros and $\cf\lambda\lambda=1$ on $1064$; the pair rule on $39$ cases
+($34$ one-cell, $4$ two-cell, $1$ three-cell) against the engine rows; every rectangle end to end from \eqref{eq:colprod}
+and \eqref{eq:Phidet} alone, $151$ stored values and $16$ Rosso--Jones values; no mismatch; analysis: \eqref{eq:colprod}
+on $1183$ cases up to ten boxes, the pair rule $197/197$ (ten boxes) and $312/312$ (held-out eleven-box rows), product if
+and only if $m_\lambda(R)=1$ exactly up to nine boxes ($631$ products, $768$ non-products), the Okounkov--Olshanski limit
+$2798/2798$, the colour-side $BC$ form $0/2611$\\
+regularity law, Observation~\ref{obs:law} (\LMPH{regular}) & exact weights $|R|\le6$: $263/263$ labels at $16$ values of
+$A$, the bound attained on $214/214$, without $\rho(R)$ $263/263$ fail; \LMPH{--nmax 7}: the engine's weights at seven
+boxes $325/325$ (node bound $10$; with the default bound the $28$ labels of $[4,2,1]$, $[3,2,1,1]$ fail); \LMPH{--nmax 8}:
+\eqref{eq:final} as a solver at $[4,3,1]$, $[3,2,2,1]$ with the whole layer unknown, unique ($144$ unknowns over $24$
+values of $A$), $H_R(4_1)$ $=$ data, $H_R(3_1)$ $=$ Rosso--Jones, the top law on all $5$ tops, and $[4,3,1]$ at $(A,-1/q)$
+$=$ $[3,2,2,1]$ at $(A,q)$ for $|m|\le4$; no failure\\
+the final conjecture \eqref{eq:final} above the ghosts (analysis) & Table~\ref{tab:final}: unique at every diagram tried
+(all $8$ with nine boxes and all $17$ with ten boxes above the ghosts, nine with eleven boxes, the rectangles $[4,4,4]$,
+$[3,3,3,3]$), equal label by label to the verified formula at
+nine and ten boxes and at the rectangles, Formula~I at $[4,3,2,1]$, the other branch's eleven-box files, transposition at six
+pairs, KNTZ at the rectangles; two points\\
+special polynomials $H_R(A,1)=H_{[1]}(A,1)^{|R|}$ (analysis) & exactly on the $50$ eight-box files of the other branch
+($[4,2,1]$, $[3,2,1,1]$, $[4,3,1]$, $[3,2,2,1]$, $[5,2,1]$, ten knots)\\
 \bottomrule
 \end{longtable}
 
@@ -1833,7 +2135,9 @@ columns (for $n=3$ the middle chain pair is not a product), the pair columns of 
 other kernel states, bent sides beyond the diagonal, the anomalous pairs ($m_c(U)=0$) and the separate/separate pairs
 (no data) are open.
 \item \textbf{Non-top evolution coefficients}: product $\times$ polynomial, polynomial not closed
-(Section~\ref{sec:weights}); already $w_{[1]}([2])$.
+(Section~\ref{sec:weights}); already $w_{[1]}([2])$.  The regularity law (Observation~\ref{obs:law}) fixes the product,
+$d_X\rho(R)$, and the degree of the polynomial, $|R|-|M_X(R)|$, and above the ghosts it determines the coefficients
+through a linear system; a closed formula for the polynomial $K_X(R)$ itself is open.
 \item \textbf{Resonances}: from $[3,2,1]$ on, the evolution form does not separate channels with equal eigenvalues;
 the channel form does.
 \item \textbf{Rank deficiency}: with the engine's default node bound, some vanishing systems have free parameters
@@ -1845,14 +2149,16 @@ kernel.  No value of the free parameter makes \eqref{eq:channel} reproduce $H_R(
 missing term is the ghost term of \eqref{eq:U}, a rank-one term built from the kernel vector, with its constant fixed by
 the trefoil (Section~\ref{sec:ghosts}; the strengthened Formula II of the other branch contains the same term).  At nine
 boxes the same happens for the tops of $[5,3,1]$, $[3,2,2,1,1]$, and four channels with two minimal diagrams are not
-determined either.  With the ghost terms everything up to ten boxes is accounted for except $[4,3,2,1]$; open are the
+determined either.  With the ghost terms everything up to ten boxes is accounted for except $[4,3,2,1]$; open were the
 ghost diagrams with two or more ghosts (from eleven boxes) and the four-corner diagrams.  For them only the ghost
 coordinates are open (the tops follow from the top-weight law with multiplicities, ten numbers per point remain for
 $[4,3,2,1]$), and none of the principles tested (polynomiality in $A$, the amphichirality of $4_1$, Rosso--Jones) fixes
 them once $\mathrm{ex}(U)\ge2$, and neither do the double braids at $R=U$ with their mirror symmetry
 (Section~\ref{sec:ghosts}).  What the twist knots see of such a diagram at every $R\supseteq U$ is one symmetric form, its
 double-braid block $K_U$ at $R=U$ (Section~\ref{sec:cubic}); one exact double braid with $|m|,|n|\ge2$ at $R=U$ would fix
-it at $\mathrm{ex}(U)=2$.  The number of ghosts has an exact form (one super-Cauchy identity per corner) and is closed for
+it at $\mathrm{ex}(U)=2$.  The regularity law fixes the twist-knot content of all of them at once
+(Conjecture~\ref{conj:final}): it is a conjecture, checked on every diagram it was run on (Table~\ref{tab:final}), and
+it gives the layers as the solution of a linear system, not in closed form.  The number of ghosts has an exact form (one super-Cauchy identity per corner) and is closed for
 three rows with a gap at most two or $s_3=3$, not in general; for three corners the leading part of the ghost is closed
 (Section~\ref{sec:ghosts}).
 \item \textbf{Double braids and Borromean rings} (Section~\ref{sec:cubic}): the cubic form is checked up to ten boxes
@@ -1860,10 +2166,15 @@ and away from $[4,3,2,1]$ only; the factors $C_U$ and $\sigma_U$ of the deferred
 branch (new here are $g_U$, $a_U$ and the identification of $h_0$, $h_1$ with our rows); at eleven boxes the nine-box
 deferred terms should enter the twist knots at the five $R\supsetneq[4,3,2,1]$, which is not tested.  The rule
 $G^U=\frac{M(U)}{\rho(U)}K_U$ follows from the ideal identity; it is checked against the other branch's own eleven-box
-files only.  In the block of $[4,3,2,1]$ the diagonal of the $3\times3$ block, the co-top entries and the ghost part
-$Q_G$ are not closed.
+files only.  In the block of $[4,3,2,1]$ every entry is closed except the ghost part $Q_G$, a finite computation
+from the other branch's Gram matrix; the part of the block that the twist knots do not see is the other branch's
+hypothesis, and the double braids at $R\supsetneq[4,3,2,1]$ depend on it.
+\item \textbf{The regularity law}: that its solution is unique is observed (every diagram tried, up to twelve boxes),
+not shown; the vanishing ideals are computed with the conditions on diagrams up to a node bound ($|R|+4$, at least
+$15$, and $|R|+6$ from eleven boxes on, where a smaller bound leaves spurious directions); with less input than the
+channels below the ghosts it is not unique (Section~\ref{sec:onepage}, remark (d)).
 \item \textbf{Nothing is proved}: Conjectures \ref{conj:main}, \ref{conj:kntz}, \ref{conj:tab}, \ref{conj:U},
-\ref{conj:cubic} and all Observations are statements verified on the data listed above only.
+\ref{conj:cubic}, \ref{conj:final} and all Observations are statements verified on the data listed above only.
 \end{enumerate}
 
 \appendix
@@ -2068,11 +2379,13 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 \begin{itemize}\raggedright
 \item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
 (options \LMPH{--nmax}, \LMPH{--seed}, \LMPH{--nb}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom
-pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed vacuum twocell lagrange hookcols
-monomial ideal dbraid}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
+pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed bcdet colprod vacuum twocell
+lagrange hookcols monomial ideal regular dbraid}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
 adjres gap2 roots fullrow kernel} runs the checks of Sections \ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends
 them to seven boxes, and \LMPH{--nmax 7 --nb 10} imposes the vanishing conditions on all diagrams with at most ten boxes,
-which makes every channel with $|R|\le7$ full rank).
+which makes every channel with $|R|\le7$ full rank; \LMPH{--nmax 8 regular} runs the solver of
+Conjecture~\ref{conj:final} at $[4,3,1]$, $[3,2,2,1]$ in about four minutes, with the node bound raised to $10$ by
+itself).
 The closed formulas live in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{binom\_N} / \LMPH{tableau\_P}
 \eqref{eq:tab}, \LMPH{check\_union} \eqref{eq:union}, \LMPH{hook\_pair\_row} \eqref{eq:hook}, \LMPH{check\_pairn}
 \eqref{eq:Ndiag}--\eqref{eq:Nadd}, \LMPH{khook\_N} \eqref{eq:khook}, \LMPH{check\_fourrow} \eqref{eq:fourrow},
@@ -2084,7 +2397,10 @@ and \LMPH{minimal\_pairs} for the census), \LMPH{pi\_vac} \eqref{eq:vacuum},
 (Observation~\ref{obs:twocell}), \LMPH{lagrange\_family}, \LMPH{pi\_monomials}, \LMPH{low\_columns} and
 \LMPH{check\_lagrange} \eqref{eq:lagrange}, \LMPH{window\_series}, \LMPH{hook\_poly}, \LMPH{single\_poly},
 \LMPH{twocol\_poly} and \LMPH{g4\_poly} (Observation~\ref{obs:interp}), \LMPH{mono\_M}, \LMPH{ideal\_basis} (Observation~\ref{obs:monomial}),
-\LMPH{db\_formula}, \LMPH{db\_window} and \LMPH{borromean\_formula} (Section~\ref{sec:cubic}), and \LMPH{closed\_N} / \LMPH{closed\_H}, which build $N$ from the closed rules and
+\LMPH{db\_formula}, \LMPH{db\_window} and \LMPH{borromean\_formula} (Section~\ref{sec:cubic}), \LMPH{BCSingle}
+\eqref{eq:Ndet}, \eqref{eq:Phidet}, \LMPH{colour\_product}, \LMPH{colour\_sum} and \LMPH{pair\_product}
+\eqref{eq:colprod} (Observation~\ref{obs:bc}), \LMPH{law\_gap}, \LMPH{law\_annihilators}, \LMPH{solve\_mod} and
+\LMPH{regular\_completion} (the regularity law and the solver of Conjecture~\ref{conj:final}), and \LMPH{closed\_N} / \LMPH{closed\_H}, which build $N$ from the closed rules and
 evaluate \eqref{eq:U}.  \LMPH{--nmax 10 closed} is the end-to-end check (about two minutes).
 \item \LMPH{python3 -m pytest tests/test\_twist\_formula.py} --- fast subset.
 \item \LMPH{data/twist\_weights/twist\_weights\_le6.json} --- all $w_X(R)$, $|R|\le6$, as numerator/denominator
