@@ -123,8 +123,19 @@ arbitrary representations" (`methods/interpolation.py`):
 * Presence is m_c(R) = Σ_γ c^R_{Zγ} c^R_{Z′γ} (LR coefficients). R_min, the order ≺
   and the supports B(c) follow §4.4 of the paper.
 * Each row of E is solved mod p from the vanishing conditions
-  Σ E_cX ψ_X(ν) = 0 for all ν where c is absent. A rank-deficient system has its
-  free unknowns set to 0 (the paper shows F_c does not depend on them).
+  Σ E_cX ψ_X(ν) = 0 for all ν where c is absent, first at |ν| ≤ max(7, |R_min| + 1),
+  then at larger ν, one size at a time, while the row is not determined. The first
+  bound alone leaves six rows at [4,2,1] and six at [3,2,1,1] with one free unknown
+  (more at eight boxes). F_c does not depend on it, but φ_c(±3) does: with the free
+  unknown set to 0 the twist knots 7_2, 8_1, 9_2, 10_1 came out wrong there (not
+  Laurent in q, and H_R(A, 1) ≠ H_[1](A, 1)^|R|), and so did other double braids
+  such as DB(2,−3). With the extra conditions every row of every R with |R| ≤ 10
+  without ghosts is determined (one random point).
+* Ghosts: at R ⊇ [4,3,1] or [3,2,2,1] the rows of the tops of these two diagrams
+  keep a free unknown at every node bound, and the formula misses a ghost term
+  (`docs/notes/twist_knots_formula.tex`, the ghost layer). The method does not claim
+  these R, and it raises NotApplicable if some row of a channel of R is not
+  determined.
 
 Convention: the paper's H(m,n) at (A, q) is our standard H of
 `DoubleBraid(m, n)`, the 4-plat with continued fraction (−2m, −2n); no point map

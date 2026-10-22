@@ -4,7 +4,7 @@
     homfly compute 4_1 --rep 2              # [2]
     homfly compute --torus 3,4 --rep 2,1    # Rosso--Jones
     homfly compute --braid 1,1,-2,1,-2 --rep 1,1
-    homfly compute --double-braid 2,-3 --rep 4,2,1   # interpolation formula, any R
+    homfly compute --double-braid 2,-3 --rep 4,2,1   # interpolation formula, R without ghosts
     homfly info 10_124
 """
 from __future__ import annotations

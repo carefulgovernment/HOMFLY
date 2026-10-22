@@ -71,7 +71,7 @@ def presentations(name):
         tb = TwoBridge(p, q, mirror=chirality(p, q, rec.homfly_reference()))
         out.append(tb)
         cf = tb.even_cf()
-        if len(cf) == 2:              # antiparallel double braid: any R by interpolation
+        if len(cf) == 2:              # antiparallel double braid: R without ghosts by interpolation
             out.append(DoubleBraid(-cf[0] // 2, -cf[1] // 2))
     if rec.is_montesinos and rec.montesinos.count(";") >= 2:
         mk = MontesinosKnot.from_notation(rec.montesinos)

@@ -83,3 +83,44 @@ def test_interpolation_systems_consistent():
     pt = I.Point(F, A0, q0)
     for c in I.channels_up_to(3):
         assert I.row_violations(pt, c) == 0, c
+
+
+def test_rows_determined_at_seven_boxes():
+    """The conditions at |nu| <= 8 leave six rows at [4,2,1] (and six at [3,2,1,1]) with one free unknown; with the
+    nine-box conditions added every row is determined and satisfies every condition up to ten boxes."""
+    pt = I.Point(F, A0, q0)
+    for R in [(4, 2, 1), (3, 2, 1, 1)]:
+        for c in I.channels_of(R):
+            E = pt.E_row(c)
+            r, n = pt._E[("rank", c)]
+            assert r == n, (R, c, r, n)
+            for nu in I.nodes(c, 10):
+                assert sum((e * pt.psi(x, nu) for x, e in E.items()), F.zero) == 0, (R, c, nu)
+
+
+def test_free_unknown_changes_twist_knots_from_m3(monkeypatch):
+    """With the old rows (no extra conditions) F_c is unchanged and so are |m| <= 2, but DB(3, 1) = 7_2 and
+    DB(2, -3) at [4,2,1] change."""
+    new = I.Point(F, A0, q0)
+    vals = {mn: I.paper_value((4, 2, 1), *mn, F, A0, q0, point=new) for mn in [(1, -1), (2, 1), (-2, 1), (3, 1), (2, -3)]}
+    monkeypatch.setattr(I, "NODE_EXTRA", 0)
+    old = I.Point(F, A0, q0)
+    same = {mn: I.paper_value((4, 2, 1), *mn, F, A0, q0, point=old) == v for mn, v in vals.items()}
+    assert same == {(1, -1): True, (2, 1): True, (-2, 1): True, (3, 1): False, (2, -3): False}
+    c = I.single((4, 2, 1))
+    assert old._E[("rank", c)] == (30, 31) and new._E[("rank", c)] == (31, 31)
+    assert old.F_c(c, (4, 2, 1)) == new.F_c(c, (4, 2, 1))
+
+
+def test_no_claim_at_ghost_diagrams():
+    """At R containing [4,3,1] or [3,2,2,1] the rows of the tops of these diagrams are not determined (rank 41 of 42)
+    and the formula misses the ghost term, so the method does not claim these R."""
+    m = I.DoubleBraidInterpolation()
+    K = DoubleBraid(1, -1)
+    assert m.supports(K, (4, 2, 1)) and m.supports(K, (5, 2, 1)) and m.supports(K, (4, 2, 2))
+    for R in [(4, 3, 1), (3, 2, 2, 1), (5, 3, 1), (4, 3, 2, 1), (4, 4, 4)]:
+        assert not m.supports(K, R), R
+    pt = I.Point(F, A0, q0)
+    c = I.single((4, 3, 1))
+    pt.E_row(c)
+    assert pt._E[("rank", c)] == (41, 42)
