@@ -169,3 +169,15 @@ def test_lagrange_light_columns():
     orientation (node count = dim Pi_w for w <= 9), and the explicit weight-3 columns."""
     ok, lines = T.check_lagrange(nmax=6, seed=25)
     assert ok, lines
+
+
+def test_monomial_law():
+    """Phi_c(1) = M(R_min(c)) = (-1)^|R| A^{2|R|} q^{2 kappa_R} for every channel with one minimal diagram."""
+    ok, lines = T.check_monomial(nmax=6, seed=26)
+    assert ok, lines
+
+
+def test_double_braids_and_borromean():
+    """The cubic form of the formula against the stored double-braid knots, the mirror identity and L6a4 (|R| <= 4)."""
+    ok, lines = T.check_dbraid(nmax=4, seed=27)
+    assert ok, lines

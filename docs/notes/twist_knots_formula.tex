@@ -196,6 +196,18 @@ by the top-weight law with its multiplicities, so at $R=U$ exactly $\mathrm{ex}(
 $[4,3,2,1]$, where everything else agrees with the closed block of the other branch); but polynomiality in $A$, the
 amphichirality of $4_1$ and Rosso--Jones do not fix them from $\mathrm{ex}(U)=2$ on, and by a count even a closed
 $H_R(4_1)$ could fix them only for $\mathrm{ex}(U)\le3$.
+
+\item \textbf{Beyond twist knots: double braids and Borromean rings.}  The same constants give every antiparallel
+double braid and the Borromean rings (Section~\ref{sec:cubic}).  On every vanishing ideal the twist binomial at $m=1$
+is a monomial, $\Phi_c(1)=M(R_c)=(-1)^{|R_c|}A^{2|R_c|}q^{2\kappa(R_c)}$ (monomial law), and
+\begin{gather*}
+H_R(\mathrm{DB}(m,n))=\sum_c\frac{Z_c}{M(R_c)}\,\cf Rc\,\Phi_c(m)\Phi_c(n),\\
+b(R_1,R_2,R_3)=1+\sum_cZ_c\frac{\rho(R_c)^2}{M(R_c)}\,\cf{R_1}c\cf{R_2}c\cf{R_3}c .
+\end{gather*}
+Both are contractions of one symmetric cubic tensor.  At nine and ten boxes ten ``deferred'' diagrams add terms of the
+same shape with closed product constants; up to ten boxes the twist knots do not see them.  Checked exactly against the
+$18$ stored knots that are double braids (all $R$ with $|R|\le6$) and the Borromean rings $L6a4$ (all $29$ colours up to
+six boxes), and modulo $p$ against the strengthened engine of the other branch up to ten boxes, except $R\supseteq[4,3,2,1]$.
 \end{itemize}
 
 Nothing in this note is proved.  The statements are conjectures checked on the data described in
@@ -1255,6 +1267,144 @@ four-corner diagrams ($[4,3,2,1]$ with ten ghosts, $[5,3,2,1]$ with eleven): the
 $\mathrm{ex}(U)$; a closed form for the coefficients of $k_U$.
 \end{itemize}
 
+\subsection{Double braids and Borromean rings: one cubic tensor}\label{sec:cubic}
+
+The twist knots are the case $n=1$ of the antiparallel double braids $\mathrm{DB}(m,n)$ ($\mathrm{DB}(m,n)=\mathrm{DB}(n,m)$,
+with mirror $\mathrm{DB}(-m,-n)$), and \eqref{eq:F2} gives these from the same rows.  Two closed laws turn \eqref{eq:F2}
+into the double-braid form of \eqref{eq:U}, and the same constants give the Borromean rings.  All three families are
+contractions of one symmetric cubic tensor $T$ on the channels, which is how the strengthened Formula~II of the other
+branch is written:
+\[
+H_R(\mathrm{DB}(m,n))=T(\Lam^m,\Lam^n,\chih(R)),\qquad b(R_1,R_2,R_3)=T(\chih(R_1),\chih(R_2),\chih(R_3)).
+\]
+Here $b$ is the reduced polynomial of the Borromean rings $L6a4$ with components coloured $R_1,R_2,R_3$, divided by
+$d_{R_2}d_{R_3}$.  The twist legs $\Lam^m$ and the colour legs $\chih(R)$ meet at $\Lam^0=\chih(\varnothing)$.
+
+\begin{observation}[monomial law]\label{obs:monomial}
+Let $M(U)=(-1)^{|U|}A^{2|U|}q^{2\kappa_U}$.  For every diagram $U$ and every $f=\sum_Xf_X\psi_X$ in the vanishing ideal
+$I_U$,
+\[
+\varphi_f(1)=M(U)\,\varphi_f(-1),\qquad\text{where }\varphi_f(m)=\sum_Xf_X(\Lam_X^{\,m}-1).
+\]
+Hence $\Phi_c(1)=M(R_c)$ for every channel (Remark~(c) of Section~\ref{sec:universal}), for every split row of a channel
+with several minimal diagrams ($R_c$ the minimal diagram of the row), and for every ghost.  The ghosts of excess-one
+diagrams also obey the top-weight law: $\Psi_g(U)=\rho(U)$ in the normalisation $\Phi_g(-1)=1$, as for a top with
+$m_c=1$.  Further, $\rho(U)/M(U)=\rho(U)|_{A\to1/A,\,q\to1/q}$, and the rows are mirror covariant:
+$\Et_{cX}(1/A,1/q)=\Et_{cX}(A,q)/M(R_c)$, so $\Phi_c(m)|_{A\to1/A,\,q\to1/q}=\Phi_c(-m)/M(R_c)$.
+\end{observation}
+
+\begin{conjecture}[cubic form]\label{conj:cubic}
+Take one functional $\Et_c$ for each channel and each of its minimal diagrams (the split rows), and one for each ghost.
+Then $\Et_c(\chih(R))=\Psi_c(R)=\rho(R_c)\cf Rc$ and $\Et_c(\Lam^m)=\Phi_c(m)$, and
+\begin{gather*}
+T=\sum_ct_c\,\Et_c^{\otimes3}+\sum_{U\ \mathrm{deferred}}\tau_U\,\mathrm{Sym}(h_0^U\otimes h_0^U\otimes h_1^U)
+\;\bigl(+\text{the block of }[4,3,2,1]\bigr),\\
+t_c=\frac{d_cN_{cc}}{M(R_c)}=\frac{Z_c}{\rho(R_c)M(R_c)},
+\end{gather*}
+with $\mathrm{Sym}(a\otimes b\otimes c)=a\otimes b\otimes c+b\otimes c\otimes a+c\otimes a\otimes b$ and $\tau_U$, $h_0^U$,
+$h_1^U$ as below.  Explicitly, for $|R|\le10$,
+\begin{align}
+H_R(\mathrm{DB}(m,n))&=\sum_c\frac{Z_c}{M(R_c)}\,\cf Rc\,\Phi_c(m)\,\Phi_c(n)
++\sum_{U\ \mathrm{deferred},\,U\subseteq R}\frac{Z^{\rm def}_U}{M(U)}\,\cf R{F_1^U}\,\delta\Phi_U(m)\,\delta\Phi_U(n),
+\label{eq:DB}\\
+b(R_1,R_2,R_3)&=1+\sum_cZ_c\,\frac{\rho(R_c)^2}{M(R_c)}\,\cf{R_1}c\,\cf{R_2}c\,\cf{R_3}c, \label{eq:borr}
+\end{align}
+where $c$ runs over the channels and ghosts of $R$ in \eqref{eq:DB}, and in \eqref{eq:borr} over those present at all
+three colours.  Note that this set is not the set of channels of $R_1\cap R_2\cap R_3$: $\{[1,1],[2]\}$ is present at $[3,2]$
+and at $[2,2,1]$ but not at $[2,2]$.
+\end{conjecture}
+
+For $n=1$, \eqref{eq:DB} is \eqref{eq:U}, because $\Phi_c(1)=M(R_c)$ and the deferred terms vanish there.  The constants are
+closed wherever $Z_c$ is: $Z_c/M(R_c)=d_cN_{cc}\,\rho(R_c)|_{A\to1/A,\,q\to1/q}$.  The ghost terms of \eqref{eq:U} are
+cubes of the same form, $(Z_g/M(U))\cf Rg\Phi_g(m)\Phi_g(n)$.  These are the ``kernel cubes'' of the other branch.  Its
+split channels are our split rows, and its kernel cube at $[5,3,1,1]$ (where $\mathrm{ex}=0$) is absorbed by our row of
+$\{[3,2,1,1],[5,2]\}$ on the enlarged support.
+
+The mirror covariance gives the \emph{mirror identity}.  Since $\mathrm{DB}(n,-1)$ is the mirror of $\Tw_{-n}$,
+\[
+\sum_c\frac{Z_c}{M(R_c)}\cf Rc\,\Phi_c(n)=H_R(\Tw_{-n})\big|_{A\to1/A,\,q\to1/q}.
+\]
+This is an identity between the twist-knot formula and itself, and it holds term by term by the mirror covariance.
+
+\paragraph{The deferred terms.}  The \emph{deferred} diagrams are the $U\ne[4,3,2,1]$ whose extra space (rows of the
+co-tops consistent with $U$, and the ghosts of $U$) is two-dimensional.  These are $[4,3,2]$, $[4,3,1,1]$, $[5,3,2]$,
+$[5,3,1,1]$, $[4,3,1,1,1]$ and their transposes.  The space is spanned by the normalised functionals $F_1$, $F_2$ of two
+co-tops, or of a co-top and the ghost for $[5,3,2]$ and $[3,3,2,1,1]$:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+$U$ & $F_1$, $F_2$\\
+\midrule
+$[4,3,2]$ & $\{[2,2,2],[3,3]\}$, $\{[2,2,2],[4,1,1]\}$\\
+$[4,3,1,1]$ & $\{[2,2,1,1],[4,2]\}$, $\{[3,1,1,1],[3,3]\}$\\
+$[5,3,2]$ & $\{[3,2,2],[5,1,1]\}$, the ghost of $[5,3,2]$\\
+$[5,3,1,1]$ & $\{[3,2,1,1],[5,2]\}$, $\{[4,1,1,1],[4,3]\}$\\
+$[4,3,1,1,1]$ & $\{[2,2,1,1,1],[4,2,1]\}$, $\{[3,1,1,1,1],[3,3,1]\}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Both obey the top-weight law and the monomial law: $F_i(\chih(U))=\rho(U)$, and $F_i(\Lam^m)=1,0,M(U)$ at $m=-1,0,1$.  So
+$h_0=F_1-F_2$ vanishes at $\Lam^{-1}$, $\Lam^0$, $\Lam^1$ and at $\chih(U)$, and in fact at $\chih(R)$ for every
+$|R|\le10$.  We take $h_1=F_1$, write $\delta\Phi_U(m)=h_0(\Lam^m)$, and set $\tau_U=Z^{\rm def}_U/(\rho(U)M(U))$, the same
+shape as $t_c$.  The constants close as products:
+\[
+\delta\Phi_U(2)=g_U(q)\,A^{a_U}\sigma_U(A,q),\qquad \delta\Phi_U(-2)=M(U)\,\delta\Phi_U(2)|_{A\to1/A,\,q\to1/q},\qquad
+Z^{\rm def}_U=\frac{K_U}{g_U(q)\,g_U(1/q)}.
+\]
+Here $\sigma_U$ is a polynomial and $K_U$ a product of quantum numbers and $D_k$, both from the fit of the other branch.
+The factors $g_U$ and the exponents $a_U$ are new:
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+$U$ & $a_U$ & $g_U(q)$ & $Z^{\rm def}_U$\\
+\midrule
+$[4,3,2]$ & $28$ & $q^{11}\{q^2\}\{q^5\}$ & $\{q\}^8[3]^3[4][6]/[2]\;D_{-5}D_{-4}D_{-3}^2D_{-2}D_0D_2D_3D_4D_5$\\
+$[4,3,1,1]$ & $28$ & $q^{3}\{q\}\{q^2\}$ & $-\{q\}^8[3]^2[4][5]^2[7]^2\;D_{-5}D_{-4}D_{-2}D_{-1}^2D_0D_1D_2D_4D_5$\\
+$[4,3,1,1,1]$ & $31$ & $-q^{-13}\{q^2\}^2$ & $-\{q\}^8[3]^3[4][6]^2[8]^2/[2]^2\;D_{-7}D_{-6}D_{-5}D_{-3}D_{-2}D_{-1}^2D_0D_1D_2D_4D_5$\\
+$[5,3,2]$ & $31$ & $q^{23}\{q^2\}\{q^6\}$ & $\{q\}^8[3][4]^3[7]\;D_{-5}D_{-4}D_{-3}^2D_{-2}D_{-1}D_2D_3D_4D_5D_6D_7$\\
+$[5,3,1,1]$ & $31$ & $-q^{17}\{q\}\{q^3\}$ & $-\{q\}^8[2]^3[4]^2[5]^3[8]^2/[3]^2\;D_{-5}D_{-4}D_{-2}D_{-1}^2D_0D_1D_2D_3D_5D_6D_7$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The transposes follow by $q\to1/q$.  The deferred terms are invisible to the twist knots up to ten boxes
+($\delta\Phi_U(\pm1)=0$, $h_0(\chih(R))=0$), and to the Borromean rings with colours of at most ten boxes.  The double
+braids with $|m|,|n|\ge2$ see them: without them, \eqref{eq:DB} fails at exactly the ten deferred diagrams.  For the
+nine-box $U$, $h_0(\chih(R))\ne0$ exactly at the five eleven-box diagrams $R\supsetneq[4,3,2,1]$.  So at those $R$ the
+twist knots acquire the term $Z^{\rm def}_U\bigl(\cf R{F_1^U}-\cf R{F_2^U}\bigr)\delta\Phi_U(m)$, a prediction that is not
+tested because those $R$ also need the block of $[4,3,2,1]$.
+
+\paragraph{What the twist knots see of the ghost layer.}  By the monomial law, $\varphi_f(1)=0$ iff $\varphi_f(-1)=0$ on
+$I_U$.  The ghost directions with $\varphi(\pm1)=0$ form a subspace of dimension $\mathrm{ex}(U)-1$ of every ghost space
+(nine of the ten of $[4,3,2,1]$).  A twist knot contracts one leg of $T$ with $\Lam^1$, so it sees the ghost part $T_U$
+of $T$ only through the slice $T_U(\Lam^1,\cdot,\cdot)$, which is the form $G^U$ of Section~\ref{sec:ghosts}: the
+components of $T_U$ with no leg along the remaining direction are invisible to every twist knot.  The double braids see
+all slices $T_U(\Lam^n,\cdot,\cdot)$, the ring legs the slices $T_U(\chih(S),\cdot,\cdot)$.
+
+\paragraph{Checks} (modulo $p$ at two points unless exact; nothing fitted except the factors $K_U$, $\sigma_U$ quoted
+from the other branch):
+\begin{itemize}
+\item The monomial law holds on every basis vector of every vanishing ideal $I_U$ with $|U|\le11$ ($845$ per point), on
+the $724$ rows of the formula, and on all $57$ ghost vectors up to eleven boxes, including $\mathrm{ex}\ge2$ and
+$[4,3,2,1]$.  It also holds on the $1371$ stored rows $E_8$--$E_{11}$ from the independent solvers.
+\item Double braids \eqref{eq:DB} against the strengthened engine, for all $137$ diagrams $|R|\le10$ except
+$R\supseteq[4,3,2,1]$: the grid $-4\le m\le n\le4$ and the whole eigenvalue-class matrix, i.e.\ equality for all integers
+$m$, $n$.  Without the deferred terms $127/137$.
+\item The Borromean rings \eqref{eq:borr} against the same engine: all $1140$ triples up to five boxes, $600$ random
+triples up to ten boxes, and $(R,R,R)$, $(R,R,S)$, $(R,S,T)$ with $S,T\supseteq R$ for every $R$; $2151$ per point.
+\item The mirror identity for $n=\pm2,\pm3,\pm4$ and all $137$ diagrams, from the twist-knot formula alone.
+\item Exact data, independent of both formulas (\LMPH{dbraid}, \LMPH{monomial}): the $18$ stored knots that are double
+braids, at all $29$ diagrams with $|R|\le6$ ($3_1=\mathrm{DB}(1,1)$, $4_1=\mathrm{DB}(-1,1)$, $5_2=\mathrm{DB}(1,2)$,
+$6_1=\mathrm{DB}(-1,2)$, $7_2=\mathrm{DB}(1,3)$, $7_4=\mathrm{DB}(2,2)$, $8_1=\mathrm{DB}(-1,3)$, $8_3=\mathrm{DB}(-2,2)$,
+$9_2=\mathrm{DB}(1,4)$, $9_5=\mathrm{DB}(2,3)$, $10_1=\mathrm{DB}(-1,4)$, $10_3=\mathrm{DB}(-2,3)$,
+$11a_{247}=\mathrm{DB}(1,5)$, $11a_{343}=\mathrm{DB}(2,4)$, $11a_{363}=\mathrm{DB}(3,3)$, $12a_{803}=\mathrm{DB}(-1,5)$,
+$12a_{1166}=\mathrm{DB}(-2,4)$, $12a_{1287}=\mathrm{DB}(-3,3)$, $522$ values).  Also $L6a4$ at all $29$ colours up to six
+boxes, and at $[4,3,1]$ with its ghost cube (analysis).  The mirror covariance of the rows holds entry by entry ($558$
+entries at $|R|\le6$).
+\item The deferred structure ($h_0\propto$ the other branch's vector, ten $U$) and the closed constants $\delta\Phi_U(\pm2)$,
+$Z^{\rm def}_U$ at two seeds and four further points ($240$ values).
+\end{itemize}
+
 \subsection{Status}
 
 From the closed rules alone (no vanishing condition solved), \eqref{eq:U} reproduces every stored polynomial and
@@ -1264,7 +1414,10 @@ $260$ stored values of the $26$ such diagrams up to six boxes exactly over $\mat
 single columns and engine pair columns, all $117$ diagrams up to ten boxes that have a row for every channel agree with all
 data.  With the ghost layer and the rows from the vanishing conditions, all diagrams up to ten boxes except $[4,3,2,1]$
 agree with the strengthened engine; for $[4,3,2,1]$ everything except ten ghost numbers per point agrees with the closed
-block of the other branch.  What remains open is the last row of Table~\ref{tab:N}.
+block of the other branch.  The cubic form (Section~\ref{sec:cubic}) extends all of this to the double braids and the
+Borromean rings: the same rows and constants, with the closed $\Phi_c(1)$ and the ten deferred terms, agree with the
+strengthened engine for every $R$ up to ten boxes except $R\supseteq[4,3,2,1]$, and with all stored exact double-braid and
+Borromean data.  What remains open is the last row of Table~\ref{tab:N}.
 
 \section{Checks}\label{sec:checks}
 
@@ -1315,6 +1468,9 @@ ghost layer of $[4,3,2,1]$ at $R=U$ (analysis) & lower part $118/118$ terms equa
 fixing principles at $R=U$ (analysis) & free parameters left by polynomiality / $+4_1$ amphichirality / $+$Rosso--Jones: $18$ / $1$ / $0$ (consistent) at $[4,3,1]$; $58$ / $35$ / $34$ at $[5,4,2]$ and $[6,4,1]$; $270$ / not run / $259$ at $[4,3,2,1]$\\
 four-row formula \eqref{eq:fourrow} (\LMPH{fourrow}) & $17$ pairs, $179$ single columns at $|R|\le6$ ($28$ pairs, $344$ columns with \LMPH{--nmax 7}), no mismatch; analysis: mod $p$ $869$ columns (8 boxes, two points), $1550$ columns (9 boxes)\\
 $K$-hook law \eqref{eq:khook} (\LMPH{khook}) & $17$ pairs at $|R|\le6$: diagonal $17/17$, first column $16/16$, adjacent non-landing $15/15$, implied $B$ entries $15/15$; analysis: exact $28$ pairs ($\le7$ boxes), mod $p$ $56$ pairs (8 boxes), $83$ pairs (9 boxes), no mismatch in the claimed classes\\
+monomial law, Observation~\ref{obs:monomial} (\LMPH{monomial}) & $\Phi_c(1)=M(R_c)$ and the mirror covariance of the rows: $49$ channels, $558$ entries at $|R|\le6$; $142$ channels, $3431$ entries with \LMPH{--nmax 8 --nb 12}; no mismatch; analysis: every basis vector of every $I_U$ with $|U|\le11$ ($845$), $724$ rows, $57$ ghost vectors, $1371$ stored rows $E_8$--$E_{11}$, two points\\
+double braids and Borromean rings, \eqref{eq:DB}, \eqref{eq:borr} (\LMPH{dbraid}) & exact data: $18$ double-braid knots at all $29$ diagrams $|R|\le6$ ($522$ values), $L6a4$ at all $29$ colours $|R|\le6$, the mirror identity ($290$ values at $|R|\le6$, $440$ with \LMPH{--nmax 7 --nb 10}); no mismatch; analysis: $L6a4$ at $[4,3,1]$ with the ghost cube\\
+cubic form against the strengthened engine (analysis) & double braids at all $137$ diagrams $|R|\le10$ except $R\supseteq[4,3,2,1]$, every $m,n$ (eigenvalue-class matrix), $137/137$, and $127/137$ without the deferred terms; Borromean rings $2151$ triples; mirror identity $137/137$; deferred constants $240/240$; two points\\
 \bottomrule
 \end{longtable}
 
@@ -1352,8 +1508,12 @@ ghost diagrams with two or more ghosts (from eleven boxes) and the four-corner d
 coordinates are open (the tops follow from the top-weight law with multiplicities, ten numbers per point remain for
 $[4,3,2,1]$), and none of the principles tested (polynomiality in $A$, the amphichirality of $4_1$, Rosso--Jones) fixes
 them once $\mathrm{ex}(U)\ge2$ (Section~\ref{sec:ghosts}).
-\item \textbf{Nothing is proved}: Conjectures \ref{conj:main}, \ref{conj:kntz}, \ref{conj:tab}, \ref{conj:U} and all
-Observations are statements verified on the data listed above only.
+\item \textbf{Double braids and Borromean rings} (Section~\ref{sec:cubic}): the cubic form is checked up to ten boxes
+and away from $[4,3,2,1]$ only; the factors $K_U$ and $\sigma_U$ of the deferred constants are those fitted by the other
+branch (new here are $g_U$, $a_U$ and the identification of $h_0$, $h_1$ with our rows); at eleven boxes the nine-box
+deferred terms should enter the twist knots at the five $R\supsetneq[4,3,2,1]$, which is not tested.
+\item \textbf{Nothing is proved}: Conjectures \ref{conj:main}, \ref{conj:kntz}, \ref{conj:tab}, \ref{conj:U},
+\ref{conj:cubic} and all Observations are statements verified on the data listed above only.
 \end{enumerate}
 
 \appendix
@@ -1558,7 +1718,8 @@ E_{c,[3]} &= -\frac{D_{1}\,D_{5}}{2\,D_{2}\,D_{4}} \\
 \begin{itemize}\raggedright
 \item \LMPH{python3 scripts/twist\_formula\_check.py} --- all checks of Section~\ref{sec:checks} from the data files
 (options \LMPH{--nmax}, \LMPH{--seed}, \LMPH{--nb}; individual checks \LMPH{data kntz phi f41 sym table pairs bmat binom
-pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed vacuum twocell lagrange}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
+pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed vacuum twocell lagrange monomial
+dbraid}; e.g.\ \LMPH{--nmax 6 binom pairn union hook khook fourrow
 adjres gap2 roots fullrow kernel} runs the checks of Sections \ref{sec:N}--\ref{sec:pairs} in under a minute, \LMPH{--nmax 7} extends
 them to seven boxes, and \LMPH{--nmax 7 --nb 10} imposes the vanishing conditions on all diagrams with at most ten boxes,
 which makes every channel with $|R|\le7$ full rank).
@@ -1571,7 +1732,8 @@ The closed formulas live in the functions \LMPH{kntz\_B} \eqref{eq:kntz}, \LMPH{
 and \LMPH{minimal\_pairs} for the census), \LMPH{pi\_vac} \eqref{eq:vacuum},
 \LMPH{pair\_diag} \eqref{eq:pdiag}, \LMPH{first\_pair\_column}, \LMPH{partner\_B}, \LMPH{xstar\_B} and \LMPH{twocell\_zero}
 (Observation~\ref{obs:twocell}), \LMPH{lagrange\_family}, \LMPH{pi\_monomials}, \LMPH{low\_columns} and
-\LMPH{check\_lagrange} \eqref{eq:lagrange}, and \LMPH{closed\_N} / \LMPH{closed\_H}, which build $N$ from the closed rules and
+\LMPH{check\_lagrange} \eqref{eq:lagrange}, \LMPH{mono\_M}, \LMPH{db\_formula} and \LMPH{borromean\_formula}
+(Section~\ref{sec:cubic}), and \LMPH{closed\_N} / \LMPH{closed\_H}, which build $N$ from the closed rules and
 evaluate \eqref{eq:U}.  \LMPH{--nmax 10 closed} is the end-to-end check (about two minutes).
 \item \LMPH{python3 -m pytest tests/test\_twist\_formula.py} --- fast subset.
 \item \LMPH{data/twist\_weights/twist\_weights\_le6.json} --- all $w_X(R)$, $|R|\le6$, as numerator/denominator

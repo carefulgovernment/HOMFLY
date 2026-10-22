@@ -59,9 +59,14 @@ checks:
   lagrange  the light columns of the non-resonant rows of N (singles, one-cell, two-cell) as Lagrange interpolants (L) in
           the Ebar-even composite power sums on the channels of one domino orientation (node census (U) to weight 10),
           and the explicit weight-3 columns
+  monomial  the monomial law Phi_c(1) = M(R_min(c)) = (-1)^{|R|} A^{2|R|} q^{2 kappa_R} for every clean channel with one
+          minimal diagram (with Phi_c(-1) = 1 and Phi_c(0) = 0 it closes the double-braid form of the formula)
+  dbraid  the cubic form H_R(DB(m, n)) = 1 + sum_c F_c(R) Phi_c(m) Phi_c(n) / M(R_min(c)) against the 18 stored
+          double-braid knots (all R <= 6), the mirror identity DB(n, -1)(A, q) = H_R(Tw_{-n})(1/A, 1/q), and the
+          Borromean rings b(R, R, R) = 1 + sum_c F_c(R)^3 / (d_c^2 phi_c(-1)^2 M(R_min(c))) against data/homfly/L6a4.txt
 
 usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed vacuum
-       twocell lagrange]
+       twocell lagrange monomial dbraid]
 """
 import argparse
 import gzip
@@ -2192,12 +2197,163 @@ def check_lagrange(nmax=6, seed=1):
                         cnt["low"], "none" if not bad else bad[:4])]
 
 
+# ---------------------------------------------------------------------------
+# double braids and Borromean rings: the cubic form of the formula
+# ---------------------------------------------------------------------------
+# DoubleBraid(m, n) among the stored knots (identified on H_[1]; a file holds DB(m, n) or its mirror DB(-m, -n))
+DB_KNOTS = {"3_1": (1, 1), "4_1": (-1, 1), "5_2": (1, 2), "6_1": (-1, 2), "7_2": (1, 3), "7_4": (2, 2),
+            "8_1": (-1, 3), "8_3": (-2, 2), "9_2": (1, 4), "9_5": (2, 3), "10_1": (-1, 4), "10_3": (-2, 3),
+            "11a_247": (1, 5), "11a_343": (2, 4), "11a_363": (3, 3), "12a_803": (-1, 5), "12a_1166": (-2, 4),
+            "12a_1287": (-3, 3)}
+L6A4 = os.path.join(ROOT, "data", "homfly", "L6a4.txt")
+
+
+def mono_M(R, F, A, q):
+    """M(R) = (-1)^{|R|} A^{2|R|} q^{2 kappa_R}: the value Phi_c(1) of every channel c with R_min(c) = R."""
+    v = A ** (2 * sum(R)) * q ** (2 * kappa(R))
+    return -v if sum(R) % 2 else v
+
+
+def check_monomial(nmax=6, seed=1):
+    """Monomial law: Phi_c(1) = phi_c(1)/phi_c(-1) = M(R_min(c)) for every clean channel with one minimal diagram, and
+    the mirror covariance of its row, E~_cX(1/A, 1/q) = E~_cX(A, q) / M(R_min(c)) entry by entry (vacuum column included)."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    ptm = I.Point(F, 1 / A, 1 / q)
+    clean, excluded = clean_channels(pt, channels_present(nmax))
+    counts, bad, multi, nent = {}, [], 0, 0
+    for c in clean:
+        rm = I.rmin(c)
+        if len(rm) != 1:
+            multi += 1
+            continue
+        kind = "single" if c[0] == "s" else pair_kind(c)
+        counts[kind] = counts.get(kind, 0) + 1
+        M = mono_M(rm[0], F, A, q)
+        ph, phm = pt.phi(c, -1), ptm.phi(c, -1)
+        if pt.phi(c, 1) != M * ph:
+            bad.append(c)
+        row, rowm = pt.E_row(c), ptm.E_row(c)
+        for X in list(row) + [VAC]:
+            e = -sum(row.values(), F.zero) if X == VAC else row[X]
+            em = -sum(rowm.values(), F.zero) if X == VAC else rowm.get(X, F.zero)
+            nent += 1
+            if em / phm != e / (ph * M):
+                bad.append(("mirror", c, X))
+    return not bad, ["monomial: Phi_c(1) = M(R_min) = (-1)^|R| A^{2|R|} q^{2 kappa_R} for every clean channel with one "
+                     "minimal diagram, |R| <= %d: %s; mirror covariance E~_cX(1/A, 1/q) = E~_cX / M(R_min): %d entries; %d "
+                     "channels with several minimal diagrams not tested; mismatches %s"
+                     % (nmax, ", ".join("%s %d" % (k, counts[k]) for k in sorted(counts)), nent, multi,
+                        "none" if not bad else bad[:4])]
+
+
+def cubic_terms(pt, R):
+    """[(c, F_c(R), phi_c(-1), M(R_min(c)))] for the channels of R (one minimal diagram each, as for |R| <= 8)."""
+    out = []
+    for c in I.channels_of(R):
+        rm = I.rmin(c)
+        if len(rm) != 1:
+            raise ValueError("channel %s of %s has several minimal diagrams" % (c, R))
+        Fc = pt.F_c(c, R)
+        if Fc != 0:
+            out.append((c, Fc, pt.phi(c, -1), mono_M(rm[0], pt.F, pt.A, pt.q)))
+    return out
+
+
+def db_formula(pt, R, mn):
+    """{(m, n): H_R(DoubleBraid(m, n))} from the cubic form 1 + sum_c F_c(R) Phi_c(m) Phi_c(n) / M(R_min(c))
+    (no ghost or deferred term: |R| <= 7)."""
+    out = {k: pt.F.one for k in mn}
+    for c, Fc, ph, M in cubic_terms(pt, R):
+        for m, n in mn:
+            out[(m, n)] = out[(m, n)] + Fc * pt.phi(c, m) * pt.phi(c, n) / (ph * ph * M)
+    return out
+
+
+def borromean_formula(pt, R1, R2, R3):
+    """b(R1, R2, R3) = 1 + sum_c F_c(R1) F_c(R2) F_c(R3) / (d_c^2 phi_c(-1)^2 M(R_min(c))): the sum over the channels
+    of R1 (a channel absent from R2 or R3 gives F_c = 0 there by the vanishing conditions)."""
+    tot = pt.F.one
+    for c, F1, ph, M in cubic_terms(pt, R1):
+        tot = tot + F1 * pt.F_c(c, R2) * pt.F_c(c, R3) / (pt.d(c) ** 2 * ph * ph * M)
+    return tot
+
+
+def load_link_table(path):
+    """{R: {(i, j): c}} of the numerators N of a stored link table (H_R = N / prod_b {q^{h(b)}}^2)."""
+    if path not in _tables:
+        H, R = {}, None
+        with open(path) as f:
+            for line in f:
+                if line.startswith("R = "):
+                    R = tuple(int(x) for x in line[4:].strip(" []\n").split(","))
+                elif line.startswith("N = ") and R is not None:
+                    H[R] = dict(parse_laurent(line[4:].strip()).terms)
+        _tables[path] = H
+    return _tables[path]
+
+
+def check_dbraid(nmax=6, seed=1, mirror_ns=(-6, -5, -4, -3, -2, 2, 3, 4, 5, 6)):
+    """The cubic form for double braids, H_R(DB(m, n)) = 1 + sum_c F_c(R) Phi_c(m) Phi_c(n) / M(R_min(c)), with the
+    closed Phi_c(1) = M(R_min(c)): (a) against every stored double-braid knot (18 knots up to 12 crossings, chirality
+    identified on H_[1]) at every stored R with |R| <= min(nmax, 6); (b) the mirror identity DB(n, -1)(A, q) =
+    H_R(Tw_{-n})(1/A, 1/q), the right side from the twist-knot formula at the mirror point, |R| <= nmax; (c) the
+    Borromean rings L6a4 (all components coloured R, stored with |R| <= 6) against 1 + sum_c F_c(R)^3 / (d_c^2
+    phi_c(-1)^2 M(R_min(c))), times d_R^2."""
+    from homfly.reps.qdim import qdim
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    ptm = I.Point(F, 1 / A, 1 / q)
+    bad, chir, nvals = [], {}, 0
+    for knot, mn in DB_KNOTS.items():
+        v1 = db_formula(pt, (1,), [mn])[mn]
+        if v1 == data_value(knot, (1,), F, A, q):
+            chir[knot] = False
+        elif v1 == data_value(knot, (1,), F, A, q, mirror=True):
+            chir[knot] = True
+        else:
+            bad.append((knot, "not identified"))
+            continue
+        for k in range(1, min(nmax, 6) + 1):
+            for R in partitions(k):
+                if not has_data(knot, R):
+                    continue
+                nvals += 1
+                if db_formula(pt, R, [mn])[mn] != data_value(knot, R, F, A, q, mirror=chir[knot]):
+                    bad.append((knot, R))
+    nmir = 0
+    for k in range(1, nmax + 1):
+        for R in partitions(k):
+            db = db_formula(pt, R, [(n, -1) for n in mirror_ns])
+            for n in mirror_ns:
+                nmir += 1
+                if db[(n, -1)] != formula_value(ptm, R, -n):
+                    bad.append(("mirror", R, n))
+    nb = 0
+    for R, t in load_link_table(L6A4).items():
+        if sum(R) > min(nmax, 6):
+            continue
+        val = F.zero
+        for (i, j), c in t.items():
+            val = val + c * A ** i * q ** j
+        for b in boxes(R):
+            val = val / curly(q ** hook(R, b)) ** 2
+        nb += 1
+        if val != borromean_formula(pt, R, R, R) * qdim(R, A, q) ** 2:
+            bad.append(("L6a4", R))
+    return not bad, ["dbraid: DB(m, n) = 1 + sum_c F_c Phi_c(m) Phi_c(n) / M(R_min): %d stored values of %d double-braid "
+                     "knots (%d stored as the mirror), |R| <= %d; mirror identity DB(n, -1) = Tw_{-n}(1/A, 1/q) %d values, "
+                     "|R| <= %d; Borromean L6a4 %d colours; mismatches %s"
+                     % (nvals, len(chir), sum(chir.values()), min(nmax, 6), nmir, nmax, nb,
+                        "none" if not bad else bad[:4])]
+
+
 CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check_f41, "sym": check_sym,
           "table": check_table, "pairs": check_pairs, "bmat": check_bmat, "binom": check_binom, "pairn": check_pairn,
           "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
           "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow, "kernel": check_kernel,
           "topweight": check_topweight, "mult": check_mult, "closed": check_closed, "vacuum": check_vacuum,
-          "twocell": check_twocell, "lagrange": check_lagrange}
+          "twocell": check_twocell, "lagrange": check_lagrange, "monomial": check_monomial, "dbraid": check_dbraid}
 
 
 def set_node_bound(nb):
