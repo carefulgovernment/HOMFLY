@@ -61,12 +61,16 @@ checks:
           and the explicit weight-3 columns
   monomial  the monomial law Phi_c(1) = M(R_min(c)) = (-1)^{|R|} A^{2|R|} q^{2 kappa_R} for every clean channel with one
           minimal diagram (with Phi_c(-1) = 1 and Phi_c(0) = 0 it closes the double-braid form of the formula)
+  ideal   the ideal identity: f(U) = rho(U) phi_f(-1) and phi_f(1) = M(U) phi_f(-1) on every basis vector of the
+          vanishing ideal I_U of every diagram U, ghosts included (--nmax 10: all 138 diagrams, [4,3,2,1] with its ten
+          ghosts); so the rows cannot carry the multiplicity m_c = 2
   dbraid  the cubic form H_R(DB(m, n)) = 1 + sum_c F_c(R) Phi_c(m) Phi_c(n) / M(R_min(c)) against the 18 stored
-          double-braid knots (all R <= 6), the mirror identity DB(n, -1)(A, q) = H_R(Tw_{-n})(1/A, 1/q), and the
-          Borromean rings b(R, R, R) = 1 + sum_c F_c(R)^3 / (d_c^2 phi_c(-1)^2 M(R_min(c))) against data/homfly/L6a4.txt
+          double-braid knots (all R <= 6) and the A-window of each stored polynomial, the mirror identity
+          DB(n, -1)(A, q) = H_R(Tw_{-n})(1/A, 1/q), and the Borromean rings b(R, R, R) = 1 + sum_c F_c(R)^3 / (d_c^2
+          phi_c(-1)^2 M(R_min(c))) against data/homfly/L6a4.txt
 
 usage: python3 scripts/twist_formula_check.py [--nmax 6] [--seed 1] [--nb 10] [data kntz phi f41 sym table pairs bmat binom pairn union hook khook fourrow adjres gap2 roots fullrow kernel topweight mult closed vacuum
-       twocell lagrange monomial dbraid]
+       twocell lagrange monomial ideal dbraid]
 """
 import argparse
 import gzip
@@ -2247,6 +2251,75 @@ def check_monomial(nmax=6, seed=1):
                         "none" if not bad else bad[:4])]
 
 
+def ideal_basis(pt, U, extra=3):
+    """(labels, basis) of the vanishing ideal I_U: the f = sum_X f_X psi_X, X over the channels present at U, with
+    f(S) = 0 for every S not containing U, the conditions imposed on all S with at most |U| + extra boxes."""
+    F = pt.F
+    labs = I.channels_of(U)
+    n = len(labs)
+    red, piv = [], []
+    for k in range(sum(U) + extra + 1):
+        for S in partitions(k):
+            if I.contains(S, U):
+                continue
+            r = [pt.psi(X, S) for X in labs]
+            for pc, pr in zip(piv, red):
+                if r[pc] != 0:
+                    f = r[pc]
+                    r = [a - f * b for a, b in zip(r, pr)]
+            p = next((i for i in range(n) if r[i] != 0), None)
+            if p is None:
+                continue
+            inv = F.one / r[p]
+            r = [a * inv for a in r]
+            for j, pr in enumerate(red):
+                if pr[p] != 0:
+                    f = pr[p]
+                    red[j] = [a - f * b for a, b in zip(pr, r)]
+            red.append(r)
+            piv.append(p)
+    basis = []
+    for fi in (i for i in range(n) if i not in piv):
+        v = [F.zero] * n
+        v[fi] = F.one
+        for pc, pr in zip(piv, red):
+            v[pc] = -pr[fi]
+        basis.append(v)
+    return labs, basis
+
+
+def check_ideal(nmax=6, seed=1):
+    """The ideal identity: on the vanishing ideal I_U of every diagram U the evaluation at U and the twist functionals
+    at m = 1, -1 are proportional,
+        f(U) = rho(U) phi_f(-1),    phi_f(1) = M(U) phi_f(-1),    phi_f(m) = sum_X f_X (Lambda_X^m - 1),
+    on every basis vector of I_U (dim I_U = #tops + #co-tops + ex(U), ghosts included; ex = 1 first at [4,3,1], 10 at
+    [4,3,2,1]).  For a top row this is the top-weight law with m_c = 1 and the monomial law, so a row cannot carry the
+    multiplicity m_c(R_min) = 2."""
+    F, A, q = random_point(seed)
+    pt = I.Point(F, A, q)
+    nd = nvec = 0
+    bad, ghosts = [], {}
+    for k in range(1, nmax + 1):
+        for U in partitions(k):
+            labs, basis = ideal_basis(pt, U)
+            rho, M = rho_top(U, F, A, q), mono_M(U, F, A, q)
+            ntc = sum(1 for c in labs if U in I.rmin(c))
+            if len(basis) > ntc:
+                ghosts[U] = len(basis) - ntc
+            nd += 1
+            for v in basis:
+                nvec += 1
+                fU = sum((a * pt.psi(X, U) for X, a in zip(labs, v)), F.zero)
+                p1 = sum((a * (pt.Lam(X) - 1) for X, a in zip(labs, v)), F.zero)
+                pm = sum((a * (1 / pt.Lam(X) - 1) for X, a in zip(labs, v)), F.zero)
+                if fU != rho * pm or p1 != M * pm:
+                    bad.append(U)
+    return not bad, ["ideal: f(U) = rho(U) phi_f(-1) and phi_f(1) = M(U) phi_f(-1) on every basis vector of I_U, all %d "
+                     "diagrams |U| <= %d (%d vectors, conditions on |S| <= |U| + 3); ghosts %s; mismatches %s"
+                     % (nd, nmax, nvec, ", ".join("%s %d" % (list(U), e) for U, e in ghosts.items()) or "none",
+                        "none" if not bad else bad[:4])]
+
+
 def cubic_terms(pt, R):
     """[(c, F_c(R), phi_c(-1), M(R_min(c)))] for the channels of R (one minimal diagram each, as for |R| <= 8)."""
     out = []
@@ -2293,10 +2366,21 @@ def load_link_table(path):
     return _tables[path]
 
 
+def db_window(m, n, N):
+    """The A-window of H_R(DB(m, n)), N = |R|: [2N, 2(m+n)N] for m, n > 0, its negative for m, n < 0, and
+    [2 min(m, n) N, 2 max(m, n) N] for mn < 0 (both ends attained)."""
+    if m > 0 and n > 0:
+        return 2 * N, 2 * (m + n) * N
+    if m < 0 and n < 0:
+        return 2 * (m + n) * N, -2 * N
+    return 2 * min(m, n) * N, 2 * max(m, n) * N
+
+
 def check_dbraid(nmax=6, seed=1, mirror_ns=(-6, -5, -4, -3, -2, 2, 3, 4, 5, 6)):
     """The cubic form for double braids, H_R(DB(m, n)) = 1 + sum_c F_c(R) Phi_c(m) Phi_c(n) / M(R_min(c)), with the
     closed Phi_c(1) = M(R_min(c)): (a) against every stored double-braid knot (18 knots up to 12 crossings, chirality
-    identified on H_[1]) at every stored R with |R| <= min(nmax, 6); (b) the mirror identity DB(n, -1)(A, q) =
+    identified on H_[1]) at every stored R with |R| <= min(nmax, 6), and the A-window of the stored polynomial
+    (db_window, exact); (b) the mirror identity DB(n, -1)(A, q) =
     H_R(Tw_{-n})(1/A, 1/q), the right side from the twist-knot formula at the mirror point, |R| <= nmax; (c) the
     Borromean rings L6a4 (all components coloured R, stored with |R| <= 6) against 1 + sum_c F_c(R)^3 / (d_c^2
     phi_c(-1)^2 M(R_min(c))), times d_R^2."""
@@ -2321,6 +2405,11 @@ def check_dbraid(nmax=6, seed=1, mirror_ns=(-6, -5, -4, -3, -2, 2, 3, 4, 5, 6)):
                 nvals += 1
                 if db_formula(pt, R, [mn])[mn] != data_value(knot, R, F, A, q, mirror=chir[knot]):
                     bad.append((knot, R))
+                ea = [i for (i, j), c in load_table(data_file(knot))[R].items() if c]
+                if chir[knot]:
+                    ea = [-i for i in ea]
+                if (min(ea), max(ea)) != db_window(mn[0], mn[1], k):
+                    bad.append(("window", knot, R))
     nmir = 0
     for k in range(1, nmax + 1):
         for R in partitions(k):
@@ -2342,7 +2431,9 @@ def check_dbraid(nmax=6, seed=1, mirror_ns=(-6, -5, -4, -3, -2, 2, 3, 4, 5, 6)):
         if val != borromean_formula(pt, R, R, R) * qdim(R, A, q) ** 2:
             bad.append(("L6a4", R))
     return not bad, ["dbraid: DB(m, n) = 1 + sum_c F_c Phi_c(m) Phi_c(n) / M(R_min): %d stored values of %d double-braid "
-                     "knots (%d stored as the mirror), |R| <= %d; mirror identity DB(n, -1) = Tw_{-n}(1/A, 1/q) %d values, "
+                     "knots (%d stored as the mirror), |R| <= %d, each with its A-window [2N, 2(m+n)N] (m, n > 0; mirrored "
+                     "for m, n < 0; [2N min, 2N max] for mn < 0) attained at both ends; mirror identity DB(n, -1) = "
+                     "Tw_{-n}(1/A, 1/q) %d values, "
                      "|R| <= %d; Borromean L6a4 %d colours; mismatches %s"
                      % (nvals, len(chir), sum(chir.values()), min(nmax, 6), nmir, nmax, nb,
                         "none" if not bad else bad[:4])]
@@ -2353,7 +2444,8 @@ CHECKS = {"data": check_data, "kntz": check_kntz, "phi": check_phi, "f41": check
           "union": check_union, "hook": check_hook, "khook": check_khook, "fourrow": check_fourrow,
           "adjres": check_adjres, "gap2": check_gap2, "roots": check_roots, "fullrow": check_fullrow, "kernel": check_kernel,
           "topweight": check_topweight, "mult": check_mult, "closed": check_closed, "vacuum": check_vacuum,
-          "twocell": check_twocell, "lagrange": check_lagrange, "monomial": check_monomial, "dbraid": check_dbraid}
+          "twocell": check_twocell, "lagrange": check_lagrange, "monomial": check_monomial, "ideal": check_ideal,
+          "dbraid": check_dbraid}
 
 
 def set_node_bound(nb):

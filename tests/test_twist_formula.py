@@ -177,7 +177,15 @@ def test_monomial_law():
     assert ok, lines
 
 
+def test_ideal_identity():
+    """f(U) = rho(U) phi_f(-1) and phi_f(1) = M(U) phi_f(-1) on the whole vanishing ideal I_U, |U| <= 8 (the ghosts of
+    [4,3,1] and [3,2,2,1] included)."""
+    ok, lines = T.check_ideal(nmax=8, seed=28)
+    assert ok, lines
+
+
 def test_double_braids_and_borromean():
-    """The cubic form of the formula against the stored double-braid knots, the mirror identity and L6a4 (|R| <= 4)."""
+    """The cubic form of the formula against the stored double-braid knots, their A-windows, the mirror identity and
+    L6a4 (|R| <= 4)."""
     ok, lines = T.check_dbraid(nmax=4, seed=27)
     assert ok, lines
